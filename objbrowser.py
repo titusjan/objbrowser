@@ -54,9 +54,9 @@ class ObjectBrowser(QtGui.QMainWindow):
     """
     # Tree column indices
     COL_NAME = 0
-    COL_VALUE = 1
-    COL_TYPE = 2
-    COL_CLASS = 3
+    COL_TYPE = 1
+    COL_CLASS = 2
+    COL_VALUE = 3
     
     def __init__(self, obj = None):
         """ Constructor
@@ -66,10 +66,10 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Table columns
         self.col_settings = dict()
-        self.col_settings[self.COL_NAME]  = ColumnSettings('Name')
-        self.col_settings[self.COL_VALUE] = ColumnSettings('Value', width=300)
+        self.col_settings[self.COL_NAME]  = ColumnSettings('Name', width=200)
         self.col_settings[self.COL_TYPE]  = ColumnSettings('Type', visible=False)
-        self.col_settings[self.COL_CLASS] = ColumnSettings('Class')
+        self.col_settings[self.COL_CLASS] = ColumnSettings('Class', width=80)
+        self.col_settings[self.COL_VALUE] = ColumnSettings('Value')
         
         # Views
         self._setup_actions()
@@ -132,11 +132,12 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         for idx, settings in self.col_settings.iteritems():
             self.obj_tree.headerItem().setText(idx, settings.name)  
+            logger.debug("resizing {}: {:d}".format(settings.name, settings.width))
             self.obj_tree.header().resizeSection(idx, settings.width)
         
         # Don't stretch last column, it doesn't play nice when columns are 
         # hidden and then shown again
-        self.obj_tree.header().setStretchLastSection(False) 
+        self.obj_tree.header().setStretchLastSection(True) 
         central_layout.addWidget(self.obj_tree)
 
         # Editor widget
@@ -170,26 +171,42 @@ class ObjectBrowser(QtGui.QMainWindow):
         logger.debug("my_test")
         
     
-    def _populate_tree(self, obj):
+    def _populate_tree(self, root_obj, root_name='<root>'):
         """ Fills the tree using a python object.
         """
-        logger.debug("_populate_tree with object id = 0x{:x}".format(id(obj)))
-        obj_type = type(obj)
-        parent_item = self.obj_tree
+        logger.debug("_populate_tree with object id = 0x{:x}".format(id(root_obj)))
         
-        if obj_type == types.DictionaryType:
-            for key, value in sorted(obj.iteritems()):
-                tree_item = QtGui.QTreeWidgetItem(parent_item)                
-                logger.debug("Inserting: {}".format(key))
-                tree_item.setText(self.COL_NAME, key)
-                tree_item.setText(self.COL_VALUE, repr(value))
-                tree_item.setText(self.COL_TYPE, str(type(value)))
-                tree_item.setText(self.COL_CLASS, class_name(value))
-        else:
-            logger.warn("Unexpected object type: {}".format(obj_type))
-            
-        #self.obj_tree.expandToDepth(1)
+        def add_node(parent_item, obj, obj_name):
+            """ Helper function that recursively adds nodes.
 
+                :param parent_item: The parent QTreeWidgetItem to which this node will be added
+                :param obj: The object that will be added to the tree.
+                :param obj_name: Labels how this node is known to the parent
+            """
+            logger.debug("Inserting: {}".format(obj_name))
+            
+            tree_item = QtGui.QTreeWidgetItem(parent_item)                
+            
+            tree_item.setText(self.COL_NAME, str(obj_name))
+            tree_item.setText(self.COL_VALUE, repr(obj))
+            tree_item.setText(self.COL_TYPE, str(type(obj)))
+            tree_item.setText(self.COL_CLASS, class_name(obj))
+            
+            # TODO: sets and objects
+            
+            obj_type = type(obj)
+            if obj_type == types.ListType or obj_type == types.TupleType:
+                for idx, value in enumerate(obj):
+                    add_node(tree_item, value, idx)
+            elif obj_type == types.DictionaryType:
+                for key, value in sorted(obj.iteritems()):
+                    add_node(tree_item, value, key)
+        # End helper function.
+        
+        self.obj_tree.clear()    
+        add_node(self.obj_tree, root_obj, root_name)
+        self.obj_tree.expandToDepth(0)
+        
         
  
     @QtCore.Slot(QtGui.QTreeWidgetItem, QtGui.QTreeWidgetItem)
@@ -228,13 +245,15 @@ def call_viewer_test():
     class OldStyleClass: pass
     class NewStyleClass(object): pass
     
+    # todo: sets/objects.
+    
     x_plus_2 = lambda x: x+2
     
     d = {'4': 44, 's': 11}
     a = 6
     b = 'seven'
     n = None
-    lst = [4, '4', d, ['r', dir]]
+    lst = [4, '4', d, ['r', dir], class_name, QtGui]
     
     obj_browser = ObjectBrowser(obj = locals())
     obj_browser.resize(1000, 600)
