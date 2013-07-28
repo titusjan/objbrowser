@@ -20,11 +20,6 @@ ABOUT_MESSAGE = u"""%(prog)s version %(version)s
 """ % {"prog": PROGRAM_NAME, "version": PROGRAM_VERSION}
 
 
-# Tree column indices
-COL_NAME = 0
-COL_VALUE = 1
-COL_TYPE = 2
-COL_CLASS = 3
 
 
 # The main window inherits from a Qt class, therefore it has many 
@@ -42,15 +37,39 @@ def class_name(obj):
     except AttributeError:
         return ''
 
+class ColumnSettings(object):
+    """ Class that stores INITIAL column settings. """
+    
+    def __init__(self, name, width=150, visible=True):
+        """ Constructor to set mandatory and default settings) """
+        self.name = name
+        self.visible = visible
+        self.width = width
+        self.toggle_action = None  # action to show/hide column
+        self.toggle_function = None # function that shows/hides column
+        
 
 class ObjectBrowser(QtGui.QMainWindow):
     """ The main application.
     """
+    # Tree column indices
+    COL_NAME = 0
+    COL_VALUE = 1
+    COL_TYPE = 2
+    COL_CLASS = 3
+    
     def __init__(self, obj = None):
         """ Constructor
             :param obj: any python object or variable
         """
         super(ObjectBrowser, self).__init__()
+        
+        # Table columns
+        self.col_settings = dict()
+        self.col_settings[self.COL_NAME]  = ColumnSettings('Name')
+        self.col_settings[self.COL_VALUE] = ColumnSettings('Value', width=300)
+        self.col_settings[self.COL_TYPE]  = ColumnSettings('Type', visible=False)
+        self.col_settings[self.COL_CLASS] = ColumnSettings('Class')
         
         # Views
         self._setup_actions()
@@ -59,40 +78,26 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.setWindowTitle(PROGRAM_NAME)
         
         # Update views with model
-        #self.col_name_action.setChecked(False)
-        #self.col_class_action.setChecked(False)
-        #self.col_value_action.setChecked(False)
+        for settings in self.col_settings.itervalues():
+            settings.toggle_action.setChecked(settings.visible)
         
-        self.populate_tree(obj)
+        self._populate_tree(obj)
 
 
     def _setup_actions(self):
         """ Creates the MainWindow actions.
-        """  
-        self.col_name_action = QtGui.QAction(
-            "Show Name Column", self, checkable=True, checked=True,
-            statusTip = "Shows or hides the Name column")
-        self.col_name_action.setShortcut("Ctrl+1")
-        self.col_name_action.toggled.connect(self.show_name_column)
-                
-        self.col_value_action = QtGui.QAction(
-            "Show Value Column", self, checkable=True, checked=True,
-            statusTip = "Shows or hides the Value column")
-        self.col_value_action.setShortcut("Ctrl+2")
-        self.col_value_action.toggled.connect(self.show_value_column)
+        """
+        # Create actions for the table columns from its settings.
+        for col_idx, settings in sorted(self.col_settings.iteritems()):
+            settings.toggle_action = QtGui.QAction("Show {} Column".format(settings.name), 
+                                                   self, checkable=True, checked=True,
+                                                   statusTip = "Shows or hides the {} column".
+                                                                format(settings.name))
+            if col_idx >= 0 and col_idx <= 9:
+                settings.toggle_action.setShortcut("Ctrl+{:d}".format(col_idx))
+            settings.toggle_function = self._make_show_column_function(col_idx) # keep reference
+            assert settings.toggle_action.toggled.connect(settings.toggle_function)
 
-        self.col_type_action = QtGui.QAction(
-            "Show Type Column", self, checkable=True, checked=True,
-            statusTip = "Shows or hides the Type column")
-        self.col_type_action.setShortcut("Ctrl+3")
-        self.col_type_action.toggled.connect(self.show_type_column)
-        
-        self.col_class_action = QtGui.QAction(
-            "Show Class Column", self, checkable=True, checked=True,
-            statusTip = "Shows or hides the Class column")
-        self.col_class_action.setShortcut("Ctrl+4")
-        self.col_class_action.toggled.connect(self.show_class_column)
-                              
                               
     def _setup_menu(self):
         """ Sets up the main menu.
@@ -105,10 +110,8 @@ class ObjectBrowser(QtGui.QMainWindow):
             file_menu.addAction("&Test", self.my_test, "Ctrl+T")
         
         view_menu = self.menuBar().addMenu("&View")
-        view_menu.addAction(self.col_name_action)        
-        view_menu.addAction(self.col_class_action)        
-        view_menu.addAction(self.col_value_action)        
-        view_menu.addAction(self.col_type_action)        
+        for _idx, settings in sorted(self.col_settings.iteritems()):
+            view_menu.addAction(settings.toggle_action)
         
         self.menuBar().addSeparator()
         help_menu = self.menuBar().addMenu("&Help")
@@ -125,14 +128,11 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Tree widget
         self.obj_tree = QtGui.QTreeWidget()
-        #self.obj_tree.setColumnCount(2)
+        self.obj_tree.setColumnCount(len(self.col_settings))
         
-        DEF_COL_WIDTH = 200 
-        self.obj_tree.setHeaderLabels(["Name", "Value", "Type", "Class"])
-        self.obj_tree.header().resizeSection(COL_NAME, DEF_COL_WIDTH)
-        self.obj_tree.header().resizeSection(COL_VALUE, DEF_COL_WIDTH)
-        self.obj_tree.header().resizeSection(COL_TYPE, DEF_COL_WIDTH)
-        self.obj_tree.header().resizeSection(COL_CLASS, DEF_COL_WIDTH)
+        for idx, settings in self.col_settings.iteritems():
+            self.obj_tree.headerItem().setText(idx, settings.name)  
+            self.obj_tree.header().resizeSection(idx, settings.width)
         
         # Don't stretch last column, it doesn't play nice when columns are 
         # hidden and then shown again
@@ -159,19 +159,21 @@ class ObjectBrowser(QtGui.QMainWindow):
         central_splitter.setStretchFactor(1, 70)
                
         # Connect signals
-        self.obj_tree.currentItemChanged.connect(self.update_details)
+        assert self.obj_tree.currentItemChanged.connect(self._update_details)
 
 
     # End of setup_methods
     # pylint: enable=W0201
 
-
-   
+    def my_test(self):
+        """ Function for testing """
+        logger.debug("my_test")
+        
     
-    def populate_tree(self, obj):
+    def _populate_tree(self, obj):
         """ Fills the tree using a python object.
         """
-        logger.debug("populate_tree with object id = 0x{:x}".format(id(obj)))
+        logger.debug("_populate_tree with object id = 0x{:x}".format(id(obj)))
         obj_type = type(obj)
         parent_item = self.obj_tree
         
@@ -179,10 +181,10 @@ class ObjectBrowser(QtGui.QMainWindow):
             for key, value in sorted(obj.iteritems()):
                 tree_item = QtGui.QTreeWidgetItem(parent_item)                
                 logger.debug("Inserting: {}".format(key))
-                tree_item.setText(COL_NAME, key)
-                tree_item.setText(COL_VALUE, repr(value))
-                tree_item.setText(COL_TYPE, str(type(value)))
-                tree_item.setText(COL_CLASS, class_name(value))
+                tree_item.setText(self.COL_NAME, key)
+                tree_item.setText(self.COL_VALUE, repr(value))
+                tree_item.setText(self.COL_TYPE, str(type(value)))
+                tree_item.setText(self.COL_CLASS, class_name(value))
         else:
             logger.warn("Unexpected object type: {}".format(obj_type))
             
@@ -191,36 +193,18 @@ class ObjectBrowser(QtGui.QMainWindow):
         
  
     @QtCore.Slot(QtGui.QTreeWidgetItem, QtGui.QTreeWidgetItem)
-    def update_details(self, current_item, _previous_item):
+    def _update_details(self, current_item, _previous_item):
         """ Highlights the node if it has line:col information.
         """
         #self.editor.clear()
-        self.editor.setPlainText(current_item.text(COL_VALUE))
+        self.editor.setPlainText(current_item.text(self.COL_VALUE))
 
-    @QtCore.Slot(int)
-    def show_name_column(self, checked):
-        """ Shows or hides the name column"""
-        self.obj_tree.setColumnHidden(COL_NAME, not checked)                
+    
+    def _make_show_column_function(self, column_idx):
+        """ Creates a function that shows or hides a column."""
+        show_column = lambda checked: self.obj_tree.setColumnHidden(column_idx, not checked)
+        return show_column     
 
-    @QtCore.Slot(int)
-    def show_value_column(self, checked):
-        """ Shows or hides the value column"""
-        self.obj_tree.setColumnHidden(COL_VALUE, not checked)                
-
-    @QtCore.Slot(int)
-    def show_type_column(self, checked):
-        """ Shows or hides the type column"""
-        self.obj_tree.setColumnHidden(COL_TYPE, not checked)                
-
-    @QtCore.Slot(int)
-    def show_class_column(self, checked):
-        """ Shows or hides the class column"""
-        self.obj_tree.setColumnHidden(COL_CLASS, not checked)                
-
-
-    def my_test(self):
-        """ Function for testing """
-        logger.debug("my_test")
 
     def about(self):
         """ Shows the about message window. """
@@ -246,6 +230,7 @@ def call_viewer_test():
     class OldStyleClass: pass
     
     class NewStyleClass(object): pass
+    x_plus_2 = lambda x: x+2
     
     d = {'4': 44, 's': 11}
     a = 6
