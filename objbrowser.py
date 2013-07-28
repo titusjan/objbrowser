@@ -1,6 +1,6 @@
 
 """ 
-   Program that shows the local python environment using the inspect module
+   Program that shows the local Python environment using the inspect module
 """
 from __future__ import print_function
 
@@ -20,12 +20,6 @@ ABOUT_MESSAGE = u"""%(prog)s version %(version)s
 """ % {"prog": PROGRAM_NAME, "version": PROGRAM_VERSION}
 
 
-
-
-# The main window inherits from a Qt class, therefore it has many 
-# ancestors public methods and attributes.
-# pylint: disable=R0901, R0902, R0904 
-
         
 def class_name(obj):
     """ Returns the name of the class of the object.
@@ -36,6 +30,8 @@ def class_name(obj):
         return obj.__class__.__name__
     except AttributeError:
         return ''
+
+
 
 class ColumnSettings(object):
     """ Class that stores INITIAL column settings. """
@@ -48,6 +44,10 @@ class ColumnSettings(object):
         self.toggle_action = None  # action to show/hide column
         self.toggle_function = None # function that shows/hides column
         
+        
+# The main window inherits from a Qt class, therefore it has many 
+# ancestors public methods and attributes.
+# pylint: disable=R0901, R0902, R0904 
 
 class ObjectBrowser(QtGui.QMainWindow):
     """ The main application.
@@ -194,7 +194,7 @@ class ObjectBrowser(QtGui.QMainWindow):
  
     @QtCore.Slot(QtGui.QTreeWidgetItem, QtGui.QTreeWidgetItem)
     def _update_details(self, current_item, _previous_item):
-        """ Highlights the node if it has line:col information.
+        """ Shows the object details in the editor
         """
         #self.editor.clear()
         self.editor.setPlainText(current_item.text(self.COL_VALUE))
@@ -225,11 +225,9 @@ class ObjectBrowser(QtGui.QMainWindow):
 def call_viewer_test():
     """ Test procedure. 
     """
-    logger.debug("start call_viewer_test")
-    
     class OldStyleClass: pass
-    
     class NewStyleClass(object): pass
+    
     x_plus_2 = lambda x: x+2
     
     d = {'4': 44, 's': 11}
@@ -238,14 +236,10 @@ def call_viewer_test():
     n = None
     lst = [4, '4', d, ['r', dir]]
     
-    env = locals()
-    logger.debug("locals: {}".format(env))
-    
-    obj_browser = ObjectBrowser(obj = env)
+    obj_browser = ObjectBrowser(obj = locals())
     obj_browser.resize(1000, 600)
     obj_browser.show()
     
-    logger.debug("end call_viewer_test")
     return obj_browser # to keep a reference
 
         
