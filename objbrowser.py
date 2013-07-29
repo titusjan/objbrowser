@@ -53,10 +53,11 @@ class ObjectBrowser(QtGui.QMainWindow):
     """ The main application.
     """
     # Tree column indices
-    COL_NAME = 0
-    COL_TYPE = 1
-    COL_CLASS = 2
-    COL_VALUE = 3
+    COL_PATH = 0
+    COL_NAME = 1
+    COL_TYPE = 2
+    COL_CLASS = 3
+    COL_VALUE = 4
     
     def __init__(self, obj = None):
         """ Constructor
@@ -66,7 +67,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Table columns
         self.col_settings = dict()
-        self.col_settings[self.COL_NAME]  = ColumnSettings('Name', width=200)
+        self.col_settings[self.COL_PATH]  = ColumnSettings('Path', width=200)
+        self.col_settings[self.COL_NAME]  = ColumnSettings('Name', visible=False, width=80)
         self.col_settings[self.COL_TYPE]  = ColumnSettings('Type', visible=False)
         self.col_settings[self.COL_CLASS] = ColumnSettings('Class', width=80)
         self.col_settings[self.COL_VALUE] = ColumnSettings('Value')
@@ -149,7 +151,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.editor = QtGui.QPlainTextEdit()
         self.editor.setReadOnly(True)
         self.editor.setFont(font)
-        self.editor.setWordWrapMode(QtGui.QTextOption.NoWrap)
+        #self.editor.setWordWrapMode(QtGui.QTextOption.NoWrap)
         central_layout.addWidget(self.editor)
         
         # Splitter parameters
@@ -171,40 +173,42 @@ class ObjectBrowser(QtGui.QMainWindow):
         logger.debug("my_test")
         
     
-    def _populate_tree(self, root_obj, root_name='<root>'):
+    def _populate_tree(self, root_obj, root_name=None):
         """ Fills the tree using a python object.
         """
         logger.debug("_populate_tree with object id = 0x{:x}".format(id(root_obj)))
         
-        def add_node(parent_item, obj, obj_name):
+        def add_node(parent_item, obj, obj_name, obj_path):
             """ Helper function that recursively adds nodes.
 
                 :param parent_item: The parent QTreeWidgetItem to which this node will be added
                 :param obj: The object that will be added to the tree.
                 :param obj_name: Labels how this node is known to the parent
             """
+
             logger.debug("Inserting: {}".format(obj_name))
-            
             tree_item = QtGui.QTreeWidgetItem(parent_item)                
-            
-            tree_item.setText(self.COL_NAME, str(obj_name))
+
+            # TODO: sets and objects
+            tree_item.setText(self.COL_PATH, str(obj_path) if obj_path is not None else '<root>')
+            tree_item.setText(self.COL_NAME, str(obj_name) if obj_name is not None else '<root>')
             tree_item.setText(self.COL_VALUE, repr(obj))
             tree_item.setText(self.COL_TYPE, str(type(obj)))
             tree_item.setText(self.COL_CLASS, class_name(obj))
             
-            # TODO: sets and objects
-            
             obj_type = type(obj)
             if obj_type == types.ListType or obj_type == types.TupleType:
                 for idx, value in enumerate(obj):
-                    add_node(tree_item, value, idx)
+                    add_node(tree_item, value, idx, '{}[{}]'.format(obj_path, idx))
+                    
             elif obj_type == types.DictionaryType:
                 for key, value in sorted(obj.iteritems()):
-                    add_node(tree_item, value, key)
+                    add_node(tree_item, value, key, 
+                             '{}[{!r}]'.format(obj_path, key) if obj_path else key)
+                                
         # End helper function.
-        
         self.obj_tree.clear()    
-        add_node(self.obj_tree, root_obj, root_name)
+        add_node(self.obj_tree, root_obj, root_name, root_name)
         self.obj_tree.expandToDepth(0)
         
         
