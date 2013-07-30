@@ -25,22 +25,62 @@
 # Based on: PySide examples/itemviews/simpletreemodel
 # See: http://harmattan-dev.nokia.com/docs/library/html/qt4/itemviews-simpletreemodel.html
 
+import logging, types, inspect
 from PySide import QtCore, QtGui
-
 from treeitem import TreeItem
 
+logger = logging.getLogger(__name__)
+
+
+        
+def class_name(obj):
+    """ Returns the name of the class of the object.
+        Returns empty string if it cannot be determined, 
+        e.g. in old-style classes.
+    """
+    
+    try:
+        return obj.__class__.__name__
+    except AttributeError:
+        return ''
+
+        
+def simple_value(obj):
+    """ Returns a the string representation of obj if it has a 'simple' type.
+        
+        That is: the type is a scalar or a string, not a compound such as a list.
+    """
+    if type(obj) in (types.BooleanType, types.FloatType, types.IntType, types.NoneType, 
+                     types.StringType, types.UnicodeType):
+        return repr(obj)
+    else:
+        return ""
+    
+    
 class TreeModel(QtCore.QAbstractItemModel):
-    def __init__(self, data, parent=None):
+    
+    # Tree column indices
+    COL_PATH  = 0   # A path to the data: e.g. var[1]['a'].item
+    COL_NAME  = 1   # The name of the node. 
+    COL_VALUE = 2   # The value of the node for atomic nodes (int, str, etc)
+    COL_TYPE  = 3   # Type of the node determined using the builtin type() function
+    COL_CLASS = 4   # The name of the class of the node via node.__class__.__name__
+    COL_STR   = 5   # The string conversion of the node using __str__()
+    COL_REPR  = 6   # The string conversion of the node using __repr__()
+    N_COLS = 7
+    
+    def __init__(self, obj, parent=None):
         super(TreeModel, self).__init__(parent)
 
-        self.rootItem = TreeItem(("Title", "Summary"))
-        self.setupModelData(data.split('\n'), self.rootItem)
+        self._populate_tree(obj)
+
 
     def columnCount(self, parent):
         if parent.isValid():
             return parent.internalPointer().columnCount()
         else:
             return self.rootItem.columnCount()
+
 
     def data(self, index, role):
         if not index.isValid():
@@ -53,17 +93,20 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         return item.data(index.column())
 
+
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.NoItemFlags
 
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
+
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
             return self.rootItem.data(section)
 
         return None
+
 
     def index(self, row, column, parent):
         if not self.hasIndex(row, column, parent):
@@ -103,40 +146,52 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         return parentItem.childCount()
 
-    def setupModelData(self, lines, parent):
-        parents = [parent]
-        indentations = [0]
+   
+    def _populate_tree(self, root_obj, root_name=None):
+        """ Fills the tree using a python object.
+        """
+        logger.debug("_populate_tree with object id = 0x{:x}".format(id(root_obj)))
+        
+        def add_node(parent_item, obj, obj_name, obj_path):
+            """ Helper function that recursively adds nodes.
 
-        number = 0
+                :param parent_item: The parent 
+                :param obj: The object that will be added to the tree.
+                :param obj_name: Labels how this node is known to the parent
+                :param obj_path: full path to this node, e.g.: var[idx1]['key'].item
+                
+                Returns newly created tree item
+            """
 
-        while number < len(lines):
-            position = 0
-            while position < len(lines[number]):
-                if lines[number][position] != ' ':
-                    break
-                position += 1
-
-            lineData = lines[number][position:].strip()
-
-            if lineData:
-                # Read the column data from the rest of the line.
-                columnData = [s for s in lineData.split('\t') if s]
-
-                if position > indentations[-1]:
-                    # The last child of the current parent is now the new
-                    # parent unless the current parent has no children.
-
-                    if parents[-1].childCount() > 0:
-                        parents.append(parents[-1].child(parents[-1].childCount() - 1))
-                        indentations.append(position)
-
-                else:
-                    while position < indentations[-1] and len(parents) > 0:
-                        parents.pop()
-                        indentations.pop()
-
-                # Append a new item to the current parent's list of children.
-                parents[-1].appendChild(TreeItem(columnData, parents[-1]))
-
-            number += 1
-
+            logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
+            tree_item = TreeItem(self.N_COLS, parent_item)
+            
+            # TODO: sets and objects
+            tree_item.set_data(self.COL_PATH,  str(obj_path) if obj_path is not None else '<root>')
+            tree_item.set_data(self.COL_NAME,  str(obj_name) if obj_name is not None else '<root>')
+            tree_item.set_data(self.COL_TYPE,  str(type(obj)))
+            tree_item.set_data(self.COL_CLASS, class_name(obj))
+            tree_item.set_data(self.COL_VALUE, simple_value(obj))
+            tree_item.set_data(self.COL_STR,   str(obj))
+            tree_item.set_data(self.COL_REPR,  repr(obj))
+            
+            obj_type = type(obj)
+            if obj_type == types.ListType or obj_type == types.TupleType:
+                for idx, value in enumerate(obj):
+                    tree_item.appendChild(add_node(tree_item, value, idx, 
+                                                   '{}[{}]'.format(obj_path, idx)))
+                    
+            elif obj_type == types.DictionaryType:
+                for key, value in sorted(obj.iteritems()):
+                    path_str = '{}[{!r}]'.format(obj_path, key) if obj_path else key
+                    tree_item.appendChild(add_node(tree_item, value, key, path_str)) 
+            
+            #else:
+            #    for name, value in inspect.getmembers(obj):
+            #        add_node(tree_item, value, name, 
+            #                 '{}[{!r}]'.format(obj_path, name) if obj_path else name)
+            return tree_item
+                                
+        # End helper function.
+        self.rootItem = add_node(None, root_obj, root_name, root_name)
+        

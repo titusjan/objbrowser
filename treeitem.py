@@ -16,35 +16,38 @@
 
 
 class TreeItem(object):
-    def __init__(self, data, parent=None):
-        self.parentItem = parent
-        self.itemData = data
-        self.childItems = []
+    def __init__(self, n_cols, parent=None):
+        self.parent_item = parent
+        self.item_data = [''] * n_cols
+        self.child_items = []
 
     def appendChild(self, item):
-        self.childItems.append(item)
+        self.child_items.append(item)
 
     def child(self, row):
-        return self.childItems[row]
+        return self.child_items[row]
 
     def childCount(self):
-        return len(self.childItems)
+        return len(self.child_items)
 
     def columnCount(self):
-        return len(self.itemData)
+        return len(self.item_data)
 
     def data(self, column):
         try:
-            return self.itemData[column]
+            return self.item_data[column]
         except IndexError:
             return None
+        
+    def set_data(self, column, value):
+        self.item_data[column] = value
 
     def parent(self):
-        return self.parentItem
+        return self.parent_item
 
     def row(self):
-        if self.parentItem:
-            return self.parentItem.childItems.index(self)
+        if self.parent_item:
+            return self.parent_item.child_items.index(self)
 
         return 0
 
