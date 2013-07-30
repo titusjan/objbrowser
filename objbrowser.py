@@ -26,12 +26,25 @@ def class_name(obj):
         Returns empty string if it cannot be determined, 
         e.g. in old-style classes.
     """
+    
     try:
         return obj.__class__.__name__
     except AttributeError:
         return ''
 
-
+        
+def simple_value(obj):
+    """ Returns a the string representation of obj if it has a 'simple' type.
+        
+        That is: the type is a scalar or a string, not a compound such as a list.
+    """
+    if type(obj) in (types.BooleanType, types.FloatType, types.IntType, types.NoneType, 
+                     types.StringType, types.UnicodeType):
+        return repr(obj)
+    else:
+        return ""
+    
+    
 
 class ColumnSettings(object):
     """ Class that stores INITIAL column settings. """
@@ -53,11 +66,13 @@ class ObjectBrowser(QtGui.QMainWindow):
     """ The main application.
     """
     # Tree column indices
-    COL_PATH = 0
-    COL_NAME = 1
-    COL_TYPE = 2
-    COL_CLASS = 3
-    COL_VALUE = 4
+    COL_PATH  = 0   # A path to the data: e.g. var[1]['a'].item
+    COL_NAME  = 1   # The name of the node. 
+    COL_VALUE = 2   # The value of the node for atomic nodes (int, str, etc)
+    COL_TYPE  = 3   # Type of the node determined using the builtin type() function
+    COL_CLASS = 4   # The name of the class of the node via node.__class__.__name__
+    COL_STR   = 5   # The string conversion of the node using __str__()
+    COL_REPR  = 6   # The string conversion of the node using __repr__()
     
     def __init__(self, obj = None):
         """ Constructor
@@ -69,9 +84,11 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.col_settings = dict()
         self.col_settings[self.COL_PATH]  = ColumnSettings('Path', width=200)
         self.col_settings[self.COL_NAME]  = ColumnSettings('Name', visible=False, width=80)
+        self.col_settings[self.COL_VALUE] = ColumnSettings('Value', width=80)
         self.col_settings[self.COL_TYPE]  = ColumnSettings('Type', visible=False)
         self.col_settings[self.COL_CLASS] = ColumnSettings('Class', width=80)
-        self.col_settings[self.COL_VALUE] = ColumnSettings('Value')
+        self.col_settings[self.COL_STR]   = ColumnSettings('Str', visible=False)
+        self.col_settings[self.COL_REPR]  = ColumnSettings('Repr', visible=True)
         
         # Views
         self._setup_actions()
@@ -184,17 +201,20 @@ class ObjectBrowser(QtGui.QMainWindow):
                 :param parent_item: The parent QTreeWidgetItem to which this node will be added
                 :param obj: The object that will be added to the tree.
                 :param obj_name: Labels how this node is known to the parent
+                :param obj_path: full path to this node, e.g.: var[idx1]['key'].item
             """
 
-            logger.debug("Inserting: {}".format(obj_name))
+            logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
             tree_item = QtGui.QTreeWidgetItem(parent_item)                
 
             # TODO: sets and objects
-            tree_item.setText(self.COL_PATH, str(obj_path) if obj_path is not None else '<root>')
-            tree_item.setText(self.COL_NAME, str(obj_name) if obj_name is not None else '<root>')
-            tree_item.setText(self.COL_VALUE, repr(obj))
-            tree_item.setText(self.COL_TYPE, str(type(obj)))
+            tree_item.setText(self.COL_PATH,  str(obj_path) if obj_path is not None else '<root>')
+            tree_item.setText(self.COL_NAME,  str(obj_name) if obj_name is not None else '<root>')
+            tree_item.setText(self.COL_TYPE,  str(type(obj)))
             tree_item.setText(self.COL_CLASS, class_name(obj))
+            tree_item.setText(self.COL_VALUE, simple_value(obj))
+            tree_item.setText(self.COL_STR,   str(obj))
+            tree_item.setText(self.COL_REPR,  repr(obj))
             
             obj_type = type(obj)
             if obj_type == types.ListType or obj_type == types.TupleType:
@@ -205,6 +225,12 @@ class ObjectBrowser(QtGui.QMainWindow):
                 for key, value in sorted(obj.iteritems()):
                     add_node(tree_item, value, key, 
                              '{}[{!r}]'.format(obj_path, key) if obj_path else key)
+            
+            #else:
+            #    for name, value in inspect.getmembers(obj):
+            #        add_node(tree_item, value, name, 
+            #                 '{}[{!r}]'.format(obj_path, name) if obj_path else name)
+            
                                 
         # End helper function.
         self.obj_tree.clear()    
@@ -218,7 +244,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Shows the object details in the editor
         """
         #self.editor.clear()
-        self.editor.setPlainText(current_item.text(self.COL_VALUE))
+        self.editor.setPlainText(current_item.text(self.COL_REPR))
 
     
     def _make_show_column_function(self, column_idx):
