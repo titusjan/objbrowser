@@ -25,7 +25,7 @@ ABOUT_MESSAGE = u"""%(prog)s version %(version)s
 class ColumnSettings(object):
     """ Class that stores INITIAL column settings. """
     
-    def __init__(self, name, width=150, visible=True):
+    def __init__(self, width=150, visible=True, name=None):
         """ Constructor to set mandatory and default settings) """
         self.name = name
         self.visible = visible
@@ -53,14 +53,17 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._tree_model = TreeModel(obj)
         
         # Table columns
+        #self.col_settings = [None] * TreeModel.N_COLS
         self.col_settings = dict()
-        self.col_settings[TreeModel.COL_PATH]  = ColumnSettings('Path', width=200)
-        self.col_settings[TreeModel.COL_NAME]  = ColumnSettings('Name', visible=False, width=80)
-        self.col_settings[TreeModel.COL_VALUE] = ColumnSettings('Value', width=80)
-        self.col_settings[TreeModel.COL_TYPE]  = ColumnSettings('Type', visible=False)
-        self.col_settings[TreeModel.COL_CLASS] = ColumnSettings('Class', width=80)
-        self.col_settings[TreeModel.COL_STR]   = ColumnSettings('Str', visible=False)
-        self.col_settings[TreeModel.COL_REPR]  = ColumnSettings('Repr', visible=True)
+        self.col_settings[TreeModel.COL_PATH]  = ColumnSettings(width=200)
+        self.col_settings[TreeModel.COL_NAME]  = ColumnSettings(visible=False, width=80)
+        self.col_settings[TreeModel.COL_VALUE] = ColumnSettings(width=80)
+        self.col_settings[TreeModel.COL_TYPE]  = ColumnSettings(visible=False)
+        self.col_settings[TreeModel.COL_CLASS] = ColumnSettings(width=80)
+        self.col_settings[TreeModel.COL_STR]   = ColumnSettings(visible=False)
+        self.col_settings[TreeModel.COL_REPR]  = ColumnSettings(visible=True)
+        for idx, header in enumerate(TreeModel.HEADERS):
+            self.col_settings[idx].name = header
         
         # Views
         self._setup_actions()
@@ -82,10 +85,11 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         # Create actions for the table columns from its settings.
         for col_idx, settings in sorted(self.col_settings.iteritems()):
-            settings.toggle_action = QtGui.QAction("Show {} Column".format(settings.name), 
-                                                   self, checkable=True, checked=True,
-                                                   statusTip = "Shows or hides the {} column".
-                                                                format(settings.name))
+            name = TreeModel.HEADERS[col_idx]
+            settings.toggle_action = \
+                QtGui.QAction("Show {} Column".format(name), 
+                              self, checkable=True, checked=True,
+                              statusTip = "Shows or hides the {} column".format(name))
             if col_idx >= 0 and col_idx <= 9:
                 settings.toggle_action.setShortcut("Ctrl+{:d}".format(col_idx))
             settings.toggle_function = self._make_show_column_function(col_idx) # keep reference
@@ -122,10 +126,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Tree widget
         self.obj_tree = QtGui.QTreeView()
         self.obj_tree.setModel(self._tree_model)
-        #self.obj_tree.setColumnCount(len(self.col_settings))
         
         for idx, settings in self.col_settings.iteritems():
-            #self.obj_tree.headerItem().setText(idx, settings.name)  
             logger.debug("resizing {}: {:d}".format(settings.name, settings.width))
             self.obj_tree.header().resizeSection(idx, settings.width)
         
@@ -163,8 +165,6 @@ class ObjectBrowser(QtGui.QMainWindow):
     def my_test(self):
         """ Function for testing """
         logger.debug("my_test")
-        
- 
         
  
     @QtCore.Slot(QtGui.QTreeWidgetItem, QtGui.QTreeWidgetItem)

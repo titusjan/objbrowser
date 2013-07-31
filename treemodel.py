@@ -69,6 +69,15 @@ class TreeModel(QtCore.QAbstractItemModel):
     COL_REPR  = 6   # The string conversion of the node using __repr__()
     N_COLS = 7
     
+    HEADERS = [None] * N_COLS 
+    HEADERS[COL_PATH]  = 'Path'
+    HEADERS[COL_NAME]  = 'Name'
+    HEADERS[COL_VALUE] = 'Value'
+    HEADERS[COL_TYPE]  = 'Type'
+    HEADERS[COL_CLASS] = 'Class'
+    HEADERS[COL_STR]   = 'Str'
+    HEADERS[COL_REPR]  = 'Repr'
+    
     def __init__(self, obj, parent=None):
         super(TreeModel, self).__init__(parent)
 
@@ -103,9 +112,9 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-            return self.rootItem.data(section)
-
-        return None
+            return self.HEADERS[section]
+        else:
+            return None
 
 
     def index(self, row, column, parent):
