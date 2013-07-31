@@ -53,8 +53,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._tree_model = TreeModel(obj)
         
         # Table columns
-        #self.col_settings = [None] * TreeModel.N_COLS
-        self.col_settings = dict()
+        self.col_settings = [None] * TreeModel.N_COLS
+        #self.col_settings = dict()
         self.col_settings[TreeModel.COL_PATH]  = ColumnSettings(width=200)
         self.col_settings[TreeModel.COL_NAME]  = ColumnSettings(visible=False, width=80)
         self.col_settings[TreeModel.COL_VALUE] = ColumnSettings(width=80)
@@ -72,7 +72,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.setWindowTitle(PROGRAM_NAME)
         
         # Update views with model
-        for settings in self.col_settings.itervalues():
+        for settings in self.col_settings:
             settings.toggle_action.setChecked(settings.visible)
 
         #self.obj_tree.clear()    
@@ -84,12 +84,11 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Creates the MainWindow actions.
         """
         # Create actions for the table columns from its settings.
-        for col_idx, settings in sorted(self.col_settings.iteritems()):
-            name = TreeModel.HEADERS[col_idx]
+        for col_idx, settings in enumerate(self.col_settings):
             settings.toggle_action = \
-                QtGui.QAction("Show {} Column".format(name), 
+                QtGui.QAction("Show {} Column".format(settings.name), 
                               self, checkable=True, checked=True,
-                              statusTip = "Shows or hides the {} column".format(name))
+                              statusTip = "Shows or hides the {} column".format(settings.name))
             if col_idx >= 0 and col_idx <= 9:
                 settings.toggle_action.setShortcut("Ctrl+{:d}".format(col_idx))
             settings.toggle_function = self._make_show_column_function(col_idx) # keep reference
@@ -107,7 +106,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             file_menu.addAction("&Test", self.my_test, "Ctrl+T")
         
         view_menu = self.menuBar().addMenu("&View")
-        for _idx, settings in sorted(self.col_settings.iteritems()):
+        for _idx, settings in enumerate(self.col_settings):
             view_menu.addAction(settings.toggle_action)
         
         self.menuBar().addSeparator()
@@ -127,7 +126,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.obj_tree = QtGui.QTreeView()
         self.obj_tree.setModel(self._tree_model)
         
-        for idx, settings in self.col_settings.iteritems():
+        for idx, settings in enumerate(self.col_settings):
             logger.debug("resizing {}: {:d}".format(settings.name, settings.width))
             self.obj_tree.header().resizeSection(idx, settings.width)
         
