@@ -91,7 +91,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     #HEADERS[COL_STR]   = 'Str'
     #HEADERS[COL_REPR]  = 'Repr'
     
-    def __init__(self, obj, show_special_methods = False, parent=None):
+    def __init__(self, obj, show_special_methods = True, parent=None):
         super(TreeModel, self).__init__(parent)
         self._show_special_methods = show_special_methods # TODO: dynamically from view menu
         self.root_item = self._populateTree(obj)

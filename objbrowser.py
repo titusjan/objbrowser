@@ -42,14 +42,14 @@ class ObjectBrowser(QtGui.QMainWindow):
     """
 
     
-    def __init__(self, obj = None):
+    def __init__(self, obj = None, show_special_methods = True):
         """ Constructor
             :param obj: any python object or variable
         """
         super(ObjectBrowser, self).__init__()
         
         # Model
-        self._tree_model = TreeModel(obj)
+        self._tree_model = TreeModel(obj, show_special_methods=show_special_methods)
         
         # Table columns
         self.col_settings = [None] * TreeModel.N_COLS
@@ -271,7 +271,8 @@ def call_viewer_test():
     multi_line_str = """ hello\nworld
                         the end."""
     
-    obj_browser = ObjectBrowser(obj = locals())
+    #obj_browser = ObjectBrowser(obj = locals())
+    obj_browser = ObjectBrowser(obj =[5, 6, 'a'], show_special_methods = True)
     obj_browser.resize(1100, 600)
     obj_browser.show()
     

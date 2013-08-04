@@ -19,8 +19,8 @@ class TreeItem(object):
     def __init__(self, parent, obj, obj_name, obj_path):
         self.parent_item = parent
         self.obj = obj
-        self.obj_name = obj_name
-        self.obj_path = obj_path
+        self.obj_name = str(obj_name)
+        self.obj_path = str(obj_path)
         self.child_items = []
         self.has_children = True
         self.children_fetched = False
