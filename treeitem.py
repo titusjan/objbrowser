@@ -16,10 +16,13 @@
 
 
 class TreeItem(object):
-    def __init__(self, n_cols, parent=None):
+    def __init__(self, n_cols, obj, parent=None):
         self.parent_item = parent
+        self.obj = obj
         self.item_data = [''] * n_cols
         self.child_items = []
+        self.has_children = True
+        self.children_fetched = False
 
     def __str__(self):
         return "item: {} {}".format(self.item_data, len(self.child_items))

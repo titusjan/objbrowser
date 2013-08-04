@@ -156,9 +156,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         central_splitter.setStretchFactor(1, 70)
                
         # Connect signals
-        #assert self.obj_tree.currentChanged.connect(self._update_details) # TODO: enable
         selection_model = self.obj_tree.selectionModel()
-        #assert selection_model.selectionChanged.connect(self._update_details)
         assert selection_model.currentChanged.connect(self._update_details)
 
 

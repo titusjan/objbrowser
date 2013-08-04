@@ -144,6 +144,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         return self.createIndex(parentItem.row(), 0, parentItem)
 
+
     def rowCount(self, parent):
         if parent.column() > 0:
             return 0
@@ -155,61 +156,127 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         return parentItem.childCount()
 
+
+    def hasChildren(self, parent):
+        if parent.column() > 0:
+            return 0
+
+        if not parent.isValid():
+            parentItem = self.rootItem
+        else:
+            parentItem = parent.internalPointer()
+
+        return parentItem.has_children
+    
+
+    def canFetchMore(self, parent):
+        if parent.column() > 0:
+            return 0
+
+        if not parent.isValid():
+            parentItem = self.rootItem
+        else:
+            parentItem = parent.internalPointer()
+
+        #logger.debug("canFetchMore: {} = {}".format(parentItem.item_data[self.COL_PATH], not parentItem.children_fetched ))
+        logger.debug("canFetchMore: {} = {}".format(parent, not parentItem.children_fetched ))
+        
+        return not parentItem.children_fetched    
+
+
+    def fetchMore(self, parent):
+
+        if parent.column() > 0:
+            return
+
+        if not parent.isValid():
+            logger.debug("setting to root item")
+            parentItem = self.rootItem
+        else:
+            parentItem = parent.internalPointer()
+            
+        if parentItem.children_fetched:
+            return
+        
+        #logger.debug("fetchMore: {}".format(parentItem.item_data[self.COL_PATH]))
+        logger.debug("fetchMore: {}, {}".format(parent, parentItem.item_data))
+        
+        obj = parentItem.obj
+        obj_type = type(obj)
+        obj_path = parentItem.item_data[self.COL_PATH]
+        
+        if obj_type == types.ListType or obj_type == types.TupleType:
+            self.beginInsertRows(parent, 0, len(obj))
+
+            for idx, value in enumerate(obj):
+                parentItem.appendChild(self._add_node(parentItem, value, idx, 
+                                                      '{}[{}]'.format(obj_path, idx)))
+            parentItem.children_fetched = True
+            self.endInsertRows()   
+        elif obj_type == types.DictionaryType:
+            self.beginInsertRows(parent, 0, len(obj))
+            for key, value in sorted(obj.iteritems()):
+                path_str = '{}[{!r}]'.format(obj_path, key) if obj_path else key
+                parentItem.appendChild(self._add_node(parentItem, value, key, path_str))
+            parentItem.children_fetched = True                
+            self.endInsertRows()
+        else:
+            logger.warn("Unexpected object type: {} {}".format(parentItem, obj_type))
+            parentItem.children_fetched = True
+            #raise ValueError("Unexpected object type: {}".format(obj_type)) 
+            
+            #else:
+            #    for name, value in inspect.getmembers(obj):
+            #        _add_node(tree_item, value, name, 
+            #                 '{}[{!r}]'.format(obj_path, name) if obj_path else name)
+                                
+        
+
+    
+    def _add_node(self, parent_item, obj, obj_name, obj_path):
+        """ Helper function that recursively adds nodes.
+
+            :param parent_item: The parent 
+            :param obj: The object that will be added to the tree.
+            :param obj_name: Labels how this node is known to the parent
+            :param obj_path: full path to this node, e.g.: var[idx1]['key'].item
+            
+            Returns newly created tree item
+        """
+
+        logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
+        tree_item = TreeItem(self.N_COLS, obj, parent_item)
+        
+        # TODO: sets and objects
+        tree_item.set_data(self.COL_PATH,  str(obj_path) if obj_path is not None else '<root>')
+        tree_item.set_data(self.COL_NAME,  str(obj_name) if obj_name is not None else '<root>')
+        tree_item.set_data(self.COL_TYPE,  str(type(obj)))
+        tree_item.set_data(self.COL_CLASS, class_name(obj))
+        tree_item.set_data(self.COL_VALUE, simple_value(obj))
+        tree_item.set_data(self.COL_STR,   str(obj))
+        tree_item.set_data(self.COL_REPR,  repr(obj))
+        
+        obj_type = type(obj)
+        
+        expandable_types = (types.TupleType, types.ListType, types.DictionaryType)
+        tree_item.has_children = (obj_type in expandable_types)
+        tree_item.children_fetched 
+        return tree_item
+
    
-    def _populate_tree(self, root_obj, root_name=None, single_root_node=False):
+    def _populate_tree(self, root_obj, root_name=None, single_root_node=True):
         """ Fills the tree using a python object.
         """
         logger.debug("_populate_tree with object id = 0x{:x}".format(id(root_obj)))
         
-        def add_node(parent_item, obj, obj_name, obj_path):
-            """ Helper function that recursively adds nodes.
-
-                :param parent_item: The parent 
-                :param obj: The object that will be added to the tree.
-                :param obj_name: Labels how this node is known to the parent
-                :param obj_path: full path to this node, e.g.: var[idx1]['key'].item
-                
-                Returns newly created tree item
-            """
-
-            logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
-            tree_item = TreeItem(self.N_COLS, parent_item)
-            
-            # TODO: sets and objects
-            tree_item.set_data(self.COL_PATH,  str(obj_path) if obj_path is not None else '<root>')
-            tree_item.set_data(self.COL_NAME,  str(obj_name) if obj_name is not None else '<root>')
-            tree_item.set_data(self.COL_TYPE,  str(type(obj)))
-            tree_item.set_data(self.COL_CLASS, class_name(obj))
-            tree_item.set_data(self.COL_VALUE, simple_value(obj))
-            tree_item.set_data(self.COL_STR,   str(obj))
-            tree_item.set_data(self.COL_REPR,  repr(obj))
-            
-            obj_type = type(obj)
-            if obj_type == types.ListType or obj_type == types.TupleType:
-                for idx, value in enumerate(obj):
-                    tree_item.appendChild(add_node(tree_item, value, idx, 
-                                                   '{}[{}]'.format(obj_path, idx)))
-                    
-            elif obj_type == types.DictionaryType:
-                for key, value in sorted(obj.iteritems()):
-                    path_str = '{}[{!r}]'.format(obj_path, key) if obj_path else key
-                    tree_item.appendChild(add_node(tree_item, value, key, path_str)) 
-            
-            #else:
-            #    for name, value in inspect.getmembers(obj):
-            #        add_node(tree_item, value, name, 
-            #                 '{}[{!r}]'.format(obj_path, name) if obj_path else name)
-            return tree_item
-                                
-        # End helper function.
-        
         if single_root_node is True:
-            root_parent_item = TreeItem(self.N_COLS, None) # Will never be accessed by the view
-            root_item = add_node(root_parent_item, root_obj, root_name, root_name)
+            root_parent_item = TreeItem(self.N_COLS, None, None) # Will never be accessed by the view
+            root_parent_item.set_data(self.COL_PATH, '<root_parent>')
+            root_item = self._add_node(root_parent_item, root_obj, root_name, root_name)
             root_parent_item.appendChild(root_item)
             self.rootItem = root_parent_item
         else:
-            self.rootItem = add_node(None, root_obj, root_name, root_name)
+            self.rootItem = self._add_node(None, root_obj, root_name, root_name)
             
         
         
