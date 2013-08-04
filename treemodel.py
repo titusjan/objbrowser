@@ -79,7 +79,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def __init__(self, obj, parent=None):
         super(TreeModel, self).__init__(parent)
-        self._populate_tree(obj)
+        self._populateTree(obj)
 
 
     def columnCount(self, parent):
@@ -202,7 +202,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             self.beginInsertRows(parent, 0, len(obj))
 
             for idx, value in enumerate(obj):
-                parentItem.append_child(self._add_tree_item(parentItem, value, idx, 
+                parentItem.append_child(self._addTreeItem(parentItem, value, idx, 
                                                       '{}[{}]'.format(obj_path, idx)))
             parentItem.children_fetched = True
             self.endInsertRows()   
@@ -210,7 +210,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             self.beginInsertRows(parent, 0, len(obj))
             for key, value in sorted(obj.iteritems()):
                 path_str = '{}[{!r}]'.format(obj_path, key) if obj_path else key
-                parentItem.append_child(self._add_tree_item(parentItem, value, key, path_str))
+                parentItem.append_child(self._addTreeItem(parentItem, value, key, path_str))
             parentItem.children_fetched = True                
             self.endInsertRows()
         else:
@@ -221,13 +221,13 @@ class TreeModel(QtCore.QAbstractItemModel):
             # TODO: sets and objects
             #else:
             #    for name, value in inspect.getmembers(obj):
-            #        _add_tree_item(tree_item, value, name, 
+            #        _addTreeItem(tree_item, value, name, 
             #                 '{}[{!r}]'.format(obj_path, name) if obj_path else name)
                                 
         
 
     
-    def _add_tree_item(self, parent_item, obj, obj_name, obj_path):
+    def _addTreeItem(self, parent_item, obj, obj_name, obj_path):
         """ Helper function that recursively adds nodes.
 
             :param parent_item: The parent 
@@ -246,19 +246,19 @@ class TreeModel(QtCore.QAbstractItemModel):
         return tree_item
 
    
-    def _populate_tree(self, root_obj, root_name=None, single_root_node=True):
+    def _populateTree(self, root_obj, root_name=None, single_root_node=True):
         """ Fills the tree using a python object.
         """
-        logger.debug("_populate_tree with object id = 0x{:x}".format(id(root_obj)))
+        logger.debug("_populateTree with object id = 0x{:x}".format(id(root_obj)))
         
         if single_root_node is True:
             root_parent_item = TreeItem(None, None, '<root_parent>', '<root_parent>') 
             root_parent_item.children_fetched = True
-            root_item = self._add_tree_item(root_parent_item, root_obj, root_name, root_name)
+            root_item = self._addTreeItem(root_parent_item, root_obj, root_name, root_name)
             root_parent_item.append_child(root_item)
             self.rootItem = root_parent_item
         else:
-            self.rootItem = self._add_tree_item(None, root_obj, root_name, root_name)
+            self.rootItem = self._addTreeItem(None, root_obj, root_name, root_name)
             
         
         
