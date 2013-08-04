@@ -26,7 +26,7 @@
 # See: http://harmattan-dev.nokia.com/docs/library/html/qt4/itemviews-simpletreemodel.html
 
 import logging, types, inspect
-from PySide import QtCore, QtGui
+from PySide import QtCore
 from treeitem import TreeItem
 
 logger = logging.getLogger(__name__)
@@ -156,7 +156,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         return parentItem.childCount()
 
    
-    def _populate_tree(self, root_obj, root_name=None):
+    def _populate_tree(self, root_obj, root_name=None, single_root_node=True):
         """ Fills the tree using a python object.
         """
         logger.debug("_populate_tree with object id = 0x{:x}".format(id(root_obj)))
@@ -202,5 +202,14 @@ class TreeModel(QtCore.QAbstractItemModel):
             return tree_item
                                 
         # End helper function.
-        self.rootItem = add_node(None, root_obj, root_name, root_name)
+        
+        if single_root_node is True:
+            root_parent_item = TreeItem(self.N_COLS, None) # Will never be accessed by the view
+            root_item = add_node(root_parent_item, root_obj, root_name, root_name)
+            root_parent_item.appendChild(root_item)
+            self.rootItem = root_parent_item
+        else:
+            self.rootItem = add_node(None, root_obj, root_name, root_name)
+            
+        
         
