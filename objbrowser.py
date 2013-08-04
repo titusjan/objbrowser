@@ -1,4 +1,3 @@
-
 """ 
    Program that shows the local Python environment using the inspect module
 """
@@ -54,14 +53,14 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Table columns
         self.col_settings = [None] * TreeModel.N_COLS
-        #self.col_settings = dict()
-        self.col_settings[TreeModel.COL_PATH]  = ColumnSettings(visible=True,  width=300)
-        self.col_settings[TreeModel.COL_NAME]  = ColumnSettings(visible=True,  width=120)
-        self.col_settings[TreeModel.COL_VALUE] = ColumnSettings(visible=True,  width=100)
-        self.col_settings[TreeModel.COL_TYPE]  = ColumnSettings(visible=False, width=100)
+        self.col_settings[TreeModel.COL_PATH]  = ColumnSettings(visible=True,  width=350)
+        self.col_settings[TreeModel.COL_NAME]  = ColumnSettings(visible=True,  width=150)
+        self.col_settings[TreeModel.COL_VALUE] = ColumnSettings(visible=True,  width=150)
+        self.col_settings[TreeModel.COL_TYPE]  = ColumnSettings(visible=False, width=150)
         self.col_settings[TreeModel.COL_CLASS] = ColumnSettings(visible=True,  width=150)
-        self.col_settings[TreeModel.COL_STR]   = ColumnSettings(visible=False, width=300)
-        self.col_settings[TreeModel.COL_REPR]  = ColumnSettings(visible=True,  width=300)
+        self.col_settings[TreeModel.COL_ID]    = ColumnSettings(visible=False,  width=150)
+        #self.col_settings[TreeModel.COL_STR]   = ColumnSettings(visible=False, width=300)
+        #self.col_settings[TreeModel.COL_REPR]  = ColumnSettings(visible=True,  width=300)
         for idx, header in enumerate(TreeModel.HEADERS):
             self.col_settings[idx].name = header
         
@@ -125,14 +124,16 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.obj_tree = QtGui.QTreeView()
         self.obj_tree.setModel(self._tree_model)
         self.obj_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        #self.obj_tree.setUniformRowHeights(True)
         
         for idx, settings in enumerate(self.col_settings):
             #logger.debug("resizing {}: {:d}".format(settings.name, settings.width))
             self.obj_tree.header().resizeSection(idx, settings.width)
         
-        # Don't stretch last column, it doesn't play nice when columns are 
-        # hidden and then shown again
+        # Stretch last column? 
+        # It doesn't play nice when columns are hidden and then shown again.
         self.obj_tree.header().setStretchLastSection(True) 
+        
         central_layout.addWidget(self.obj_tree)
 
         # Editor widget
@@ -219,8 +220,8 @@ def call_viewer_test():
         static_member = 'static_value'
         def __init__(self, s, i):
             'constructor'            
-            self.member_str = s
-            self.member_int = i
+            self._member_str = s
+            self.__member_int = i
             
     class NewStyleClass(object):
         """ A new style class (Python 2.2 and later). Note it inherits 'object'.
@@ -229,12 +230,26 @@ def call_viewer_test():
         static_member = 'static_value'
         def __init__(self, s, i):
             'constructor'
-            self.member_str = s
-            self.member_int = i
+            self._member_str = s
+            self.__member_int = i
+            
+        @property
+        def member_int(self):
+            return self.__member_int
+            
+        @member_int.setter
+        def member_int(self, value):
+            self.__member_int = value
+            
+        def method(self):
+            pass
+        
             
     def my_function(param):
         'demo function'
         return param
+    
+    _copyright = types.__builtins__['copyright'] 
     
     old_style_object = OldStyleClass('member_value', 44)    
     new_style_object = NewStyleClass('member_value', -66)    
@@ -245,11 +260,16 @@ def call_viewer_test():
     a = 6
     b = 'seven'
     n = None
+    tup = ('this', 'is', 'a tuple')
     lst = [4, '4', d, ['r', dir], main, QtGui]
     my_set = set([3, 4, 4, 8])
     my_frozenset = frozenset([3, 4, 5, 6, 6])
-     
-    tup = ('this', 'is', 'a tuple')
+    u1 = unichr(40960) + u'ab\ncd' + unichr(1972)
+    u2 = u"a\xac\u1234\u20ac\U00008000"
+    u3 = u'no strange chars'
+    multi_line_str = """ hello\nworld
+                        the end."""
+    
     obj_browser = ObjectBrowser(obj = locals())
     obj_browser.resize(1100, 600)
     obj_browser.show()

@@ -27,6 +27,7 @@
 
 import logging, types, inspect
 from PySide import QtCore
+from PySide.QtCore import Qt
 from treeitem import TreeItem
 
 logger = logging.getLogger(__name__)
@@ -49,9 +50,13 @@ def simple_value(obj):
         
         That is: the type is a scalar or a string, not a compound such as a list.
     """
-    if type(obj) in (types.BooleanType, types.FloatType, types.IntType, types.NoneType, 
-                     types.StringType, types.UnicodeType):
+    obj_type = type(obj)
+    if obj_type in (types.BooleanType, types.FloatType, types.IntType, types.NoneType):
         return repr(obj)
+    elif obj_type == types.StringType:
+        return repr(obj.encode('string_escape'))
+    elif obj_type == types.UnicodeType:
+        return repr(obj.encode('unicode_escape'))
     else:
         return ""
     
@@ -64,9 +69,10 @@ class TreeModel(QtCore.QAbstractItemModel):
     COL_VALUE = 2   # The value of the node for atomic nodes (int, str, etc)
     COL_TYPE  = 3   # Type of the node determined using the builtin type() function
     COL_CLASS = 4   # The name of the class of the node via node.__class__.__name__
-    COL_STR   = 5   # The string conversion of the node using __str__()
-    COL_REPR  = 6   # The string conversion of the node using __repr__()
-    N_COLS = 7
+    COL_ID    = 5   # The identifier of the object with calculated using the id() function
+    #COL_STR   = 5   # The string conversion of the node using __str__()
+    #COL_REPR  = 6   # The string conversion of the node using __repr__()
+    N_COLS = 6
     
     HEADERS = [None] * N_COLS 
     HEADERS[COL_PATH]  = 'Path'
@@ -74,8 +80,9 @@ class TreeModel(QtCore.QAbstractItemModel):
     HEADERS[COL_VALUE] = 'Value'
     HEADERS[COL_TYPE]  = 'Type'
     HEADERS[COL_CLASS] = 'Type Name'
-    HEADERS[COL_STR]   = 'Str'
-    HEADERS[COL_REPR]  = 'Repr'
+    HEADERS[COL_ID]    = 'Id'
+    #HEADERS[COL_STR]   = 'Str'
+    #HEADERS[COL_REPR]  = 'Repr'
     
     def __init__(self, obj, parent=None):
         super(TreeModel, self).__init__(parent)
@@ -90,38 +97,48 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return None
 
-        if role != QtCore.Qt.DisplayRole:
-            return None
-
+        col = index.column()
         tree_item = index.internalPointer()
         obj = tree_item.obj
-        col = index.column()
-        
-        if col == self.COL_PATH:
-            return tree_item.obj_path if tree_item.obj_path is not None else '<root>'
-        if col == self.COL_NAME:
-            return tree_item.obj_name if tree_item.obj_name is not None else '<root>'
-        if col == self.COL_TYPE:
-            return str(type(obj))
-        if col == self.COL_CLASS:
-            return type(obj).__name__
-        if col == self.COL_VALUE:
-            return simple_value(obj)
-        if col == self.COL_STR:
-            return str(obj).encode('string_escape')
-        if col == self.COL_REPR:
-            return repr(obj).encode('string_escape')
-        
+
+        if role == Qt.DisplayRole:
+            
+            if col == self.COL_PATH:
+                return tree_item.obj_path if tree_item.obj_path is not None else '<root>'
+            if col == self.COL_NAME:
+                return tree_item.obj_name if tree_item.obj_name is not None else '<root>'
+            if col == self.COL_TYPE:
+                return str(type(obj))
+            if col == self.COL_CLASS:
+                return type(obj).__name__
+            if col == self.COL_VALUE:
+                return simple_value(obj)
+            if col == self.COL_ID:
+                return "0x{:X}".format(id(obj))
+            #if col == self.COL_STR:
+            #    return str(obj).replace('\n', r'\\n')
+            #if col == self.COL_REPR:
+            #    return re.sub(r'\\n', r'\\n', repr(obj))
+            
+        if role == Qt.TextAlignmentRole:
+            if col == self.COL_ID:
+                return Qt.AlignLeft
+            else:
+                return Qt.AlignLeft
+            
+        else:
+            return None
+
 
     def flags(self, index):
         if not index.isValid():
-            return QtCore.Qt.NoItemFlags
+            return Qt.NoItemFlags
 
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
 
     def headerData(self, section, orientation, role):
-        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return self.HEADERS[section]
         else:
             return None
@@ -209,10 +226,16 @@ class TreeModel(QtCore.QAbstractItemModel):
             path_strings = ['{}[{!r}]'.format(obj_path, item[0]) if obj_path else item[0] 
                             for item in obj_items]
         else:
-            obj_items = sorted(inspect.getmembers(obj))
-            path_strings = ['{}.{}'.format(obj_path, item[0]) if obj_path else item[0] 
-                            for item in obj_items]
-         
+            obj_items = []
+            path_strings = []
+        
+        # Since every variable is an object we also add its members to the tree.
+        obj_members = sorted(inspect.getmembers(obj))
+        obj_items.extend(obj_members)
+        path_strings.extend(['{}.{}'.format(obj_path, memb[0]) if obj_path else memb[0] 
+                             for memb in obj_members])
+        
+        assert len(obj_items) == len(path_strings), "sanity check"
         self.beginInsertRows(parent, 0, len(obj_items))
         for item, path_str in zip(obj_items, path_strings):
             name, child_obj = item
@@ -234,11 +257,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         """
         logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
         tree_item = TreeItem(parent_item, obj, obj_name, obj_path)
-
-        expandable_types = (types.TupleType, types.ListType, types.DictionaryType)
-        #tree_item.has_children = (type(obj) in expandable_types)
-        tree_item.has_children = True
-        tree_item.children_fetched 
         return tree_item
 
    
