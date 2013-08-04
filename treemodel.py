@@ -34,17 +34,19 @@ logger = logging.getLogger(__name__)
 
 
 
-def __obsolete__type_name(obj):
-    """ Returns the name of the class of the object.
-        Returns empty string if it cannot be determined, 
-        e.g. in old-style classes.
+def predicates(obj):
+    """ Returns the inspect module predicates that are true for this objec
     """
-    try:
-        return type(obj).__name__
-    except AttributeError:
-        return ''
+    predicates = (inspect.ismodule,inspect.isclass, inspect.ismethod, 
+                  inspect.isfunction, inspect.isgeneratorfunction, inspect.isgenerator,
+                  inspect.istraceback, inspect.isframe, inspect.iscode, 
+                  inspect.isbuiltin, inspect.isroutine, inspect.isabstract, 
+                  inspect.ismethoddescriptor, inspect.isdatadescriptor, inspect.isgetsetdescriptor,
+                  inspect.ismemberdescriptor)  
+    has_predicates = [predicate.__name__ for predicate in predicates if predicate(obj)]
+    return ", ".join(has_predicates)
+                                                                                                                    
 
-        
 def simple_value(obj):
     """ Returns a the string representation of obj if it has a 'simple' type.
         
@@ -64,23 +66,25 @@ def simple_value(obj):
 class TreeModel(QtCore.QAbstractItemModel):
     
     # Tree column indices
-    COL_PATH  = 0   # A path to the data: e.g. var[1]['a'].item
-    COL_NAME  = 1   # The name of the node. 
-    COL_VALUE = 2   # The value of the node for atomic nodes (int, str, etc)
-    COL_TYPE  = 3   # Type of the node determined using the builtin type() function
-    COL_CLASS = 4   # The name of the class of the node via node.__class__.__name__
-    COL_ID    = 5   # The identifier of the object with calculated using the id() function
-    #COL_STR   = 5   # The string conversion of the node using __str__()
-    #COL_REPR  = 6   # The string conversion of the node using __repr__()
-    N_COLS = 6
+    COL_PATH      = 0   # A path to the data: e.g. var[1]['a'].item
+    COL_NAME      = 1   # The name of the node. 
+    COL_VALUE     = 2   # The value of the node for atomic nodes (int, str, etc)
+    COL_TYPE      = 3   # Type of the node determined using the builtin type() function
+    COL_CLASS     = 4   # The name of the class of the node via node.__class__.__name__
+    COL_ID        = 5   # The identifier of the object with calculated using the id() function
+    COL_PREDICATE = 6   # Predicates from the inspect module
+    #COL_STR       = 5   # The string conversion of the node using __str__()
+    #COL_REPR      = 6   # The string conversion of the node using __repr__()
     
+    N_COLS = 7
     HEADERS = [None] * N_COLS 
-    HEADERS[COL_PATH]  = 'Path'
-    HEADERS[COL_NAME]  = 'Name'
-    HEADERS[COL_VALUE] = 'Value'
-    HEADERS[COL_TYPE]  = 'Type'
-    HEADERS[COL_CLASS] = 'Type Name'
-    HEADERS[COL_ID]    = 'Id'
+    HEADERS[COL_PATH]      = 'Path'
+    HEADERS[COL_NAME]      = 'Name'
+    HEADERS[COL_VALUE]     = 'Value'
+    HEADERS[COL_TYPE]      = 'Type'
+    HEADERS[COL_CLASS]     = 'Type Name'
+    HEADERS[COL_ID]        = 'Id'
+    HEADERS[COL_PREDICATE] = 'Predicates'
     #HEADERS[COL_STR]   = 'Str'
     #HEADERS[COL_REPR]  = 'Repr'
     
@@ -105,20 +109,24 @@ class TreeModel(QtCore.QAbstractItemModel):
             
             if col == self.COL_PATH:
                 return tree_item.obj_path if tree_item.obj_path is not None else '<root>'
-            if col == self.COL_NAME:
+            elif col == self.COL_NAME:
                 return tree_item.obj_name if tree_item.obj_name is not None else '<root>'
-            if col == self.COL_TYPE:
+            elif col == self.COL_TYPE:
                 return str(type(obj))
-            if col == self.COL_CLASS:
+            elif col == self.COL_CLASS:
                 return type(obj).__name__
-            if col == self.COL_VALUE:
+            elif col == self.COL_VALUE:
                 return simple_value(obj)
-            if col == self.COL_ID:
+            elif col == self.COL_ID:
                 return "0x{:X}".format(id(obj))
-            #if col == self.COL_STR:
+            elif col == self.COL_PREDICATE:
+                return predicates(obj)
+            #elif col == self.COL_STR:
             #    return str(obj).replace('\n', r'\\n')
-            #if col == self.COL_REPR:
+            #elif col == self.COL_REPR:
             #    return re.sub(r'\\n', r'\\n', repr(obj))
+            else:
+                raise ValueError("Unexpected column: {}".format(col))
             
         if role == Qt.TextAlignmentRole:
             if col == self.COL_ID:

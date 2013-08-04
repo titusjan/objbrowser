@@ -53,14 +53,15 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Table columns
         self.col_settings = [None] * TreeModel.N_COLS
-        self.col_settings[TreeModel.COL_PATH]  = ColumnSettings(visible=True,  width=350)
-        self.col_settings[TreeModel.COL_NAME]  = ColumnSettings(visible=True,  width=150)
-        self.col_settings[TreeModel.COL_VALUE] = ColumnSettings(visible=True,  width=150)
-        self.col_settings[TreeModel.COL_TYPE]  = ColumnSettings(visible=False, width=150)
-        self.col_settings[TreeModel.COL_CLASS] = ColumnSettings(visible=True,  width=150)
-        self.col_settings[TreeModel.COL_ID]    = ColumnSettings(visible=False,  width=150)
-        #self.col_settings[TreeModel.COL_STR]   = ColumnSettings(visible=False, width=300)
-        #self.col_settings[TreeModel.COL_REPR]  = ColumnSettings(visible=True,  width=300)
+        self.col_settings[TreeModel.COL_PATH]      = ColumnSettings(visible=True,  width=350)
+        self.col_settings[TreeModel.COL_NAME]      = ColumnSettings(visible=True,  width=150)
+        self.col_settings[TreeModel.COL_VALUE]     = ColumnSettings(visible=True,  width=150)
+        self.col_settings[TreeModel.COL_TYPE]      = ColumnSettings(visible=False, width=150)
+        self.col_settings[TreeModel.COL_CLASS]     = ColumnSettings(visible=True,  width=150)
+        self.col_settings[TreeModel.COL_ID]        = ColumnSettings(visible=False,  width=150)
+        self.col_settings[TreeModel.COL_PREDICATE] = ColumnSettings(visible=False,  width=150)
+        #self.col_settings[TreeModel.COL_STR]       = ColumnSettings(visible=False, width=300)
+        #self.col_settings[TreeModel.COL_REPR]      = ColumnSettings(visible=True,  width=300)
         for idx, header in enumerate(TreeModel.HEADERS):
             self.col_settings[idx].name = header
         
@@ -124,7 +125,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.obj_tree = QtGui.QTreeView()
         self.obj_tree.setModel(self._tree_model)
         self.obj_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        #self.obj_tree.setUniformRowHeights(True)
+        self.obj_tree.setUniformRowHeights(True)
         
         for idx, settings in enumerate(self.col_settings):
             #logger.debug("resizing {}: {:d}".format(settings.name, settings.width))
