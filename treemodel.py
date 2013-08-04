@@ -79,7 +79,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def __init__(self, obj, parent=None):
         super(TreeModel, self).__init__(parent)
-        self._populateTree(obj)
+        self.root_item = self._populateTree(obj)
 
 
     def columnCount(self, parent):
@@ -126,9 +126,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         else:
             return None
 
-    def _item(self, index):
+    def _tree_item(self, index):
         if not index.isValid():
-            return self.rootItem
+            return self.root_item
         else:
             return index.internalPointer() 
             
@@ -137,7 +137,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not self.hasIndex(row, column, parent):
             return QtCore.QModelIndex()
 
-        parentItem = self._item(parent)
+        parentItem = self._tree_item(parent)
         childItem = parentItem.child(row)
         if childItem:
             return self.createIndex(row, column, childItem)
@@ -149,13 +149,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return QtCore.QModelIndex()
 
-        childItem = index.internalPointer()
-        parentItem = childItem.parent()
+        child_item = index.internalPointer()
+        parent_item = child_item.parent()
 
-        if parentItem == self.rootItem:
+        if parent_item == self.root_item:
             return QtCore.QModelIndex()
 
-        return self.createIndex(parentItem.row(), 0, parentItem)
+        return self.createIndex(parent_item.row(), 0, parent_item)
 
 
     def rowCount(self, parent):
@@ -163,24 +163,23 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent.column() > 0:
             return 0
         else:
-            return self._item(parent).child_count()
+            return self._tree_item(parent).child_count()
 
 
     def hasChildren(self, parent):
         if parent.column() > 0:
             return 0
         else:
-            parentItem = self._item(parent)
-            return parentItem.has_children
+            return self._tree_item(parent).has_children
     
 
     def canFetchMore(self, parent):
         if parent.column() > 0:
             return 0
         else:
-            parentItem = self._item(parent)
-            #logger.debug("canFetchMore: {} = {}".format(parent, not parentItem.children_fetched ))
-            return not parentItem.children_fetched    
+            result = not self._tree_item(parent).children_fetched 
+            #logger.debug("canFetchMore: {} = {}".format(parent, result))
+            return result  
 
 
     def fetchMore(self, parent):
@@ -188,34 +187,34 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent.column() > 0:
             return
         
-        parentItem = self._item(parent)
-        if parentItem.children_fetched:
+        parent_item = self._tree_item(parent)
+        if parent_item.children_fetched:
             return
         
         logger.debug("fetchMore: {}".format(parent))
         
-        obj = parentItem.obj
+        obj = parent_item.obj
         obj_type = type(obj)
-        obj_path = parentItem.obj_path
+        obj_path = parent_item.obj_path
         
         if obj_type == types.ListType or obj_type == types.TupleType:
             self.beginInsertRows(parent, 0, len(obj))
 
             for idx, value in enumerate(obj):
-                parentItem.append_child(self._addTreeItem(parentItem, value, idx, 
-                                                      '{}[{}]'.format(obj_path, idx)))
-            parentItem.children_fetched = True
+                parent_item.append_child(self._addTreeItem(parent_item, value, idx, 
+                                                          '{}[{}]'.format(obj_path, idx)))
+            parent_item.children_fetched = True
             self.endInsertRows()   
         elif obj_type == types.DictionaryType:
             self.beginInsertRows(parent, 0, len(obj))
             for key, value in sorted(obj.iteritems()):
                 path_str = '{}[{!r}]'.format(obj_path, key) if obj_path else key
-                parentItem.append_child(self._addTreeItem(parentItem, value, key, path_str))
-            parentItem.children_fetched = True                
+                parent_item.append_child(self._addTreeItem(parent_item, value, key, path_str))
+            parent_item.children_fetched = True                
             self.endInsertRows()
         else:
-            logger.warn("Unexpected object type: {} {}".format(parentItem, obj_type))
-            parentItem.children_fetched = True
+            logger.warn("Unexpected object type: {} {}".format(parent_item, obj_type))
+            parent_item.children_fetched = True
             #raise ValueError("Unexpected object type: {}".format(obj_type)) 
             
             # TODO: sets and objects
@@ -256,9 +255,9 @@ class TreeModel(QtCore.QAbstractItemModel):
             root_parent_item.children_fetched = True
             root_item = self._addTreeItem(root_parent_item, root_obj, root_name, root_name)
             root_parent_item.append_child(root_item)
-            self.rootItem = root_parent_item
+            return root_parent_item
         else:
-            self.rootItem = self._addTreeItem(None, root_obj, root_name, root_name)
+            return self._addTreeItem(None, root_obj, root_name, root_name)
             
         
         
