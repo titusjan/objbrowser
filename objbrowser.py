@@ -25,7 +25,7 @@ ABOUT_MESSAGE = u"""%(prog)s version %(version)s
 class ColumnSettings(object):
     """ Class that stores INITIAL column settings. """
     
-    def __init__(self, width=150, visible=True, name=None):
+    def __init__(self, width=120, visible=True, name=None):
         """ Constructor to set mandatory and default settings) """
         self.name = name
         self.visible = visible
@@ -55,13 +55,13 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Table columns
         self.col_settings = [None] * TreeModel.N_COLS
         #self.col_settings = dict()
-        self.col_settings[TreeModel.COL_PATH]  = ColumnSettings(visible=True, width=200)
-        self.col_settings[TreeModel.COL_NAME]  = ColumnSettings(visible=False, width=80)
-        self.col_settings[TreeModel.COL_VALUE] = ColumnSettings(visible=True, width=80)
-        self.col_settings[TreeModel.COL_TYPE]  = ColumnSettings(visible=False)
-        self.col_settings[TreeModel.COL_CLASS] = ColumnSettings(visible=True, width=80)
-        self.col_settings[TreeModel.COL_STR]   = ColumnSettings(visible=False)
-        self.col_settings[TreeModel.COL_REPR]  = ColumnSettings(visible=True)
+        self.col_settings[TreeModel.COL_PATH]  = ColumnSettings(visible=True,  width=300)
+        self.col_settings[TreeModel.COL_NAME]  = ColumnSettings(visible=True,  width=120)
+        self.col_settings[TreeModel.COL_VALUE] = ColumnSettings(visible=True,  width=100)
+        self.col_settings[TreeModel.COL_TYPE]  = ColumnSettings(visible=False, width=100)
+        self.col_settings[TreeModel.COL_CLASS] = ColumnSettings(visible=True,  width=150)
+        self.col_settings[TreeModel.COL_STR]   = ColumnSettings(visible=False, width=300)
+        self.col_settings[TreeModel.COL_REPR]  = ColumnSettings(visible=True,  width=300)
         for idx, header in enumerate(TreeModel.HEADERS):
             self.col_settings[idx].name = header
         
@@ -75,7 +75,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         for settings in self.col_settings:
             settings.toggle_action.setChecked(settings.visible)
 
-        #self.obj_tree.clear()    
         #self.obj_tree.expandToDepth(0)
 
 
@@ -152,8 +151,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         central_splitter.setCollapsible(0, False)
         central_splitter.setCollapsible(1, True)
         central_splitter.setSizes([400, 200])
-        central_splitter.setStretchFactor(0, 0)
-        central_splitter.setStretchFactor(1, 70)
+        central_splitter.setStretchFactor(0, 10)
+        central_splitter.setStretchFactor(1, 0)
                
         # Connect signals
         selection_model = self.obj_tree.selectionModel()
@@ -172,9 +171,17 @@ class ObjectBrowser(QtGui.QMainWindow):
     def _update_details(self, current_index, _previous_index):
         """ Shows the object details in the editor
         """
-        display_index = self._tree_model.index(current_index.row(), TreeModel.COL_REPR, 
-                                               current_index.parent())
-        data = self._tree_model.data(display_index, QtCore.Qt.DisplayRole)
+        if False:
+            display_index = self._tree_model.index(current_index.row(), TreeModel.COL_STR, 
+                                                   current_index.parent())
+            data = self._tree_model.data(display_index, QtCore.Qt.DisplayRole)
+        else:
+            tree_item = self._tree_model.treeItem(current_index)
+            logger.debug("_update_details: {!r}".format(tree_item))
+            try:
+                data = tree_item.obj.__doc__
+            except AttributeError:
+                data = '<no doc string found>'
         self.editor.setPlainText(data)
 
     
@@ -203,10 +210,34 @@ class ObjectBrowser(QtGui.QMainWindow):
 def call_viewer_test():
     """ Test procedure. 
     """
-    class OldStyleClass: pass
-    class NewStyleClass(object): pass
+    import types, sys
     
-    # todo: sets/objects.
+    class OldStyleClass: 
+        """ An old style class (pre Python 2.2)
+            See: http://docs.python.org/2/reference/datamodel.html#new-style-and-classic-classes
+        """
+        static_member = 'static_value'
+        def __init__(self, s, i):
+            'constructor'            
+            self.member_str = s
+            self.member_int = i
+            
+    class NewStyleClass(object):
+        """ A new style class (Python 2.2 and later). Note it inherits 'object'.
+            See: http://docs.python.org/2/reference/datamodel.html#new-style-and-classic-classes
+        """
+        static_member = 'static_value'
+        def __init__(self, s, i):
+            'constructor'
+            self.member_str = s
+            self.member_int = i
+            
+    def my_function(param):
+        'demo function'
+        return param
+    
+    old_style_object = OldStyleClass('member_value', 44)    
+    new_style_object = NewStyleClass('member_value', -66)    
     
     x_plus_2 = lambda x: x+2
     
@@ -215,9 +246,12 @@ def call_viewer_test():
     b = 'seven'
     n = None
     lst = [4, '4', d, ['r', dir], main, QtGui]
-    
+    my_set = set([3, 4, 4, 8])
+    my_frozenset = frozenset([3, 4, 5, 6, 6])
+     
+    tup = ('this', 'is', 'a tuple')
     obj_browser = ObjectBrowser(obj = locals())
-    obj_browser.resize(1000, 600)
+    obj_browser.resize(1100, 600)
     obj_browser.show()
     
     return obj_browser # to keep a reference

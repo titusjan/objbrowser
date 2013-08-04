@@ -32,14 +32,14 @@ from treeitem import TreeItem
 logger = logging.getLogger(__name__)
 
 
-        
-def class_name(obj):
+
+def __obsolete__type_name(obj):
     """ Returns the name of the class of the object.
         Returns empty string if it cannot be determined, 
         e.g. in old-style classes.
     """
     try:
-        return obj.__class__.__name__
+        return type(obj).__name__
     except AttributeError:
         return ''
 
@@ -73,7 +73,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     HEADERS[COL_NAME]  = 'Name'
     HEADERS[COL_VALUE] = 'Value'
     HEADERS[COL_TYPE]  = 'Type'
-    HEADERS[COL_CLASS] = 'Class'
+    HEADERS[COL_CLASS] = 'Type Name'
     HEADERS[COL_STR]   = 'Str'
     HEADERS[COL_REPR]  = 'Repr'
     
@@ -104,13 +104,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         if col == self.COL_TYPE:
             return str(type(obj))
         if col == self.COL_CLASS:
-            return class_name(obj)
+            return type(obj).__name__
         if col == self.COL_VALUE:
             return simple_value(obj)
         if col == self.COL_STR:
-            return str(obj)
+            return str(obj).encode('string_escape')
         if col == self.COL_REPR:
-            return repr(obj)
+            return repr(obj).encode('string_escape')
         
 
     def flags(self, index):
@@ -126,7 +126,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         else:
             return None
 
-    def _tree_item(self, index):
+    def treeItem(self, index):
         if not index.isValid():
             return self.root_item
         else:
@@ -137,7 +137,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not self.hasIndex(row, column, parent):
             return QtCore.QModelIndex()
 
-        parentItem = self._tree_item(parent)
+        parentItem = self.treeItem(parent)
         childItem = parentItem.child(row)
         if childItem:
             return self.createIndex(row, column, childItem)
@@ -163,21 +163,21 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent.column() > 0:
             return 0
         else:
-            return self._tree_item(parent).child_count()
+            return self.treeItem(parent).child_count()
 
 
     def hasChildren(self, parent):
         if parent.column() > 0:
             return 0
         else:
-            return self._tree_item(parent).has_children
+            return self.treeItem(parent).has_children
     
 
     def canFetchMore(self, parent):
         if parent.column() > 0:
             return 0
         else:
-            result = not self._tree_item(parent).children_fetched 
+            result = not self.treeItem(parent).children_fetched 
             #logger.debug("canFetchMore: {} = {}".format(parent, result))
             return result  
 
@@ -187,42 +187,38 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent.column() > 0:
             return
         
-        parent_item = self._tree_item(parent)
+        parent_item = self.treeItem(parent)
         if parent_item.children_fetched:
             return
         
         logger.debug("fetchMore: {}".format(parent))
         
         obj = parent_item.obj
-        obj_type = type(obj)
         obj_path = parent_item.obj_path
         
-        if obj_type == types.ListType or obj_type == types.TupleType:
-            self.beginInsertRows(parent, 0, len(obj))
-
-            for idx, value in enumerate(obj):
-                parent_item.append_child(self._addTreeItem(parent_item, value, idx, 
-                                                          '{}[{}]'.format(obj_path, idx)))
-            parent_item.children_fetched = True
-            self.endInsertRows()   
-        elif obj_type == types.DictionaryType:
-            self.beginInsertRows(parent, 0, len(obj))
-            for key, value in sorted(obj.iteritems()):
-                path_str = '{}[{!r}]'.format(obj_path, key) if obj_path else key
-                parent_item.append_child(self._addTreeItem(parent_item, value, key, path_str))
-            parent_item.children_fetched = True                
-            self.endInsertRows()
+        if isinstance(obj, (list, tuple)):
+            obj_items = sorted(enumerate(obj))
+            path_strings = ['{}[{}]'.format(obj_path, item[0]) if obj_path else item[0] 
+                            for item in obj_items]
+        elif isinstance(obj, (set, frozenset)):
+            obj_items = [('pop()', elem) for elem in sorted(obj)]
+            path_strings = ['{0}.pop()'.format(obj_path, item[0]) if obj_path else item[0] 
+                            for item in obj_items]
+        elif isinstance(obj, dict):
+            obj_items = sorted(obj.iteritems())
+            path_strings = ['{}[{!r}]'.format(obj_path, item[0]) if obj_path else item[0] 
+                            for item in obj_items]
         else:
-            logger.warn("Unexpected object type: {} {}".format(parent_item, obj_type))
-            parent_item.children_fetched = True
-            #raise ValueError("Unexpected object type: {}".format(obj_type)) 
-            
-            # TODO: sets and objects
-            #else:
-            #    for name, value in inspect.getmembers(obj):
-            #        _addTreeItem(tree_item, value, name, 
-            #                 '{}[{!r}]'.format(obj_path, name) if obj_path else name)
-                                
+            obj_items = sorted(inspect.getmembers(obj))
+            path_strings = ['{}.{}'.format(obj_path, item[0]) if obj_path else item[0] 
+                            for item in obj_items]
+         
+        self.beginInsertRows(parent, 0, len(obj_items))
+        for item, path_str in zip(obj_items, path_strings):
+            name, child_obj = item
+            parent_item.append_child(self._addTreeItem(parent_item, child_obj, name, path_str))
+        parent_item.children_fetched = True                
+        self.endInsertRows()                       
         
 
     
@@ -240,12 +236,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         tree_item = TreeItem(parent_item, obj, obj_name, obj_path)
 
         expandable_types = (types.TupleType, types.ListType, types.DictionaryType)
-        tree_item.has_children = (type(obj) in expandable_types)
+        #tree_item.has_children = (type(obj) in expandable_types)
+        tree_item.has_children = True
         tree_item.children_fetched 
         return tree_item
 
    
-    def _populateTree(self, root_obj, root_name=None, single_root_node=True):
+    def _populateTree(self, root_obj, root_name=None, single_root_node=False):
         """ Fills the tree using a python object.
         """
         logger.debug("_populateTree with object id = 0x{:x}".format(id(root_obj)))
