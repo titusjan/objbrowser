@@ -55,11 +55,11 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Table columns
         self.col_settings = [None] * TreeModel.N_COLS
         #self.col_settings = dict()
-        self.col_settings[TreeModel.COL_PATH]  = ColumnSettings(width=200)
+        self.col_settings[TreeModel.COL_PATH]  = ColumnSettings(visible=True, width=200)
         self.col_settings[TreeModel.COL_NAME]  = ColumnSettings(visible=False, width=80)
-        self.col_settings[TreeModel.COL_VALUE] = ColumnSettings(width=80)
+        self.col_settings[TreeModel.COL_VALUE] = ColumnSettings(visible=True, width=80)
         self.col_settings[TreeModel.COL_TYPE]  = ColumnSettings(visible=False)
-        self.col_settings[TreeModel.COL_CLASS] = ColumnSettings(width=80)
+        self.col_settings[TreeModel.COL_CLASS] = ColumnSettings(visible=True, width=80)
         self.col_settings[TreeModel.COL_STR]   = ColumnSettings(visible=False)
         self.col_settings[TreeModel.COL_REPR]  = ColumnSettings(visible=True)
         for idx, header in enumerate(TreeModel.HEADERS):
@@ -76,7 +76,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             settings.toggle_action.setChecked(settings.visible)
 
         #self.obj_tree.clear()    
-        self.obj_tree.expandToDepth(0)
+        #self.obj_tree.expandToDepth(0)
 
 
 
@@ -127,7 +127,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.obj_tree.setModel(self._tree_model)
         
         for idx, settings in enumerate(self.col_settings):
-            logger.debug("resizing {}: {:d}".format(settings.name, settings.width))
+            #logger.debug("resizing {}: {:d}".format(settings.name, settings.width))
             self.obj_tree.header().resizeSection(idx, settings.width)
         
         # Don't stretch last column, it doesn't play nice when columns are 
@@ -218,6 +218,20 @@ def call_viewer_test():
     
     return obj_browser # to keep a reference
 
+
+def call_viewer_small_test():
+    """ Test procedure. 
+    """
+    
+    a = 6
+    b = ['seven', 'eight']
+        
+    obj_browser = ObjectBrowser(obj = locals())
+    obj_browser.resize(1000, 600)
+    obj_browser.show()
+    
+    return obj_browser # to keep a reference
+
         
 def main():
     """ Main program to test stand alone 
@@ -238,6 +252,7 @@ def main():
 
     logger.info('Started {}'.format(PROGRAM_NAME))
     _obj_browser = call_viewer_test() # to keep a reference
+    #_obj_browser = call_viewer_small_test() # to keep a reference
     exit_code = app.exec_()
     logging.info('Done {}'.format(PROGRAM_NAME))
     sys.exit(exit_code)

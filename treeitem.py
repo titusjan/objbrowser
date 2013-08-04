@@ -21,6 +21,13 @@ class TreeItem(object):
         self.item_data = [''] * n_cols
         self.child_items = []
 
+    def __str__(self):
+        return "item: {} {}".format(self.item_data, len(self.child_items))
+
+    def __repr__(self):
+        return "item: {!r}".format(self.child_items)
+    
+    
     def appendChild(self, item):
         self.child_items.append(item)
 
