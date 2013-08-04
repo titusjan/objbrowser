@@ -125,6 +125,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Tree widget
         self.obj_tree = QtGui.QTreeView()
         self.obj_tree.setModel(self._tree_model)
+        self.obj_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         
         for idx, settings in enumerate(self.col_settings):
             #logger.debug("resizing {}: {:d}".format(settings.name, settings.width))
@@ -155,7 +156,10 @@ class ObjectBrowser(QtGui.QMainWindow):
         central_splitter.setStretchFactor(1, 70)
                
         # Connect signals
-        #assert self.obj_tree.currentItemChanged.connect(self._update_details) # TODO: enable
+        #assert self.obj_tree.currentChanged.connect(self._update_details) # TODO: enable
+        selection_model = self.obj_tree.selectionModel()
+        #assert selection_model.selectionChanged.connect(self._update_details)
+        assert selection_model.currentChanged.connect(self._update_details)
 
 
     # End of setup_methods
@@ -165,13 +169,15 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Function for testing """
         logger.debug("my_test")
         
- 
-    @QtCore.Slot(QtGui.QTreeWidgetItem, QtGui.QTreeWidgetItem)
-    def _update_details(self, current_item, _previous_item):
+
+    @QtCore.Slot(QtCore.QModelIndex, QtCore.QModelIndex)
+    def _update_details(self, current_index, _previous_index):
         """ Shows the object details in the editor
         """
-        #self.editor.clear()
-        self.editor.setPlainText(current_item.text(self.COL_REPR))
+        logger.debug("current_index: {!r}".format(current_index))
+        data = current_index.internalPointer().data(TreeModel.COL_REPR)
+        logger.debug("data: {!r}".format(data))
+        self.editor.setPlainText(data)
 
     
     def _make_show_column_function(self, column_idx):

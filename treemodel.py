@@ -156,7 +156,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         return parentItem.childCount()
 
    
-    def _populate_tree(self, root_obj, root_name=None, single_root_node=True):
+    def _populate_tree(self, root_obj, root_name=None, single_root_node=False):
         """ Fills the tree using a python object.
         """
         logger.debug("_populate_tree with object id = 0x{:x}".format(id(root_obj)))
