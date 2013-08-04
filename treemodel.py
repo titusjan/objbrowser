@@ -38,7 +38,6 @@ def class_name(obj):
         Returns empty string if it cannot be determined, 
         e.g. in old-style classes.
     """
-    
     try:
         return obj.__class__.__name__
     except AttributeError:
@@ -80,15 +79,11 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def __init__(self, obj, parent=None):
         super(TreeModel, self).__init__(parent)
-
         self._populate_tree(obj)
 
 
     def columnCount(self, parent):
-        if parent.isValid():
-            return parent.internalPointer().columnCount()
-        else:
-            return self.rootItem.columnCount()
+        return self.N_COLS
 
 
     def data(self, index, role):
@@ -98,10 +93,25 @@ class TreeModel(QtCore.QAbstractItemModel):
         if role != QtCore.Qt.DisplayRole:
             return None
 
-        item = index.internalPointer()
-
-        return item.data(index.column())
-
+        tree_item = index.internalPointer()
+        obj = tree_item.obj
+        col = index.column()
+        
+        if col == self.COL_PATH:
+            return tree_item.obj_path if tree_item.obj_path is not None else '<root>'
+        if col == self.COL_NAME:
+            return tree_item.obj_name if tree_item.obj_name is not None else '<root>'
+        if col == self.COL_TYPE:
+            return str(type(obj))
+        if col == self.COL_CLASS:
+            return class_name(obj)
+        if col == self.COL_VALUE:
+            return simple_value(obj)
+        if col == self.COL_STR:
+            return str(obj)
+        if col == self.COL_REPR:
+            return repr(obj)
+        
 
     def flags(self, index):
         if not index.isValid():
@@ -116,21 +126,24 @@ class TreeModel(QtCore.QAbstractItemModel):
         else:
             return None
 
+    def _item(self, index):
+        if not index.isValid():
+            return self.rootItem
+        else:
+            return index.internalPointer() 
+            
 
     def index(self, row, column, parent):
         if not self.hasIndex(row, column, parent):
             return QtCore.QModelIndex()
 
-        if not parent.isValid():
-            parentItem = self.rootItem
-        else:
-            parentItem = parent.internalPointer()
-
+        parentItem = self._item(parent)
         childItem = parentItem.child(row)
         if childItem:
             return self.createIndex(row, column, childItem)
         else:
             return QtCore.QModelIndex()
+
 
     def parent(self, index):
         if not index.isValid():
@@ -146,70 +159,50 @@ class TreeModel(QtCore.QAbstractItemModel):
 
 
     def rowCount(self, parent):
+        
         if parent.column() > 0:
             return 0
-
-        if not parent.isValid():
-            parentItem = self.rootItem
         else:
-            parentItem = parent.internalPointer()
-
-        return parentItem.childCount()
+            return self._item(parent).child_count()
 
 
     def hasChildren(self, parent):
         if parent.column() > 0:
             return 0
-
-        if not parent.isValid():
-            parentItem = self.rootItem
         else:
-            parentItem = parent.internalPointer()
-
-        return parentItem.has_children
+            parentItem = self._item(parent)
+            return parentItem.has_children
     
 
     def canFetchMore(self, parent):
         if parent.column() > 0:
             return 0
-
-        if not parent.isValid():
-            parentItem = self.rootItem
         else:
-            parentItem = parent.internalPointer()
-
-        #logger.debug("canFetchMore: {} = {}".format(parentItem.item_data[self.COL_PATH], not parentItem.children_fetched ))
-        logger.debug("canFetchMore: {} = {}".format(parent, not parentItem.children_fetched ))
-        
-        return not parentItem.children_fetched    
+            parentItem = self._item(parent)
+            #logger.debug("canFetchMore: {} = {}".format(parent, not parentItem.children_fetched ))
+            return not parentItem.children_fetched    
 
 
     def fetchMore(self, parent):
 
         if parent.column() > 0:
             return
-
-        if not parent.isValid():
-            logger.debug("setting to root item")
-            parentItem = self.rootItem
-        else:
-            parentItem = parent.internalPointer()
-            
+        
+        parentItem = self._item(parent)
         if parentItem.children_fetched:
             return
         
-        #logger.debug("fetchMore: {}".format(parentItem.item_data[self.COL_PATH]))
-        logger.debug("fetchMore: {}, {}".format(parent, parentItem.item_data))
+        logger.debug("fetchMore: {}".format(parent))
         
         obj = parentItem.obj
         obj_type = type(obj)
-        obj_path = parentItem.item_data[self.COL_PATH]
+        obj_path = parentItem.obj_path
         
         if obj_type == types.ListType or obj_type == types.TupleType:
             self.beginInsertRows(parent, 0, len(obj))
 
             for idx, value in enumerate(obj):
-                parentItem.appendChild(self._add_node(parentItem, value, idx, 
+                parentItem.append_child(self._add_tree_item(parentItem, value, idx, 
                                                       '{}[{}]'.format(obj_path, idx)))
             parentItem.children_fetched = True
             self.endInsertRows()   
@@ -217,7 +210,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             self.beginInsertRows(parent, 0, len(obj))
             for key, value in sorted(obj.iteritems()):
                 path_str = '{}[{!r}]'.format(obj_path, key) if obj_path else key
-                parentItem.appendChild(self._add_node(parentItem, value, key, path_str))
+                parentItem.append_child(self._add_tree_item(parentItem, value, key, path_str))
             parentItem.children_fetched = True                
             self.endInsertRows()
         else:
@@ -225,15 +218,16 @@ class TreeModel(QtCore.QAbstractItemModel):
             parentItem.children_fetched = True
             #raise ValueError("Unexpected object type: {}".format(obj_type)) 
             
+            # TODO: sets and objects
             #else:
             #    for name, value in inspect.getmembers(obj):
-            #        _add_node(tree_item, value, name, 
+            #        _add_tree_item(tree_item, value, name, 
             #                 '{}[{!r}]'.format(obj_path, name) if obj_path else name)
                                 
         
 
     
-    def _add_node(self, parent_item, obj, obj_name, obj_path):
+    def _add_tree_item(self, parent_item, obj, obj_name, obj_path):
         """ Helper function that recursively adds nodes.
 
             :param parent_item: The parent 
@@ -243,23 +237,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             
             Returns newly created tree item
         """
-
         logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
-        tree_item = TreeItem(self.N_COLS, obj, parent_item)
-        
-        # TODO: sets and objects
-        tree_item.set_data(self.COL_PATH,  str(obj_path) if obj_path is not None else '<root>')
-        tree_item.set_data(self.COL_NAME,  str(obj_name) if obj_name is not None else '<root>')
-        tree_item.set_data(self.COL_TYPE,  str(type(obj)))
-        tree_item.set_data(self.COL_CLASS, class_name(obj))
-        tree_item.set_data(self.COL_VALUE, simple_value(obj))
-        tree_item.set_data(self.COL_STR,   str(obj))
-        tree_item.set_data(self.COL_REPR,  repr(obj))
-        
-        obj_type = type(obj)
-        
+        tree_item = TreeItem(parent_item, obj, obj_name, obj_path)
+
         expandable_types = (types.TupleType, types.ListType, types.DictionaryType)
-        tree_item.has_children = (obj_type in expandable_types)
+        tree_item.has_children = (type(obj) in expandable_types)
         tree_item.children_fetched 
         return tree_item
 
@@ -270,13 +252,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         logger.debug("_populate_tree with object id = 0x{:x}".format(id(root_obj)))
         
         if single_root_node is True:
-            root_parent_item = TreeItem(self.N_COLS, None, None) # Will never be accessed by the view
-            root_parent_item.set_data(self.COL_PATH, '<root_parent>')
-            root_item = self._add_node(root_parent_item, root_obj, root_name, root_name)
-            root_parent_item.appendChild(root_item)
+            root_parent_item = TreeItem(None, None, '<root_parent>', '<root_parent>') 
+            root_parent_item.children_fetched = True
+            root_item = self._add_tree_item(root_parent_item, root_obj, root_name, root_name)
+            root_parent_item.append_child(root_item)
             self.rootItem = root_parent_item
         else:
-            self.rootItem = self._add_node(None, root_obj, root_name, root_name)
+            self.rootItem = self._add_tree_item(None, root_obj, root_name, root_name)
             
         
         

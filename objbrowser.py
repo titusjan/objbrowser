@@ -173,7 +173,10 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Shows the object details in the editor
         """
         logger.debug("current_index: {!r}".format(current_index))
-        data = current_index.internalPointer().data(TreeModel.COL_REPR)
+        #data = current_index.internalPointer().data(TreeModel.COL_REPR)
+        display_index = self._tree_model.index(current_index.row(), TreeModel.COL_REPR, 
+                                               current_index.parent())
+        data = self._tree_model.data(display_index, QtCore.Qt.DisplayRole)
         logger.debug("data: {!r}".format(data))
         self.editor.setPlainText(data)
 
