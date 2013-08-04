@@ -26,16 +26,19 @@
 # See: http://harmattan-dev.nokia.com/docs/library/html/qt4/itemviews-simpletreemodel.html
 
 import logging, types, inspect
-from PySide import QtCore
+from PySide import QtCore, QtGui
 from PySide.QtCore import Qt
 from treeitem import TreeItem
 
 logger = logging.getLogger(__name__)
 
+def is_special_method(method_name):
+    "Returns true if the method name starts and ends with two underscores"
+    return method_name.startswith('__') and method_name.endswith('__') 
 
 
 def predicates(obj):
-    """ Returns the inspect module predicates that are true for this objec
+    """ Returns the inspect module predicates that are true for this object
     """
     predicates = (inspect.ismodule,inspect.isclass, inspect.ismethod, 
                   inspect.isfunction, inspect.isgeneratorfunction, inspect.isgenerator,
@@ -88,8 +91,9 @@ class TreeModel(QtCore.QAbstractItemModel):
     #HEADERS[COL_STR]   = 'Str'
     #HEADERS[COL_REPR]  = 'Repr'
     
-    def __init__(self, obj, parent=None):
+    def __init__(self, obj, show_special_methods = False, parent=None):
         super(TreeModel, self).__init__(parent)
+        self._show_special_methods = show_special_methods # TODO: dynamically from view menu
         self.root_item = self._populateTree(obj)
 
 
@@ -128,12 +132,18 @@ class TreeModel(QtCore.QAbstractItemModel):
             else:
                 raise ValueError("Unexpected column: {}".format(col))
             
-        if role == Qt.TextAlignmentRole:
+        elif role == Qt.TextAlignmentRole:
             if col == self.COL_ID:
-                return Qt.AlignLeft
+                return Qt.AlignRight
             else:
                 return Qt.AlignLeft
             
+        elif role == Qt.ForegroundRole:
+            
+            if is_special_method(tree_item.obj_name): 
+                return QtGui.QBrush(QtGui.QColor('grey'))
+            else:
+                return QtGui.QBrush(QtGui.QColor('black'))
         else:
             return None
 
@@ -239,6 +249,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         # Since every variable is an object we also add its members to the tree.
         obj_members = sorted(inspect.getmembers(obj))
+        if self._show_special_methods is False:
+            obj_members = [memb for memb in obj_members if not is_special_method(memb[0])]
         obj_items.extend(obj_members)
         path_strings.extend(['{}.{}'.format(obj_path, memb[0]) if obj_path else memb[0] 
                              for memb in obj_members])
