@@ -93,7 +93,12 @@ class ObjectBrowser(QtGui.QMainWindow):
                 settings.toggle_action.setShortcut("Ctrl+{:d}".format(col_idx))
             settings.toggle_function = self._make_show_column_function(col_idx) # keep reference
             assert settings.toggle_action.toggled.connect(settings.toggle_function)
-
+            
+        self.toggle_special_method_action = \
+            QtGui.QAction("Show __special_methods__".format(settings.name), 
+                          self, checkable=True, checked=True,
+                          statusTip = "Shows or hides __special_methods__")
+        assert self.toggle_special_method_action.toggled.connect(self.toggle_special_methods)
                               
     def _setup_menu(self):
         """ Sets up the main menu.
@@ -108,6 +113,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         view_menu = self.menuBar().addMenu("&View")
         for _idx, settings in enumerate(self.col_settings):
             view_menu.addAction(settings.toggle_action)
+        view_menu.addSeparator()
+        view_menu.addAction(self.toggle_special_method_action)
         
         self.menuBar().addSeparator()
         help_menu = self.menuBar().addMenu("&Help")
@@ -191,7 +198,13 @@ class ObjectBrowser(QtGui.QMainWindow):
     def _make_show_column_function(self, column_idx):
         """ Creates a function that shows or hides a column."""
         show_column = lambda checked: self.obj_tree.setColumnHidden(column_idx, not checked)
-        return show_column     
+        return show_column
+    
+    
+    def toggle_special_methods(self, checked):
+        """ Shows/hides the special methods, which start and and with two underscores."""
+        logger.debug("toggle_special_methods: {}".format(checked))
+        self._tree_model.setShowSpecialMethods(checked)
 
 
     def about(self):
@@ -286,7 +299,8 @@ def call_viewer_small_test():
     a = 6
     b = ['seven', 'eight']
         
-    #obj_browser = ObjectBrowser(obj = locals())
+    #obj_browser1 = ObjectBrowser(obj = globals())
+    #obj_browser = ObjectBrowser(obj = obj_browser1, obj_name='obj_browser1')
     obj_browser = ObjectBrowser(obj =[5, 6, 'a', ['r', 2, []]], obj_name='locals()', 
                                 show_special_methods = False)
     

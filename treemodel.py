@@ -91,10 +91,16 @@ class TreeModel(QtCore.QAbstractItemModel):
     #HEADERS[COL_STR]   = 'Str'
     #HEADERS[COL_REPR]  = 'Repr'
     
-    def __init__(self, obj, obj_name = '', show_special_methods = True, parent=None):
+    def __init__(self, obj, obj_name = '', 
+                 show_special_methods = True, 
+                 single_root_node=False, 
+                 parent=None):
         super(TreeModel, self).__init__(parent)
-        self._show_special_methods = show_special_methods # TODO: dynamically from view menu
-        self.root_item = self._populateTree(obj, root_name = obj_name)
+        self._root_obj  = obj
+        self._root_name = obj_name 
+        self._single_root_node = single_root_node
+        self._show_special_methods = show_special_methods
+        self.root_item = self.populateTree(obj, obj_name, single_root_node)
 
 
     def columnCount(self, parent):
@@ -280,10 +286,10 @@ class TreeModel(QtCore.QAbstractItemModel):
         return tree_item
 
    
-    def _populateTree(self, root_obj, root_name='', single_root_node=False):
+    def populateTree(self, root_obj, root_name='', single_root_node=False):
         """ Fills the tree using a python object.
         """
-        logger.debug("_populateTree with object id = 0x{:x}".format(id(root_obj)))
+        logger.debug("populateTree with object id = 0x{:x}".format(id(root_obj)))
         
         if single_root_node is True:
             root_parent_item = TreeItem(None, None, '<root_parent>', '<root_parent>') 
@@ -295,4 +301,14 @@ class TreeModel(QtCore.QAbstractItemModel):
             return self._addTreeItem(None, root_obj, root_name, root_name)
             
         
-        
+    def setShowSpecialMethods(self, show_special_methods):
+        """ Shows/hides special methods, which begin with an underscore.
+            Repopulates the tree.
+        """
+        logger.debug("setShowSpecialMethods: {}".format(show_special_methods))
+        self._show_special_methods = show_special_methods
+        self.beginResetModel()
+        self.reset()
+        self.root_item = self.populateTree(self._root_obj, self._root_name, 
+                                           self._single_root_node)
+        self.endResetModel()
