@@ -91,10 +91,10 @@ class TreeModel(QtCore.QAbstractItemModel):
     #HEADERS[COL_STR]   = 'Str'
     #HEADERS[COL_REPR]  = 'Repr'
     
-    def __init__(self, obj, show_special_methods = True, parent=None):
+    def __init__(self, obj, obj_name = '', show_special_methods = True, parent=None):
         super(TreeModel, self).__init__(parent)
         self._show_special_methods = show_special_methods # TODO: dynamically from view menu
-        self.root_item = self._populateTree(obj)
+        self.root_item = self._populateTree(obj, root_name = obj_name)
 
 
     def columnCount(self, parent):
@@ -112,9 +112,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         if role == Qt.DisplayRole:
             
             if col == self.COL_PATH:
-                return tree_item.obj_path if tree_item.obj_path is not None else '<root>'
+                return tree_item.obj_path if tree_item.obj_path else '<root>'
             elif col == self.COL_NAME:
-                return tree_item.obj_name if tree_item.obj_name is not None else '<root>'
+                return tree_item.obj_name if tree_item.obj_name else '<root>'
             elif col == self.COL_TYPE:
                 return str(type(obj))
             elif col == self.COL_CLASS:
@@ -280,7 +280,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         return tree_item
 
    
-    def _populateTree(self, root_obj, root_name=None, single_root_node=False):
+    def _populateTree(self, root_obj, root_name='', single_root_node=False):
         """ Fills the tree using a python object.
         """
         logger.debug("_populateTree with object id = 0x{:x}".format(id(root_obj)))

@@ -42,14 +42,15 @@ class ObjectBrowser(QtGui.QMainWindow):
     """
 
     
-    def __init__(self, obj = None, show_special_methods = True):
+    def __init__(self, obj = None, obj_name = '', show_special_methods = True):
         """ Constructor
             :param obj: any python object or variable
         """
         super(ObjectBrowser, self).__init__()
         
         # Model
-        self._tree_model = TreeModel(obj, show_special_methods=show_special_methods)
+        self._tree_model = TreeModel(obj, obj_name = obj_name, 
+                                     show_special_methods=show_special_methods)
         
         # Table columns
         self.col_settings = [None] * TreeModel.N_COLS
@@ -271,8 +272,7 @@ def call_viewer_test():
     multi_line_str = """ hello\nworld
                         the end."""
     
-    #obj_browser = ObjectBrowser(obj = locals())
-    obj_browser = ObjectBrowser(obj =[5, 6, 'a'], show_special_methods = True)
+    obj_browser = ObjectBrowser(obj = locals())
     obj_browser.resize(1100, 600)
     obj_browser.show()
     
@@ -286,7 +286,10 @@ def call_viewer_small_test():
     a = 6
     b = ['seven', 'eight']
         
-    obj_browser = ObjectBrowser(obj = locals())
+    #obj_browser = ObjectBrowser(obj = locals())
+    obj_browser = ObjectBrowser(obj =[5, 6, 'a', ['r', 2, []]], obj_name='locals()', 
+                                show_special_methods = False)
+    
     obj_browser.resize(1000, 600)
     obj_browser.show()
     
@@ -311,8 +314,8 @@ def main():
         format='%(filename)20s:%(lineno)-4d : %(levelname)-7s: %(message)s')
 
     logger.info('Started {}'.format(PROGRAM_NAME))
-    _obj_browser = call_viewer_test() # to keep a reference
-    #_obj_browser = call_viewer_small_test() # to keep a reference
+    #_obj_browser1 = call_viewer_test() # to keep a reference
+    _obj_browser2 = call_viewer_small_test() # to keep a reference
     exit_code = app.exec_()
     logging.info('Done {}'.format(PROGRAM_NAME))
     sys.exit(exit_code)
