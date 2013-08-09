@@ -126,7 +126,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         central_splitter = QtGui.QSplitter(self, orientation = QtCore.Qt.Vertical)
         self.setCentralWidget(central_splitter)
-        central_layout = QtGui.QHBoxLayout()
+        central_layout = QtGui.QVBoxLayout()
         central_splitter.setLayout(central_layout)
         
         # Tree widget
@@ -145,6 +145,32 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         central_layout.addWidget(self.obj_tree)
 
+        # Bottom pane
+        pane_widget = QtGui.QWidget()
+        central_layout.addWidget(pane_widget)
+        pane_layout = QtGui.QHBoxLayout()
+        pane_widget.setLayout(pane_layout)
+        
+        # Radio buttons
+        group_box = QtGui.QGroupBox("Show details")
+
+        self.radio_str = QtGui.QRadioButton("str")
+        self.radio_str.toggled.connect(self.change_details_field)
+        self.radio_repr = QtGui.QRadioButton("repr")
+        self.radio_repr.toggled.connect(self.change_details_field)
+        self.radio_doc = QtGui.QRadioButton("__doc__")
+        self.radio_doc.toggled.connect(self.change_details_field)
+
+        self.radio_str.setChecked(True)
+
+        radio_layout = QtGui.QVBoxLayout()
+        radio_layout.addWidget(self.radio_str)
+        radio_layout.addWidget(self.radio_repr)
+        radio_layout.addWidget(self.radio_doc)
+        radio_layout.addStretch(1)
+        group_box.setLayout(radio_layout)
+        pane_layout.addWidget(group_box)
+
         # Editor widget
         font = QtGui.QFont()
         font.setFamily('Courier')
@@ -155,7 +181,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.editor.setReadOnly(True)
         self.editor.setFont(font)
         #self.editor.setWordWrapMode(QtGui.QTextOption.NoWrap)
-        central_layout.addWidget(self.editor)
+        pane_layout.addWidget(self.editor)
         
         # Splitter parameters
         central_splitter.setCollapsible(0, False)
@@ -179,7 +205,7 @@ class ObjectBrowser(QtGui.QMainWindow):
 
     @QtCore.Slot(QtCore.QModelIndex, QtCore.QModelIndex)
     def _update_details(self, current_index, _previous_index):
-        """ Shows the object details in the editor
+        """ Shows the object details in the editor given an index.
         """
         if False:
             display_index = self._tree_model.index(current_index.row(), TreeModel.COL_STR, 
@@ -188,12 +214,36 @@ class ObjectBrowser(QtGui.QMainWindow):
         else:
             tree_item = self._tree_model.treeItem(current_index)
             logger.debug("_update_details: {!r}".format(tree_item))
+            self._update_details_for_item(tree_item)
+            
+    def _update_details_for_item(self, tree_item):
+        """ Shows the object details in the editor given an tree_item
+        """
+        obj = tree_item.obj
+        if self.radio_str.isChecked():
+            data = str(obj)
+        elif self.radio_repr.isChecked():
+            data = repr(obj)
+        elif self.radio_doc.isChecked():
             try:
-                data = tree_item.obj.__doc__
+                data = obj.__doc__
             except AttributeError:
                 data = '<no doc string found>'
+        else:
+            assert False, "No radio button checked."
+                
         self.editor.setPlainText(data)
 
+        
+        
+    def change_details_field(self):
+        """ Changes the field that is changed in the details pane
+        """
+        logger.debug("change_details_field")
+        current_index = self.obj_tree.selectionModel().currentIndex()
+        tree_item = self._tree_model.treeItem(current_index)
+        self._update_details_for_item(tree_item)
+        
     
     def _make_show_column_function(self, column_idx):
         """ Creates a function that shows or hides a column."""
@@ -205,6 +255,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Shows/hides the special methods, which start and and with two underscores."""
         logger.debug("toggle_special_methods: {}".format(checked))
         self._tree_model.setShowSpecialMethods(checked)
+
 
 
     def about(self):
@@ -301,8 +352,7 @@ def call_viewer_small_test():
         
     #obj_browser1 = ObjectBrowser(obj = globals())
     #obj_browser = ObjectBrowser(obj = obj_browser1, obj_name='obj_browser1')
-    obj_browser = ObjectBrowser(obj =[5, 6, 'a', ['r', 2, []]], obj_name='locals()', 
-                                show_special_methods = False)
+    obj_browser = ObjectBrowser(obj =[5, 6, 'a', ['r', 2, []]], obj_name='locals()')
     
     obj_browser.resize(1000, 600)
     obj_browser.show()
@@ -328,8 +378,8 @@ def main():
         format='%(filename)20s:%(lineno)-4d : %(levelname)-7s: %(message)s')
 
     logger.info('Started {}'.format(PROGRAM_NAME))
-    #_obj_browser1 = call_viewer_test() # to keep a reference
-    _obj_browser2 = call_viewer_small_test() # to keep a reference
+    _obj_browser1 = call_viewer_test() # to keep a reference
+    #_obj_browser2 = call_viewer_small_test() # to keep a reference
     exit_code = app.exec_()
     logging.info('Done {}'.format(PROGRAM_NAME))
     sys.exit(exit_code)
