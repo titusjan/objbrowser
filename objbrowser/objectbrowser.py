@@ -91,22 +91,10 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         if single_root_node is True:
             self.obj_tree.expandToDepth(0)
-        else:
-            root_index = self._tree_model.createIndex(0, 0)
-            logger.debug("root_index: {}".format(root_index))
-            self.obj_tree.setExpanded(root_index, True)
-
-        #self.obj_tree.expandToDepth(-1)
-        
         
         # Select first row so that a hidden root node will not be selected.
-        #first_row = self._tree_model.index(0,0)
         first_row = self._tree_model.first_item_index()
-        logger.debug("selecting {}".format(first_row))
         self.obj_tree.setCurrentIndex(first_row)
-        #selection_model = self.obj_tree.selectionModel()
-        #selection_model.setCurrentIndex(first_row, QtGui.QItemSelectionModel.SelectCurrent   )
-        
         
         if width and height:
             self.resize(width, height)
@@ -244,9 +232,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     def _update_details(self, current_index, _previous_index):
         """ Shows the object details in the editor given an index.
         """
-        logger.debug("_update_details current_index: {}".format(current_index))
         tree_item = self._tree_model.treeItem(current_index)
-        logger.debug("_update_details, tree_item: {}".format(tree_item))
         self._update_details_for_item(tree_item)
 
 

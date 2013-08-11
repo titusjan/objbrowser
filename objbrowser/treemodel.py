@@ -193,7 +193,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         parent_item = child_item.parent()
 
         if parent_item is None or parent_item == self.root_item:
-        #if parent_item == self.root_item:
             return QtCore.QModelIndex()
 
         return self.createIndex(parent_item.row(), 0, parent_item)
@@ -203,17 +202,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         """ Returns the root item index or, if the single_root_node property is False, 
             the index(0, 0, root_item)
         """
-        #logger.debug("first_item_index, self.root_item: {}".format(self.root_item)) 
         if self._single_root_node is True:
             root_parent_index = self.createIndex(0, 0, self.root_item)
             return self.index(0, 0, root_parent_index)
         else:
             root_index = self.createIndex(0, 0, self.root_item)
-            
-            logger.debug("first_item_index, root_index: {}".format(root_index))
             return root_index
-            return self.index(0, 0, root_index)
-        
+            
 
     def rowCount(self, parent):
         
@@ -297,13 +292,13 @@ class TreeModel(QtCore.QAbstractItemModel):
             
             Returns newly created tree item
         """
-        logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
+        #logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
         tree_item = TreeItem(parent_item, obj, obj_name, obj_path)
         return tree_item
 
    
     def populateTree(self, root_obj, root_name='', single_root_node=False):
-        """ Fills the tree using a python object.
+        """ Fills the tree using a python object. Sets the root_item.
         """
         logger.debug("populateTree with object id = 0x{:x}".format(id(root_obj)))
         
@@ -312,13 +307,16 @@ class TreeModel(QtCore.QAbstractItemModel):
             root_parent_item.children_fetched = True
             root_item = self._addTreeItem(root_parent_item, root_obj, root_name, root_name)
             root_parent_item.append_child(root_item)
-            return root_parent_item
+            self.root_item = root_parent_item
         else:
             self.root_item = self._addTreeItem(None, root_obj, root_name, root_name)
-            root_index = self.index(0, 0)
-            self.fetchMore(root_index) # fetch all items of the root so we can select the first row in the constructor
-            return self.root_item
             
+            # Fetch all items of the root so we can select the first row in the constructor.
+            root_index = self.index(0, 0)
+            self.fetchMore(root_index) 
+            
+        return self.root_item
+    
         
     def setShowSpecialMethods(self, show_special_methods):
         """ Shows/hides special methods, which begin with an underscore.
