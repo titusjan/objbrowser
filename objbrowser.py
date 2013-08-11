@@ -2,18 +2,15 @@
    Program that shows the local Python environment using the inspect module
 """
 from __future__ import print_function
-
 import sys, os, logging, pprint, inspect
-
 from PySide import QtCore, QtGui
-
 from treemodel import TreeModel
 
 logger = logging.getLogger(__name__)
 
 DEBUGGING = True
 
-PROGRAM_NAME = 'pyviewer'
+PROGRAM_NAME = 'pyobjbrowser'
 PROGRAM_VERSION = '0.0.1'
 PROGRAM_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
 IMAGE_DIRECTORY = PROGRAM_DIRECTORY + '/images/'
@@ -91,13 +88,20 @@ class ColumnSettings(object):
 # pylint: disable=R0901, R0902, R0904 
 
 class ObjectBrowser(QtGui.QMainWindow):
-    """ The main application.
+    """ Object browser main application window.
     """
-
-    
-    def __init__(self, obj = None, obj_name = '', show_special_methods = True):
+    def __init__(self, obj = None, obj_name = '', 
+                 show_special_methods = True, 
+                 width = None, height = None):
         """ Constructor
+        
             :param obj: any python object or variable
+            :param obj_name: name of the object as it will appear in the root node
+            :param show_special_methods: if True the objects special methods, 
+                i.e. methods with a name that starts and ends with two underscores, 
+                will be displayed (in grey). If False they are hidden.
+            :param width: if width and heigth are set, the main windows is resized. 
+            :param height: if width and heigth are set, the main windows is resized.
         """
         super(ObjectBrowser, self).__init__()
         
@@ -123,17 +127,18 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._setup_actions()
         self._setup_menu()
         self._setup_views()
-        self.setWindowTitle(PROGRAM_NAME)
+        self.setWindowTitle("{} - {}".format(PROGRAM_NAME, obj_name))
         app = QtGui.QApplication.instance()
         app.lastWindowClosed.connect(app.quit) 
-
         
         # Update views with model
         for settings in self.col_settings:
             settings.toggle_action.setChecked(settings.visible)
 
         #self.obj_tree.expandToDepth(0)
-
+        
+        if width and height:
+            self.resize(width, height)
 
 
     def _setup_actions(self):
@@ -197,7 +202,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Stretch last column? 
         # It doesn't play nice when columns are hidden and then shown again.
-        self.obj_tree.header().setStretchLastSection(True) 
+        self.obj_tree.header().setStretchLastSection(False) 
         
         central_layout.addWidget(self.obj_tree)
 
@@ -231,28 +236,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.radio_getsourcelines = create_radio("inspect.getsourcelines")
         self.radio_getsource      = create_radio("inspect.getsource")
         
-        
-        if False:
-            self.radio_str = QtGui.QRadioButton("str")
-            self.radio_str.toggled.connect(self._change_details_field)
-            radio_layout.addWidget(self.radio_str)
-            
-            self.radio_repr = QtGui.QRadioButton("repr")
-            self.radio_repr.toggled.connect(self._change_details_field)
-            radio_layout.addWidget(self.radio_repr)
-            
-            self.radio_pretty = QtGui.QRadioButton("pretty print")
-            self.radio_pretty.toggled.connect(self._change_details_field)
-            radio_layout.addWidget(self.radio_pretty)
-    
-            self.radio_doc = QtGui.QRadioButton("doc string")
-            self.radio_doc.toggled.connect(self._change_details_field)
-            radio_layout.addWidget(self.radio_doc)
-            
-            self.radio_getdoc = QtGui.QRadioButton("inspect.getdoc")
-            self.radio_getdoc.toggled.connect(self._change_details_field)
-            radio_layout.addWidget(self.radio_getdoc)
-
         self.radio_str.setChecked(True)
         radio_layout.addStretch(1)
         group_box.setLayout(radio_layout)
@@ -267,7 +250,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.editor = QtGui.QPlainTextEdit()
         self.editor.setReadOnly(True)
         self.editor.setFont(font)
-        #self.editor.setWordWrapMode(QtGui.QTextOption.NoWrap)
         pane_layout.addWidget(self.editor)
         
         # Splitter parameters

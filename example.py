@@ -76,10 +76,14 @@ def call_viewer_test():
     multi_line_str = """ hello\nworld
                         the end."""
     
-    locals_obj_browser = create_object_browser(obj = locals())
-    globals_obj_browser = create_object_browser(obj = globals())
-    globals_obj_browser.resize(1100, 600)
+    # When creating multiple object browsers, make sure to keep a
+    # reference to each of them. Otherwise windows will be garbabe-
+    # collected and will disappear.
+    _locals_obj_browser = create_object_browser(obj = locals()) # without obj_name
+    _globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals', 
+                                                 width = 1100, height = 650)
     exit_code = execute()
+    return exit_code
     
 
 def call_viewer_small_test():
@@ -91,7 +95,6 @@ def call_viewer_small_test():
     exit_code = browse(obj = nested_list, obj_name='nested_list')
     return exit_code
     
-
         
 def main():
     """ Main program to test stand alone 
@@ -99,8 +102,10 @@ def main():
     logging_basic_config('DEBUG')
     logger.info('Started example')
     
-    #exit_code = call_viewer_test() # to keep a reference
-    exit_code = call_viewer_small_test() # to keep a reference
+    if 1:
+        exit_code = call_viewer_test()
+    else: 
+        exit_code = call_viewer_small_test() 
     
     logging.info('Done example')
     sys.exit(exit_code)
