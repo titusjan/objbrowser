@@ -3,7 +3,7 @@
 """
 from __future__ import print_function
 
-import sys, argparse, os, logging
+import sys, argparse, os, logging, pprint, inspect
 
 from PySide import QtCore, QtGui
 
@@ -71,6 +71,9 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._setup_menu()
         self._setup_views()
         self.setWindowTitle(PROGRAM_NAME)
+        app = QtGui.QApplication.instance()
+        app.lastWindowClosed.connect(app.quit) 
+
         
         # Update views with model
         for settings in self.col_settings:
@@ -152,21 +155,52 @@ class ObjectBrowser(QtGui.QMainWindow):
         pane_widget.setLayout(pane_layout)
         
         # Radio buttons
-        group_box = QtGui.QGroupBox("Show details")
-
-        self.radio_str = QtGui.QRadioButton("str")
-        self.radio_str.toggled.connect(self.change_details_field)
-        self.radio_repr = QtGui.QRadioButton("repr")
-        self.radio_repr.toggled.connect(self.change_details_field)
-        self.radio_doc = QtGui.QRadioButton("__doc__")
-        self.radio_doc.toggled.connect(self.change_details_field)
-
-        self.radio_str.setChecked(True)
+        group_box = QtGui.QGroupBox("Details")
 
         radio_layout = QtGui.QVBoxLayout()
-        radio_layout.addWidget(self.radio_str)
-        radio_layout.addWidget(self.radio_repr)
-        radio_layout.addWidget(self.radio_doc)
+
+        def create_radio(description):
+            "Adds a new radio button to the radio_layout"
+            radio_button = QtGui.QRadioButton(description)
+            radio_button.toggled.connect(self._change_details_field)
+            radio_layout.addWidget(radio_button) 
+            return radio_button
+        
+        self.radio_str            = create_radio("str")
+        self.radio_repr           = create_radio("repr")
+        self.radio_pretty         = create_radio("pretty print")
+        self.radio_doc            = create_radio("doc string")
+        self.radio_getdoc         = create_radio("inspect.getdoc")
+        self.radio_getcomments    = create_radio("inspect.getcomments")
+        self.radio_getfile        = create_radio("inspect.getfile")
+        self.radio_getmodule      = create_radio("inspect.getmodule")
+        self.radio_getsourcefile  = create_radio("inspect.getsourcefile")
+        self.radio_getsourcelines = create_radio("inspect.getsourcelines")
+        self.radio_getsource      = create_radio("inspect.getsource")
+        
+        
+        if False:
+            self.radio_str = QtGui.QRadioButton("str")
+            self.radio_str.toggled.connect(self._change_details_field)
+            radio_layout.addWidget(self.radio_str)
+            
+            self.radio_repr = QtGui.QRadioButton("repr")
+            self.radio_repr.toggled.connect(self._change_details_field)
+            radio_layout.addWidget(self.radio_repr)
+            
+            self.radio_pretty = QtGui.QRadioButton("pretty print")
+            self.radio_pretty.toggled.connect(self._change_details_field)
+            radio_layout.addWidget(self.radio_pretty)
+    
+            self.radio_doc = QtGui.QRadioButton("doc string")
+            self.radio_doc.toggled.connect(self._change_details_field)
+            radio_layout.addWidget(self.radio_doc)
+            
+            self.radio_getdoc = QtGui.QRadioButton("inspect.getdoc")
+            self.radio_getdoc.toggled.connect(self._change_details_field)
+            radio_layout.addWidget(self.radio_getdoc)
+
+        self.radio_str.setChecked(True)
         radio_layout.addStretch(1)
         group_box.setLayout(radio_layout)
         pane_layout.addWidget(group_box)
@@ -207,14 +241,17 @@ class ObjectBrowser(QtGui.QMainWindow):
     def _update_details(self, current_index, _previous_index):
         """ Shows the object details in the editor given an index.
         """
-        if False:
-            display_index = self._tree_model.index(current_index.row(), TreeModel.COL_STR, 
-                                                   current_index.parent())
-            data = self._tree_model.data(display_index, QtCore.Qt.DisplayRole)
-        else:
-            tree_item = self._tree_model.treeItem(current_index)
-            logger.debug("_update_details: {!r}".format(tree_item))
-            self._update_details_for_item(tree_item)
+        tree_item = self._tree_model.treeItem(current_index)
+        self._update_details_for_item(tree_item)
+
+
+    def _change_details_field(self):
+        """ Changes the field that is changed in the details pane
+        """
+        current_index = self.obj_tree.selectionModel().currentIndex()
+        tree_item = self._tree_model.treeItem(current_index)
+        self._update_details_for_item(tree_item)
+        
             
     def _update_details_for_item(self, tree_item):
         """ Shows the object details in the editor given an tree_item
@@ -229,20 +266,38 @@ class ObjectBrowser(QtGui.QMainWindow):
                 data = obj.__doc__
             except AttributeError:
                 data = '<no doc string found>'
+        elif self.radio_pretty.isChecked():
+            pp = pprint.PrettyPrinter(indent=4)
+            data = pp.pformat(obj)
+        elif self.radio_getdoc.isChecked():
+            data = inspect.getdoc(obj)
+            
+        elif self.radio_getcomments.isChecked():
+            data = inspect.getcomments(obj)
+        elif self.radio_getfile.isChecked():
+            try:
+                data = inspect.getfile(obj)
+            except TypeError:
+                data = ''
+        elif self.radio_getmodule.isChecked():
+            try:
+                data = inspect.getmodule(obj)
+            except TypeError:
+                data = ''
+        elif self.radio_getsourcefile.isChecked():
+            data = inspect.getsourcefile(obj)
+        elif self.radio_getsourcelines.isChecked():
+            data = inspect.getsourcelines(obj)
+        elif self.radio_getsource.isChecked():
+            try:
+                data = inspect.getsource(obj)
+            except IOError:
+                data = ''
         else:
             assert False, "No radio button checked."
                 
         self.editor.setPlainText(data)
 
-        
-        
-    def change_details_field(self):
-        """ Changes the field that is changed in the details pane
-        """
-        logger.debug("change_details_field")
-        current_index = self.obj_tree.selectionModel().currentIndex()
-        tree_item = self._tree_model.treeItem(current_index)
-        self._update_details_for_item(tree_item)
         
     
     def _make_show_column_function(self, column_idx):
@@ -255,7 +310,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Shows/hides the special methods, which start and and with two underscores."""
         logger.debug("toggle_special_methods: {}".format(checked))
         self._tree_model.setShowSpecialMethods(checked)
-
 
 
     def about(self):
@@ -310,7 +364,8 @@ def call_viewer_test():
         def method(self):
             pass
         
-            
+    # Some comments just above
+    # the function definition.
     def my_function(param):
         'demo function'
         return param
@@ -330,6 +385,7 @@ def call_viewer_test():
     lst = [4, '4', d, ['r', dir], main, QtGui]
     my_set = set([3, 4, 4, 8])
     my_frozenset = frozenset([3, 4, 5, 6, 6])
+    #http://docs.python.org/2/howto/unicode.html
     u1 = unichr(40960) + u'ab\ncd' + unichr(1972)
     u2 = u"a\xac\u1234\u20ac\U00008000"
     u3 = u'no strange chars'
@@ -364,7 +420,7 @@ def main():
     """ Main program to test stand alone 
     """
     app = QtGui.QApplication(sys.argv)
-    
+        
     parser = argparse.ArgumentParser(description='Python abstract syntax tree viewer')
     parser.add_argument(dest='file_name', help='Python input file', nargs='?')
     parser.add_argument('-l', '--log-level', dest='log_level', default = 'debug', 
