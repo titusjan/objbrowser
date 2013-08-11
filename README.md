@@ -1,7 +1,18 @@
 objbrowser
 ==========
 
-Python object browser implemented in Qt
+Python object browser implemented in Qt.
+
+Shows an object in a tree view so that you can examine its attributes
+recursively (e.g. browse through a list of dictionaries).
+
+From the _View_ menu you can select some extra columns, such as the 
+_object ID_ column.
+
+The details pane at the bottom shows object properties that do not fit
+on one line, such as the docstrings and the output of various functions 
+of the _inspect_ module from the Python standard library.
+
 
 ![objbrowser screen shot](screen_shot.png)
 
@@ -44,13 +55,13 @@ To open two object browser windows simultaneously.
 	execute()
 
 If the `show_special_methods` parameter is False, the objects special methods, 
-i.e. methods with a name that starts and ends with two underscores will be hidden.
+i.e. methods with a name that starts and ends with two underscores, will be hidden.
 
 If the `width` and `height` parameters are given, the window will be resized. 
 
 	from objbrowser import browse
 
-	browse(range(0, 1000), obj_name='list', 
+	browse(range(0, 10), obj_name='list', 
     	   show_special_methods = False,
        	   width = 1000, height = 600) 
        
