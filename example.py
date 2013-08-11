@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import sys, logging
-from objbrowser import browse, create_object_browser, execute, logging_basic_config
+from objbrowser.object_browser import browse, create_object_browser, execute, logging_basic_config
 
 logger = logging.getLogger(__name__)
 
