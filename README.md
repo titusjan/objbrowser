@@ -6,7 +6,7 @@ Python object browser implemented in Qt.
 Shows an object in a tree view so that you can examine its attributes
 recursively (e.g. browse through a list of dictionaries).
 
-From the _View_ menu you can select some extra columns, such as the 
+From the _View_ menu you can select some extra columns, for instance the 
 _object ID_ column.
 
 The details pane at the bottom shows object properties that do not fit
@@ -57,7 +57,7 @@ To open two object browser windows simultaneously.
 If the `show_special_methods` parameter is False, the objects special methods, 
 i.e. methods with a name that starts and ends with two underscores, will be hidden.
 
-If the show_root_node parameter is False (the default), the attributes of the object
+If the `show_root_node` parameter is False (the default), the attributes of the object
 will be placed as top level items in the tree. Otherwise, the a single node with of
 the object will be the top level item.
 
