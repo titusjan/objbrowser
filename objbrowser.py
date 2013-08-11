@@ -3,7 +3,7 @@
 """
 from __future__ import print_function
 
-import sys, argparse, os, logging, pprint, inspect
+import os, logging, pprint, inspect
 
 from PySide import QtCore, QtGui
 
@@ -21,6 +21,12 @@ ABOUT_MESSAGE = u"""%(prog)s version %(version)s
 """ % {"prog": PROGRAM_NAME, "version": PROGRAM_VERSION}
 
 
+def logging_basic_config(level):
+    """ Setup basic config logging. Useful for debugging to quickly setup a useful logger"""
+    fmt = '%(filename)20s:%(lineno)-4d : %(levelname)-7s: %(message)s'
+    logging.basicConfig(level=level, format=fmt)
+    
+    
 class ColumnSettings(object):
     """ Class that stores INITIAL column settings. """
     
@@ -298,7 +304,6 @@ class ObjectBrowser(QtGui.QMainWindow):
                 
         self.editor.setPlainText(data)
 
-        
     
     def _make_show_column_function(self, column_idx):
         """ Creates a function that shows or hides a column."""
@@ -326,120 +331,3 @@ class ObjectBrowser(QtGui.QMainWindow):
         app.closeAllWindows()
 
 # pylint: enable=R0901, R0902, R0904        
-
-
-def call_viewer_test():
-    """ Test procedure. 
-    """
-    import types, sys
-    
-    class OldStyleClass: 
-        """ An old style class (pre Python 2.2)
-            See: http://docs.python.org/2/reference/datamodel.html#new-style-and-classic-classes
-        """
-        static_member = 'static_value'
-        def __init__(self, s, i):
-            'constructor'            
-            self._member_str = s
-            self.__member_int = i
-            
-    class NewStyleClass(object):
-        """ A new style class (Python 2.2 and later). Note it inherits 'object'.
-            See: http://docs.python.org/2/reference/datamodel.html#new-style-and-classic-classes
-        """
-        static_member = 'static_value'
-        def __init__(self, s, i):
-            'constructor'
-            self._member_str = s
-            self.__member_int = i
-            
-        @property
-        def member_int(self):
-            return self.__member_int
-            
-        @member_int.setter
-        def member_int(self, value):
-            self.__member_int = value
-            
-        def method(self):
-            pass
-        
-    # Some comments just above
-    # the function definition.
-    def my_function(param):
-        'demo function'
-        return param
-    
-    _copyright = types.__builtins__['copyright'] 
-    
-    old_style_object = OldStyleClass('member_value', 44)    
-    new_style_object = NewStyleClass('member_value', -66)    
-    
-    x_plus_2 = lambda x: x+2
-    
-    d = {'4': 44, 's': 11}
-    a = 6
-    b = 'seven'
-    n = None
-    tup = ('this', 'is', 'a tuple')
-    lst = [4, '4', d, ['r', dir], main, QtGui]
-    my_set = set([3, 4, 4, 8])
-    my_frozenset = frozenset([3, 4, 5, 6, 6])
-    #http://docs.python.org/2/howto/unicode.html
-    u1 = unichr(40960) + u'ab\ncd' + unichr(1972)
-    u2 = u"a\xac\u1234\u20ac\U00008000"
-    u3 = u'no strange chars'
-    multi_line_str = """ hello\nworld
-                        the end."""
-    
-    obj_browser = ObjectBrowser(obj = locals())
-    obj_browser.resize(1100, 600)
-    obj_browser.show()
-    
-    return obj_browser # to keep a reference
-
-
-def call_viewer_small_test():
-    """ Test procedure. 
-    """
-    
-    a = 6
-    b = ['seven', 'eight']
-        
-    #obj_browser1 = ObjectBrowser(obj = globals())
-    #obj_browser = ObjectBrowser(obj = obj_browser1, obj_name='obj_browser1')
-    obj_browser = ObjectBrowser(obj =[5, 6, 'a', ['r', 2, []]], obj_name='locals()')
-    
-    obj_browser.resize(1000, 600)
-    obj_browser.show()
-    
-    return obj_browser # to keep a reference
-
-        
-def main():
-    """ Main program to test stand alone 
-    """
-    app = QtGui.QApplication(sys.argv)
-        
-    parser = argparse.ArgumentParser(description='Python abstract syntax tree viewer')
-    parser.add_argument(dest='file_name', help='Python input file', nargs='?')
-    parser.add_argument('-l', '--log-level', dest='log_level', default = 'debug', 
-        help = "Log level. Only log messages with a level higher or equal than this "
-            "will be printed. Default: 'debug'",
-        choices = ('debug', 'info', 'warn', 'error', 'critical'))
-    
-    args = parser.parse_args()
-
-    logging.basicConfig(level = args.log_level.upper(), 
-        format='%(filename)20s:%(lineno)-4d : %(levelname)-7s: %(message)s')
-
-    logger.info('Started {}'.format(PROGRAM_NAME))
-    _obj_browser1 = call_viewer_test() # to keep a reference
-    #_obj_browser2 = call_viewer_small_test() # to keep a reference
-    exit_code = app.exec_()
-    logging.info('Done {}'.format(PROGRAM_NAME))
-    sys.exit(exit_code)
-
-
-if __name__ == '__main__':
-    main()
