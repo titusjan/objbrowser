@@ -84,7 +84,7 @@ def call_viewer_test():
                                                 show_special_methods = False,
                                                 width = 1000, height = 600) 
     _globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals',
-                                                 single_root_node = True,  
+                                                 show_root_node = True,  
                                                  width = 1100, height = 700)
     exit_code = execute()
     return exit_code
@@ -96,7 +96,7 @@ def call_viewer_small_test():
     a = 6
     b = ['seven', 'eight']
     nested_list = [5, 6, 'a', ['r', 2, []], (a, b), range(1, 100)]
-    exit_code = browse(obj = nested_list, obj_name='nested_list', single_root_node = False)
+    exit_code = browse(obj = nested_list, obj_name='nested_list', show_root_node = True)
     return exit_code
     
         

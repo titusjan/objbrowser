@@ -79,7 +79,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def __init__(self, obj, obj_name = '', 
                  show_special_methods = True, 
-                 single_root_node=False, 
+                 show_root_node=False, 
                  parent=None):
         """ Constructor
         
@@ -88,15 +88,15 @@ class TreeModel(QtCore.QAbstractItemModel):
             :param show_special_methods: if True the objects special methods, 
                 i.e. methods with a name that starts and ends with two underscores, 
                 will be displayed (in grey). If False they are hidden.
-            :param single_root_node: If true, all items are grouped under a single root item
+            :param show_root_node: If true, all items are grouped under a single root item
             :param parent: the parent widget
         """
         super(TreeModel, self).__init__(parent)
         self._root_obj  = obj
         self._root_name = obj_name 
-        self._single_root_node = single_root_node
+        self._single_root_node = show_root_node
         self._show_special_methods = show_special_methods
-        self.root_item = self.populateTree(obj, obj_name, single_root_node)
+        self.root_item = self.populateTree(obj, obj_name, show_root_node)
 
 
     def columnCount(self, _parent):

@@ -43,7 +43,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     """
     def __init__(self, obj = None, obj_name = '', 
                  show_special_methods = True, 
-                 single_root_node = False, 
+                 show_root_node = False, 
                  width = 1200, height = 800):
         """ Constructor
         
@@ -59,7 +59,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Model
         self._tree_model = TreeModel(obj, obj_name = obj_name, 
-                                     single_root_node = single_root_node, 
+                                     show_root_node = show_root_node, 
                                      show_special_methods = show_special_methods)
         
         # Table columns
@@ -89,7 +89,7 @@ class ObjectBrowser(QtGui.QMainWindow):
 
         self.radio_str.setChecked(True)
         
-        if single_root_node is True:
+        if show_root_node is True:
             self.obj_tree.expandToDepth(0)
      
         # Select first row so that a hidden root node will not be selected.
