@@ -43,6 +43,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     """
     def __init__(self, obj = None, obj_name = '', 
                  show_special_methods = True, 
+                 single_root_node = False, 
                  width = 1200, height = 800):
         """ Constructor
         
@@ -58,7 +59,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Model
         self._tree_model = TreeModel(obj, obj_name = obj_name, 
-                                     show_special_methods=show_special_methods)
+                                     single_root_node = single_root_node, 
+                                     show_special_methods = show_special_methods)
         
         # Table columns
         defw = 200
@@ -86,8 +88,25 @@ class ObjectBrowser(QtGui.QMainWindow):
             settings.toggle_action.setChecked(settings.visible)
 
         self.radio_str.setChecked(True)
+        
+        if single_root_node is True:
+            self.obj_tree.expandToDepth(0)
+        else:
+            root_index = self._tree_model.createIndex(0, 0)
+            logger.debug("root_index: {}".format(root_index))
+            self.obj_tree.setExpanded(root_index, True)
 
-        #self.obj_tree.expandToDepth(0)
+        #self.obj_tree.expandToDepth(-1)
+        
+        
+        # Select first row so that a hidden root node will not be selected.
+        #first_row = self._tree_model.index(0,0)
+        first_row = self._tree_model.first_item_index()
+        logger.debug("selecting {}".format(first_row))
+        self.obj_tree.setCurrentIndex(first_row)
+        #selection_model = self.obj_tree.selectionModel()
+        #selection_model.setCurrentIndex(first_row, QtGui.QItemSelectionModel.SelectCurrent   )
+        
         
         if width and height:
             self.resize(width, height)
@@ -154,7 +173,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Stretch last column? 
         # It doesn't play nice when columns are hidden and then shown again.
         self.obj_tree.header().setStretchLastSection(False) 
-        
+
         central_layout.addWidget(self.obj_tree)
 
         # Bottom pane
@@ -225,7 +244,9 @@ class ObjectBrowser(QtGui.QMainWindow):
     def _update_details(self, current_index, _previous_index):
         """ Shows the object details in the editor given an index.
         """
+        logger.debug("_update_details current_index: {}".format(current_index))
         tree_item = self._tree_model.treeItem(current_index)
+        logger.debug("_update_details, tree_item: {}".format(tree_item))
         self._update_details_for_item(tree_item)
 
 

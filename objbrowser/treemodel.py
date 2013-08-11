@@ -169,7 +169,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             return index.internalPointer() 
             
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent=None):
+        
+        if parent is None:
+            parent = QtCore.QModelIndex()
+            
         if not self.hasIndex(row, column, parent):
             return QtCore.QModelIndex()
 
@@ -188,11 +192,28 @@ class TreeModel(QtCore.QAbstractItemModel):
         child_item = index.internalPointer()
         parent_item = child_item.parent()
 
-        if parent_item == self.root_item:
+        if parent_item is None or parent_item == self.root_item:
+        #if parent_item == self.root_item:
             return QtCore.QModelIndex()
 
         return self.createIndex(parent_item.row(), 0, parent_item)
-
+    
+    
+    def first_item_index(self):
+        """ Returns the root item index or, if the single_root_node property is False, 
+            the index(0, 0, root_item)
+        """
+        #logger.debug("first_item_index, self.root_item: {}".format(self.root_item)) 
+        if self._single_root_node is True:
+            root_parent_index = self.createIndex(0, 0, self.root_item)
+            return self.index(0, 0, root_parent_index)
+        else:
+            root_index = self.createIndex(0, 0, self.root_item)
+            
+            logger.debug("first_item_index, root_index: {}".format(root_index))
+            return root_index
+            return self.index(0, 0, root_index)
+        
 
     def rowCount(self, parent):
         
@@ -276,7 +297,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             
             Returns newly created tree item
         """
-        #logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
+        logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
         tree_item = TreeItem(parent_item, obj, obj_name, obj_path)
         return tree_item
 
@@ -293,7 +314,10 @@ class TreeModel(QtCore.QAbstractItemModel):
             root_parent_item.append_child(root_item)
             return root_parent_item
         else:
-            return self._addTreeItem(None, root_obj, root_name, root_name)
+            self.root_item = self._addTreeItem(None, root_obj, root_name, root_name)
+            root_index = self.index(0, 0)
+            self.fetchMore(root_index) # fetch all items of the root so we can select the first row in the constructor
+            return self.root_item
             
         
     def setShowSpecialMethods(self, show_special_methods):

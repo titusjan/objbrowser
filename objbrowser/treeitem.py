@@ -18,10 +18,12 @@ class TreeItem(object):
         self.children_fetched = False
 
     def __str__(self):
-        return "<TreeItem: {} ({:d} children)>".format(self.obj_path, len(self.child_items))
+        return "<TreeItem: {} (0x{:x}) ({:d} children)>" \
+            .format(self.obj_path, id(self.obj), len(self.child_items))
 
     def __repr__(self):
-        return "<TreeItem: {} ({:d} children)>".format(self.obj_path, len(self.child_items))
+        return "<TreeItem: {} (0x{:x}) ({:d} children)>" \
+            .format(self.obj_path, id(self.obj), len(self.child_items))
     
     def append_child(self, item):
         self.child_items.append(item)
