@@ -29,30 +29,36 @@ of the _inspect_ module from the Python standard library.
 	
 To examine a dictionary (or any other Python object):
 
-	from objbrowser import browse
-	d = {'hello': 'hallo', 'world': 'wereld'} 
-	browse(d, obj_name='d')
+```Python
+from objbrowser import browse
+d = {'hello': 'hallo', 'world': 'wereld'} 
+browse(d, obj_name='d')
+```
 
 If you omit the `obj_name` parameter, the path column will not 
 start with the object name but with the item names. 
  
 To pause program execution and examine all local variables:
  
-	from objbrowser import browse
-	from datetime import datetime
-	
-	def my_fun():
-	    now = datetime.utcnow()
-	    browse(locals())
-	
-	my_fun()
-		
+```Python
+from objbrowser import browse
+from datetime import datetime
+
+def my_fun():
+    now = datetime.utcnow()
+    browse(locals())
+
+my_fun()
+```
+
 To open two object browser windows simultaneously:
 
-	from objbrowser import create_object_browser, execute
-	loc_browser = create_object_browser(locals(), obj_name = 'locals()')
-	glb_browser = create_object_browser(globals(), obj_name = 'globals()')
-	execute()
+```Python
+from objbrowser import create_object_browser, execute
+loc_browser = create_object_browser(locals(), obj_name = 'locals()')
+glb_browser = create_object_browser(globals(), obj_name = 'globals()')
+execute()
+```
 
 If the `show_special_methods` parameter is False, the objects special methods, 
 i.e. methods with a name that starts and ends with two underscores, will be hidden.
@@ -63,12 +69,13 @@ the object will be the top level item.
 
 If the `width` and `height` parameters are given, the window will be resized. 
 
-	from objbrowser import browse
+```Python
+from objbrowser import browse
 
-	browse(range(0, 10), obj_name='list', 
-    	   show_special_methods = False,
-    	   show_root_node = True, 
-       	   width = 1000, height = 600) 
-       
+browse(range(0, 10), obj_name='list', 
+       show_special_methods = False,
+       show_root_node = True, 
+       width = 1000, height = 600) 
+```       
 
 		
