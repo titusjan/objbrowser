@@ -43,7 +43,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     """
     def __init__(self, obj = None, obj_name = '', 
                  show_special_methods = True, 
-                 width = None, height = None):
+                 width = 1200, height = 800):
         """ Constructor
         
             :param obj: any Python object or variable
