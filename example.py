@@ -83,7 +83,8 @@ def call_viewer_test():
     _locals_obj_browser = create_object_browser(obj = locals(), # without obj_name
                                                 show_special_methods = False,
                                                 width = 1000, height = 600) 
-    _globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals', 
+    _globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals',
+                                                 single_root_node = True,  
                                                  width = 1100, height = 700)
     exit_code = execute()
     return exit_code
@@ -94,8 +95,8 @@ def call_viewer_small_test():
     """
     a = 6
     b = ['seven', 'eight']
-    nested_list = [5, 6, 'a', ['r', 2, []], (a, b)]
-    exit_code = browse(obj = nested_list, obj_name='nested_list')
+    nested_list = [5, 6, 'a', ['r', 2, []], (a, b), range(1, 100)]
+    exit_code = browse(obj = nested_list, obj_name='nested_list', single_root_node = False)
     return exit_code
     
         
@@ -105,7 +106,7 @@ def main():
     logging_basic_config('DEBUG')
     logger.info('Started example')
     
-    if 1:
+    if 0:
         exit_code = call_viewer_test()
     else: 
         exit_code = call_viewer_small_test() 

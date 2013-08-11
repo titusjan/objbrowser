@@ -91,7 +91,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         if single_root_node is True:
             self.obj_tree.expandToDepth(0)
-        
+     
         # Select first row so that a hidden root node will not be selected.
         first_row = self._tree_model.first_item_index()
         self.obj_tree.setCurrentIndex(first_row)
@@ -237,7 +237,7 @@ class ObjectBrowser(QtGui.QMainWindow):
 
 
     def _change_details_field(self):
-        """ Changes the field that is changed in the details pane
+        """ Changes the field that is displayed in the details pane
         """
         current_index = self.obj_tree.selectionModel().currentIndex()
         tree_item = self._tree_model.treeItem(current_index)

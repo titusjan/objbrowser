@@ -207,7 +207,8 @@ class TreeModel(QtCore.QAbstractItemModel):
             return self.index(0, 0, root_parent_index)
         else:
             root_index = self.createIndex(0, 0, self.root_item)
-            return root_index
+            first_item_index = self.index(0, 0, root_index)
+            return first_item_index
             
 
     def rowCount(self, parent):
