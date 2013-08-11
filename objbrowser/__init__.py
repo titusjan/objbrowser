@@ -6,7 +6,7 @@ __all__ = ['browse', 'execute', 'create_object_browser', 'logging_basic_config']
 import sys, os, logging, pprint, inspect
 from PySide import QtCore, QtGui
 
-from objbrowser.object_browser import ObjectBrowser
+from objbrowser.objectbrowser import ObjectBrowser
 
 logger = logging.getLogger(__name__)
 
