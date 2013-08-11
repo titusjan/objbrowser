@@ -27,7 +27,7 @@ of the _inspect_ module from the Python standard library.
 	
 #### Usage examples:
 	
-To examine a dictionary (or any other Python object).
+To examine a dictionary (or any other Python object):
 
 	from objbrowser import browse
 	d = {'hello': 'hallo', 'world': 'wereld'} 
@@ -36,7 +36,7 @@ To examine a dictionary (or any other Python object).
 If you omit the `obj_name` parameter, the path column will not 
 start with the object name but with the item names. 
  
-To pause program execution and examine all local variables.
+To pause program execution and examine all local variables:
  
 	from objbrowser import browse
 	from datetime import datetime
@@ -47,7 +47,7 @@ To pause program execution and examine all local variables.
 	
 	my_fun()
 		
-To open two object browser windows simultaneously.
+To open two object browser windows simultaneously:
 
 	from objbrowser import create_object_browser, execute
 	loc_browser = create_object_browser(locals(), obj_name = 'locals()')
