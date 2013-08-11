@@ -4,11 +4,13 @@
 from __future__ import print_function
 
 import sys, logging
-from PySide import QtCore, QtGui
-from objbrowser import ObjectBrowser, logging_basic_config
+from objbrowser import browse, create_object_browser, execute, logging_basic_config
 
 logger = logging.getLogger(__name__)
 
+MY_CONSTANT = 55
+YOUR_CONSTANT = MY_CONSTANT
+ANOTHER_CONSTANT = MY_CONSTANT * 2
 
 def call_viewer_test():
     """ Test procedure. 
@@ -74,45 +76,34 @@ def call_viewer_test():
     multi_line_str = """ hello\nworld
                         the end."""
     
-    obj_browser = ObjectBrowser(obj = locals())
-    obj_browser.resize(1100, 600)
-    obj_browser.show()
+    locals_obj_browser = create_object_browser(obj = locals())
+    globals_obj_browser = create_object_browser(obj = globals())
+    globals_obj_browser.resize(1100, 600)
+    exit_code = execute()
     
-    return obj_browser # to keep a reference
-
 
 def call_viewer_small_test():
     """ Test procedure. 
     """
-    
     a = 6
     b = ['seven', 'eight']
-        
-    #obj_browser1 = ObjectBrowser(obj = globals())
-    #obj_browser = ObjectBrowser(obj = obj_browser1, obj_name='obj_browser1')
-    obj_browser = ObjectBrowser(obj =[5, 6, 'a', ['r', 2, []]], obj_name='locals()')
+    nested_list = [5, 6, 'a', ['r', 2, []], (a, b)]
+    exit_code = browse(obj = nested_list, obj_name='nested_list')
+    return exit_code
     
-    obj_browser.resize(1000, 600)
-    obj_browser.show()
-    
-    return obj_browser # to keep a reference
 
         
 def main():
     """ Main program to test stand alone 
     """
-    app = QtGui.QApplication(sys.argv)
-
-
     logging_basic_config('DEBUG')
-
     logger.info('Started example')
-    _obj_browser1 = call_viewer_test() # to keep a reference
-    #_obj_browser2 = call_viewer_small_test() # to keep a reference
-    exit_code = app.exec_()
+    
+    #exit_code = call_viewer_test() # to keep a reference
+    exit_code = call_viewer_small_test() # to keep a reference
+    
     logging.info('Done example')
     sys.exit(exit_code)
-
 
 if __name__ == '__main__':
     main()
