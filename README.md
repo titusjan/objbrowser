@@ -55,6 +55,9 @@ To open two object browser windows simultaneously:
 
 ```Python
 from objbrowser import create_object_browser, execute
+
+# Make sure to keep the (loc_browser and glb_browser) references until
+# execute() has finished. Otherwise the windows will be garbage-collected.
 loc_browser = create_object_browser(locals(), obj_name = 'locals()')
 glb_browser = create_object_browser(globals(), obj_name = 'globals()')
 execute()
