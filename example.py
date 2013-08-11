@@ -15,7 +15,8 @@ ANOTHER_CONSTANT = MY_CONSTANT * 2
 def call_viewer_test():
     """ Test procedure. 
     """
-    import types, sys
+    import types, os
+    from os.path import join
     
     class OldStyleClass: 
         """ An old style class (pre Python 2.2)
@@ -79,9 +80,11 @@ def call_viewer_test():
     # When creating multiple object browsers, make sure to keep a
     # reference to each of them. Otherwise windows will be garbabe-
     # collected and will disappear.
-    _locals_obj_browser = create_object_browser(obj = locals()) # without obj_name
+    _locals_obj_browser = create_object_browser(obj = locals(), # without obj_name
+                                                show_special_methods = False,
+                                                width = 1000, height = 600) 
     _globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals', 
-                                                 width = 1100, height = 650)
+                                                 width = 1100, height = 700)
     exit_code = execute()
     return exit_code
     

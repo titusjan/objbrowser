@@ -3,7 +3,7 @@
 """
 from __future__ import absolute_import
 from __future__ import print_function
-import os, logging, pprint, inspect
+import os, logging, pprint, inspect, traceback
 from PySide import QtCore, QtGui
 from objbrowser.treemodel import TreeModel
 
@@ -84,6 +84,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Update views with model
         for settings in self.col_settings:
             settings.toggle_action.setChecked(settings.visible)
+
+        self.radio_str.setChecked(True)
 
         #self.obj_tree.expandToDepth(0)
         
@@ -185,7 +187,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.radio_getsourcelines = create_radio("inspect.getsourcelines")
         self.radio_getsource      = create_radio("inspect.getsource")
         
-        self.radio_str.setChecked(True)
         radio_layout.addStretch(1)
         group_box.setLayout(radio_layout)
         pane_layout.addWidget(group_box)
@@ -239,48 +240,73 @@ class ObjectBrowser(QtGui.QMainWindow):
     def _update_details_for_item(self, tree_item):
         """ Shows the object details in the editor given an tree_item
         """
-        obj = tree_item.obj
-        if self.radio_str.isChecked():
-            data = str(obj)
-        elif self.radio_repr.isChecked():
-            data = repr(obj)
-        elif self.radio_doc.isChecked():
-            try:
-                data = obj.__doc__
-            except AttributeError:
-                data = '<no doc string found>'
-        elif self.radio_pretty.isChecked():
-            pretty_printer = pprint.PrettyPrinter(indent=4)
-            data = pretty_printer.pformat(obj)
-        elif self.radio_getdoc.isChecked():
-            data = inspect.getdoc(obj)
-            
-        elif self.radio_getcomments.isChecked():
-            data = inspect.getcomments(obj)
-        elif self.radio_getfile.isChecked():
-            try:
-                data = inspect.getfile(obj)
-            except TypeError:
-                data = ''
-        elif self.radio_getmodule.isChecked():
-            try:
-                data = inspect.getmodule(obj)
-            except TypeError:
-                data = ''
-        elif self.radio_getsourcefile.isChecked():
-            data = inspect.getsourcefile(obj)
-        elif self.radio_getsourcelines.isChecked():
-            data = inspect.getsourcelines(obj)
-        elif self.radio_getsource.isChecked():
-            try:
-                data = inspect.getsource(obj)
-            except IOError:
-                data = ''
-        else:
-            assert False, "No radio button checked."
+        self.editor.setStyleSheet("color: black;")
+        try:
+            obj = tree_item.obj
+            if self.radio_str.isChecked():
+                data = str(obj)
                 
-        self.editor.setPlainText(data)
-
+            elif self.radio_repr.isChecked():
+                data = repr(obj)
+                
+            elif self.radio_doc.isChecked():
+                try:
+                    data = obj.__doc__
+                except AttributeError:
+                    data = '<no doc string found>'
+                    
+            elif self.radio_pretty.isChecked():
+                pretty_printer = pprint.PrettyPrinter(indent=4)
+                data = pretty_printer.pformat(obj)
+                
+            elif self.radio_getdoc.isChecked():
+                data = inspect.getdoc(obj)
+                
+            elif self.radio_getcomments.isChecked():
+                data = inspect.getcomments(obj)
+                
+            elif self.radio_getfile.isChecked():
+                try:
+                    data = inspect.getfile(obj)
+                except TypeError:
+                    data = ''
+                    
+            elif self.radio_getmodule.isChecked():
+                module = inspect.getmodule(obj)
+                if module:
+                    data = module.__name__
+                else:
+                    data = ''
+                    
+            elif self.radio_getsourcefile.isChecked():
+                try:
+                    data = inspect.getsourcefile(obj)
+                except TypeError:
+                    data = ''                
+                    
+            elif self.radio_getsourcelines.isChecked():
+                try:
+                    data = repr(inspect.getsourcelines(obj))
+                except TypeError:
+                    data = ''        
+                
+            elif self.radio_getsource.isChecked():
+                try:
+                    data = inspect.getsource(obj)
+                except TypeError:
+                    data = ''
+                    
+            else:
+                assert False, "No radio button checked."
+                
+            self.editor.setPlainText(data)
+        except StandardError, ex:
+            self.editor.setStyleSheet("color: red;")
+            stack_trace = traceback.format_exc()
+            self.editor.setPlainText("{}\n\n{}".format(ex, stack_trace))
+            if DEBUGGING is True:
+                raise
+            
     
     def _make_show_column_function(self, column_idx):
         """ Creates a function that shows or hides a column."""
