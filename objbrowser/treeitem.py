@@ -1,21 +1,13 @@
-## General Public Licensing requirements will be met:
-## http://www.trolltech.com/products/qt/opensource.html
-##
-## If you are unsure which license is appropriate for your use, please
-## review the following information:
-## http://www.trolltech.com/products/qt/licensing.html or contact the
-## sales department at sales@trolltech.com.
-##
-## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-##
-############################################################################
 
 # Based on: PySide examples/itemviews/simpletreemodel
 # See: http://harmattan-dev.nokia.com/docs/library/html/qt4/itemviews-simpletreemodel.html
 
+# Disabling the need for docstrings, all methods are tiny.
+# pylint: disable=C0111
 
 class TreeItem(object):
+    """ Tree node class that can be used to build trees of objects.
+    """
     def __init__(self, parent, obj, obj_name, obj_path):
         self.parent_item = parent
         self.obj = obj

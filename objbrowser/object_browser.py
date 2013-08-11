@@ -1,10 +1,11 @@
 """ 
    Program that shows the local Python environment using the inspect module
 """
+from __future__ import absolute_import
 from __future__ import print_function
 import os, logging, pprint, inspect
 from PySide import QtCore, QtGui
-from treemodel import TreeModel
+from objbrowser.treemodel import TreeModel
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,8 @@ ABOUT_MESSAGE = u"""%(prog)s version %(version)s
 """ % {"prog": PROGRAM_NAME, "version": PROGRAM_VERSION}
 
 
-    
+# ColumnSettings is an simple settings object
+# pylint: disable=R0903    
 class ColumnSettings(object):
     """ Class that stores INITIAL column settings. """
     
@@ -29,11 +31,12 @@ class ColumnSettings(object):
         self.width = width
         self.toggle_action = None  # action to show/hide column
         self.toggle_function = None # function that shows/hides column
+# pylint: enable=R0903    
         
         
 # The main window inherits from a Qt class, therefore it has many 
 # ancestors public methods and attributes.
-# pylint: disable=R0901, R0902, R0904 
+# pylint: disable=R0901, R0902, R0904, W0201 
 
 class ObjectBrowser(QtGui.QMainWindow):
     """ Object browser main application window.
@@ -43,13 +46,13 @@ class ObjectBrowser(QtGui.QMainWindow):
                  width = None, height = None):
         """ Constructor
         
-            :param obj: any python object or variable
+            :param obj: any Python object or variable
             :param obj_name: name of the object as it will appear in the root node
             :param show_special_methods: if True the objects special methods, 
                 i.e. methods with a name that starts and ends with two underscores, 
                 will be displayed (in grey). If False they are hidden.
-            :param width: if width and heigth are set, the main windows is resized. 
-            :param height: if width and heigth are set, the main windows is resized.
+            :param width: if width and height are set, the main windows is resized. 
+            :param height: if width and height are set, the main windows is resized.
         """
         super(ObjectBrowser, self).__init__()
         
@@ -58,16 +61,15 @@ class ObjectBrowser(QtGui.QMainWindow):
                                      show_special_methods=show_special_methods)
         
         # Table columns
+        defw = 200
         self.col_settings = [None] * TreeModel.N_COLS
         self.col_settings[TreeModel.COL_PATH]      = ColumnSettings(visible=True,  width=350)
-        self.col_settings[TreeModel.COL_NAME]      = ColumnSettings(visible=True,  width=150)
-        self.col_settings[TreeModel.COL_VALUE]     = ColumnSettings(visible=True,  width=150)
-        self.col_settings[TreeModel.COL_TYPE]      = ColumnSettings(visible=False, width=150)
-        self.col_settings[TreeModel.COL_CLASS]     = ColumnSettings(visible=True,  width=150)
-        self.col_settings[TreeModel.COL_ID]        = ColumnSettings(visible=False,  width=150)
-        self.col_settings[TreeModel.COL_PREDICATE] = ColumnSettings(visible=False,  width=150)
-        #self.col_settings[TreeModel.COL_STR]       = ColumnSettings(visible=False, width=300)
-        #self.col_settings[TreeModel.COL_REPR]      = ColumnSettings(visible=True,  width=300)
+        self.col_settings[TreeModel.COL_NAME]      = ColumnSettings(visible=True,  width=defw)
+        self.col_settings[TreeModel.COL_VALUE]     = ColumnSettings(visible=True,  width=defw)
+        self.col_settings[TreeModel.COL_TYPE]      = ColumnSettings(visible=False, width=defw)
+        self.col_settings[TreeModel.COL_CLASS]     = ColumnSettings(visible=True,  width=defw)
+        self.col_settings[TreeModel.COL_ID]        = ColumnSettings(visible=False,  width=120)
+        self.col_settings[TreeModel.COL_PREDICATE] = ColumnSettings(visible=False,  width=defw)
         for idx, header in enumerate(TreeModel.HEADERS):
             self.col_settings[idx].name = header
         
@@ -104,8 +106,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             assert settings.toggle_action.toggled.connect(settings.toggle_function)
             
         self.toggle_special_method_action = \
-            QtGui.QAction("Show __special_methods__".format(settings.name), 
-                          self, checkable=True, checked=True,
+            QtGui.QAction("Show __special_methods__", self, checkable=True, checked=True,
                           statusTip = "Shows or hides __special_methods__")
         assert self.toggle_special_method_action.toggled.connect(self.toggle_special_methods)
                               
@@ -213,7 +214,6 @@ class ObjectBrowser(QtGui.QMainWindow):
 
 
     # End of setup_methods
-    # pylint: enable=W0201
 
     def my_test(self):
         """ Function for testing """
@@ -250,8 +250,8 @@ class ObjectBrowser(QtGui.QMainWindow):
             except AttributeError:
                 data = '<no doc string found>'
         elif self.radio_pretty.isChecked():
-            pp = pprint.PrettyPrinter(indent=4)
-            data = pp.pformat(obj)
+            pretty_printer = pprint.PrettyPrinter(indent=4)
+            data = pretty_printer.pformat(obj)
         elif self.radio_getdoc.isChecked():
             data = inspect.getdoc(obj)
             
@@ -307,4 +307,4 @@ class ObjectBrowser(QtGui.QMainWindow):
         app = QtGui.QApplication.instance()
         app.closeAllWindows()
 
-# pylint: enable=R0901, R0902, R0904        
+

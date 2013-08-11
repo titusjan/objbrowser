@@ -1,34 +1,13 @@
-
-############################################################################
-##
-## Copyright (C) 2005-2005 Trolltech AS. All rights reserved.
-##
-## This file is part of the example classes of the Qt Toolkit.
-##
-## This file may be used under the terms of the GNU General Public
-## License version 2.0 as published by the Free Software Foundation
-## and appearing in the file LICENSE.GPL included in the packaging of
-## this file.  Please review the following information to ensure GNU
-## General Public Licensing requirements will be met:
-## http://www.trolltech.com/products/qt/opensource.html
-##
-## If you are unsure which license is appropriate for your use, please
-## review the following information:
-## http://www.trolltech.com/products/qt/licensing.html or contact the
-## sales department at sales@trolltech.com.
-##
-## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-##
-############################################################################
-
+""" Module that defines the TreeModel
+"""
 # Based on: PySide examples/itemviews/simpletreemodel
 # See: http://harmattan-dev.nokia.com/docs/library/html/qt4/itemviews-simpletreemodel.html
 
+from __future__ import absolute_import
 import logging, types, inspect
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt
-from treeitem import TreeItem
+from objbrowser.treeitem import TreeItem
 
 logger = logging.getLogger(__name__)
 
@@ -40,15 +19,15 @@ def is_special_method(method_name):
 def predicates(obj):
     """ Returns the inspect module predicates that are true for this object
     """
-    predicates = (inspect.ismodule,inspect.isclass, inspect.ismethod, 
-                  inspect.isfunction, inspect.isgeneratorfunction, inspect.isgenerator,
-                  inspect.istraceback, inspect.isframe, inspect.iscode, 
-                  inspect.isbuiltin, inspect.isroutine, inspect.isabstract, 
-                  inspect.ismethoddescriptor, inspect.isdatadescriptor, inspect.isgetsetdescriptor,
-                  inspect.ismemberdescriptor)  
-    has_predicates = [predicate.__name__ for predicate in predicates if predicate(obj)]
+    all_pred = (inspect.ismodule, inspect.isclass, inspect.ismethod, 
+                inspect.isfunction, inspect.isgeneratorfunction, inspect.isgenerator,
+                inspect.istraceback, inspect.isframe, inspect.iscode, 
+                inspect.isbuiltin, inspect.isroutine, inspect.isabstract, 
+                inspect.ismethoddescriptor, inspect.isdatadescriptor, inspect.isgetsetdescriptor,
+                inspect.ismemberdescriptor)  
+    has_predicates = [pred.__name__ for pred in all_pred if pred(obj)]
     return ", ".join(has_predicates)
-                                                                                                                    
+
 
 def simple_value(obj):
     """ Returns a the string representation of obj if it has a 'simple' type.
@@ -65,8 +44,19 @@ def simple_value(obj):
     else:
         return ""
     
+# Keep the method names camelCase since it inherits from a Qt object.
+# Disabled need for docstrings. For a good explanation of the methods, take a look
+# at the Qt simple tree model example.
+# See: http://harmattan-dev.nokia.com/docs/library/html/qt4/itemviews-simpletreemodel.html
+# pylint: disable=C0103, C0111
+
+# The main window inherits from a Qt class, therefore it has many 
+# ancestors public methods and attributes.
+# pylint: disable=R0901, R0902, R0904, W0201 
     
 class TreeModel(QtCore.QAbstractItemModel):
+    """ Model that provides an interface to an objectree that is build of TreeItems. 
+    """
     
     # Tree column indices
     COL_PATH      = 0   # A path to the data: e.g. var[1]['a'].item
@@ -76,8 +66,6 @@ class TreeModel(QtCore.QAbstractItemModel):
     COL_CLASS     = 4   # The name of the class of the node via node.__class__.__name__
     COL_ID        = 5   # The identifier of the object with calculated using the id() function
     COL_PREDICATE = 6   # Predicates from the inspect module
-    #COL_STR       = 5   # The string conversion of the node using __str__()
-    #COL_REPR      = 6   # The string conversion of the node using __repr__()
     
     N_COLS = 7
     HEADERS = [None] * N_COLS 
@@ -88,13 +76,21 @@ class TreeModel(QtCore.QAbstractItemModel):
     HEADERS[COL_CLASS]     = 'Type Name'
     HEADERS[COL_ID]        = 'Id'
     HEADERS[COL_PREDICATE] = 'Predicates'
-    #HEADERS[COL_STR]   = 'Str'
-    #HEADERS[COL_REPR]  = 'Repr'
     
     def __init__(self, obj, obj_name = '', 
                  show_special_methods = True, 
                  single_root_node=False, 
                  parent=None):
+        """ Constructor
+        
+            :param obj: any Python object or variable
+            :param obj_name: name of the object as it will appear in the root node
+            :param show_special_methods: if True the objects special methods, 
+                i.e. methods with a name that starts and ends with two underscores, 
+                will be displayed (in grey). If False they are hidden.
+            :param single_root_node: If true, all items are grouped under a single root item
+            :param parent: the parent widget
+        """
         super(TreeModel, self).__init__(parent)
         self._root_obj  = obj
         self._root_name = obj_name 
@@ -103,11 +99,14 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.root_item = self.populateTree(obj, obj_name, single_root_node)
 
 
-    def columnCount(self, parent):
+    def columnCount(self, _parent):
+        """ Returns the number of columns in the tree """
         return self.N_COLS
 
 
     def data(self, index, role):
+        """ Returns the tree item at the given index and role
+        """
         if not index.isValid():
             return None
 
@@ -131,10 +130,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return "0x{:X}".format(id(obj))
             elif col == self.COL_PREDICATE:
                 return predicates(obj)
-            #elif col == self.COL_STR:
-            #    return str(obj).replace('\n', r'\\n')
-            #elif col == self.COL_REPR:
-            #    return re.sub(r'\\n', r'\\n', repr(obj))
             else:
                 raise ValueError("Unexpected column: {}".format(col))
             
@@ -281,7 +276,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             
             Returns newly created tree item
         """
-        logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
+        #logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
         tree_item = TreeItem(parent_item, obj, obj_name, obj_path)
         return tree_item
 
@@ -312,3 +307,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.root_item = self.populateTree(self._root_obj, self._root_name, 
                                            self._single_root_node)
         self.endResetModel()
+        
+
+        
