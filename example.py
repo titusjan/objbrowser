@@ -69,7 +69,7 @@ def call_viewer_test():
     lst = [4, '4', d, ['r', dir], main]
     my_set = set([3, 4, 4, 8])
     my_frozenset = frozenset([3, 4, 5, 6, 6])
-    #http://docs.python.org/2/howto/unicode.html
+    #TODO: look at http://docs.python.org/2/howto/unicode.html
     u1 = unichr(40960) + u'ab\ncd' + unichr(1972)
     u2 = u"a\xac\u1234\u20ac\U00008000"
     u3 = u'no strange chars'
