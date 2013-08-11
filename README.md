@@ -57,12 +57,17 @@ To open two object browser windows simultaneously.
 If the `show_special_methods` parameter is False, the objects special methods, 
 i.e. methods with a name that starts and ends with two underscores, will be hidden.
 
+If the show_root_node parameter is False (the default), the attributes of the object
+will be placed as top level items in the tree. Otherwise, the a single node with of
+the object will be the top level item.
+
 If the `width` and `height` parameters are given, the window will be resized. 
 
 	from objbrowser import browse
 
 	browse(range(0, 10), obj_name='list', 
     	   show_special_methods = False,
+    	   show_root_node = True, 
        	   width = 1000, height = 600) 
        
 
