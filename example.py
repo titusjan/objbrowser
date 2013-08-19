@@ -81,6 +81,7 @@ def call_viewer_test():
     # reference to each of them. Otherwise windows will be garbabe-
     # collected and will disappear.
     _locals_obj_browser = create_object_browser(obj = locals(), # without obj_name
+                                                show_callables = False,
                                                 show_special_methods = False,
                                                 width = 1000, height = 600) 
     _globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals',
@@ -93,9 +94,14 @@ def call_viewer_test():
 def call_viewer_small_test():
     """ Test procedure. 
     """
+    try:
+        raise ValueError("my value error")
+    except ValueError, ex:
+        my_value_error = ex
+
     a = 6
     b = ['seven', 'eight']
-    nested_list = [5, 6, 'a', ['r', 2, []], (a, b), range(1, 100)]
+    nested_list = [5, 6, 'a', ['r', 2, []], (a, b), range(1, 100), my_value_error]
     exit_code = browse(obj = nested_list, obj_name='nested_list', show_root_node = True)
     return exit_code
     
@@ -106,7 +112,7 @@ def main():
     logging_basic_config('DEBUG')
     logger.info('Started example')
     
-    if 0:
+    if 1:
         exit_code = call_viewer_test()
     else: 
         exit_code = call_viewer_small_test() 

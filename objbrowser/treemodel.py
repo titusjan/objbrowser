@@ -11,6 +11,10 @@ from objbrowser.treeitem import TreeItem
 
 logger = logging.getLogger(__name__)
 
+def is_callable(obj):
+    "Returns is obj is callable"
+    return hasattr(obj, "__call__")
+
 def is_special_method(method_name):
     "Returns true if the method name starts and ends with two underscores"
     return method_name.startswith('__') and method_name.endswith('__') 
@@ -78,6 +82,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     HEADERS[COL_PREDICATE] = 'Predicates'
     
     def __init__(self, obj, obj_name = '', 
+                 show_callables = True, 
                  show_special_methods = True, 
                  show_root_node=False, 
                  parent=None):
@@ -85,9 +90,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         
             :param obj: any Python object or variable
             :param obj_name: name of the object as it will appear in the root node
+            :param show_callables: if True the callables objects, 
+                i.e. objects (such as function) that  a __call__ method, 
+                will be displayed (in brown). If False they are hidden.
             :param show_special_methods: if True the objects special methods, 
                 i.e. methods with a name that starts and ends with two underscores, 
-                will be displayed (in grey). If False they are hidden.
+                will be displayed (in italics). If False they are hidden.
             :param show_root_node: If true, all items are grouped under a single root item
             :param parent: the parent widget
         """
@@ -95,8 +103,16 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._root_obj  = obj
         self._root_name = obj_name 
         self._single_root_node = show_root_node
+        self._show_callables = show_callables
         self._show_special_methods = show_special_methods
         self.root_item = self.populateTree(obj, obj_name, show_root_node)
+        
+        self.regular_font = QtGui.QFont() # Font for members (non-functions)
+        self.special_method_font = QtGui.QFont() # Font for methods
+        self.special_method_font.setItalic(True)
+        
+        self.regular_color = QtGui.QBrush(QtGui.QColor('black'))    
+        self.callable_color = QtGui.QBrush(QtGui.QColor('brown')) # for functions, methods, etc.
 
 
     def columnCount(self, _parent):
@@ -115,7 +131,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         obj = tree_item.obj
 
         if role == Qt.DisplayRole:
-            
             if col == self.COL_PATH:
                 return tree_item.obj_path if tree_item.obj_path else '<root>'
             elif col == self.COL_NAME:
@@ -140,11 +155,16 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return Qt.AlignLeft
             
         elif role == Qt.ForegroundRole:
-            
-            if is_special_method(tree_item.obj_name): 
-                return QtGui.QBrush(QtGui.QColor('grey'))
+            if is_callable(obj):
+                return self.callable_color
             else:
-                return QtGui.QBrush(QtGui.QColor('black'))
+                return self.regular_color
+            
+        elif role == Qt.FontRole:
+            if is_special_method(tree_item.obj_name):
+                return self.special_method_font
+            else:
+                return self.regular_font
         else:
             return None
 
@@ -266,9 +286,12 @@ class TreeModel(QtCore.QAbstractItemModel):
             path_strings = []
         
         # Since every variable is an object we also add its members to the tree.
-        obj_members = sorted(inspect.getmembers(obj))
-        if self._show_special_methods is False:
-            obj_members = [memb for memb in obj_members if not is_special_method(memb[0])]
+        obj_members = []
+        for memb in sorted(inspect.getmembers(obj)):
+            logger.debug("inspect.getmembers(obj): {} ({})".format(memb, is_callable(memb[1])))
+            if (self._show_callables or not is_callable(memb[1])) \
+            and (self._show_special_methods or not is_special_method(memb[0])):
+                obj_members.append(memb)
         obj_items.extend(obj_members)
         path_strings.extend(['{}.{}'.format(obj_path, memb[0]) if obj_path else memb[0] 
                              for memb in obj_members])
@@ -319,17 +342,32 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self.root_item
     
         
+    def _resetTree(self):
+        """ Emptiesa and re-populates the tree.
+        """
+        self.beginResetModel()
+        self.reset()
+        self.root_item = self.populateTree(self._root_obj, self._root_name, 
+                                           self._single_root_node)
+        self.endResetModel()
+    
+        
+    def setShowCallables(self, show_callables):
+        """ Shows/hides show_callables, which have a __call__ attribute.
+            Repopulates the tree.
+        """
+        logger.debug("setShowCallables: {}".format(show_callables))
+        self._show_callables = show_callables
+        self._resetTree()
+    
+        
     def setShowSpecialMethods(self, show_special_methods):
         """ Shows/hides special methods, which begin with an underscore.
             Repopulates the tree.
         """
         logger.debug("setShowSpecialMethods: {}".format(show_special_methods))
         self._show_special_methods = show_special_methods
-        self.beginResetModel()
-        self.reset()
-        self.root_item = self.populateTree(self._root_obj, self._root_name, 
-                                           self._single_root_node)
-        self.endResetModel()
+        self._resetTree()
         
 
         

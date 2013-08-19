@@ -42,6 +42,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     """ Object browser main application window.
     """
     def __init__(self, obj = None, obj_name = '', 
+                 show_callables = True,
                  show_special_methods = True, 
                  show_root_node = False, 
                  width = 1200, height = 800):
@@ -49,6 +50,9 @@ class ObjectBrowser(QtGui.QMainWindow):
         
             :param obj: any Python object or variable
             :param obj_name: name of the object as it will appear in the root node
+            :param show_callables: if True the callables objects, 
+                i.e. objects (such as function) that  a __call__ method, 
+                will be displayed (in brown). If False they are hidden.
             :param show_special_methods: if True the objects special methods, 
                 i.e. methods with a name that starts and ends with two underscores, 
                 will be displayed (in grey). If False they are hidden.
@@ -59,7 +63,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Model
         self._tree_model = TreeModel(obj, obj_name = obj_name, 
-                                     show_root_node = show_root_node, 
+                                     show_root_node = show_root_node,
+                                     show_callables = show_callables, 
                                      show_special_methods = show_special_methods)
         
         # Table columns
@@ -114,6 +119,11 @@ class ObjectBrowser(QtGui.QMainWindow):
             settings.toggle_function = self._make_show_column_function(col_idx) # keep reference
             assert settings.toggle_action.toggled.connect(settings.toggle_function)
             
+        self.toggle_callable_action = \
+            QtGui.QAction("Show callable objects", self, checkable=True, checked=True,
+                          statusTip = "Shows or hides callable objects (functions, methods, etc)")
+        assert self.toggle_callable_action.toggled.connect(self.toggle_callables)
+                              
         self.toggle_special_method_action = \
             QtGui.QAction("Show __special_methods__", self, checkable=True, checked=True,
                           statusTip = "Shows or hides __special_methods__")
@@ -133,6 +143,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         for _idx, settings in enumerate(self.col_settings):
             view_menu.addAction(settings.toggle_action)
         view_menu.addSeparator()
+        view_menu.addAction(self.toggle_callable_action)
         view_menu.addAction(self.toggle_special_method_action)
         
         self.menuBar().addSeparator()
@@ -314,18 +325,26 @@ class ObjectBrowser(QtGui.QMainWindow):
             if DEBUGGING is True:
                 raise
             
-    
     def _make_show_column_function(self, column_idx):
         """ Creates a function that shows or hides a column."""
         show_column = lambda checked: self.obj_tree.setColumnHidden(column_idx, not checked)
         return show_column
     
-    
+    def toggle_callables(self, checked):
+        """ Shows/hides the special callable objects.
+            
+            Callable objects are functions, methods, etc. They have a __call__ attribute. 
+        """
+        logger.debug("toggle_callables: {}".format(checked))
+        self._tree_model.setShowCallables(checked)
+
     def toggle_special_methods(self, checked):
-        """ Shows/hides the special methods, which start and and with two underscores."""
+        """ Shows/hides the special methods.
+            
+            Special methods are objects that have names that start and end with two underscores.
+        """
         logger.debug("toggle_special_methods: {}".format(checked))
         self._tree_model.setShowSpecialMethods(checked)
-
 
     def about(self):
         """ Shows the about message window. """
