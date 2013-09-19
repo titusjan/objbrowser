@@ -1,5 +1,12 @@
 """ 
    Program that shows the local Python environment using the inspect module
+   # TODO: unicode
+   # TODO: look at QStandardItemModel
+   # TODO: look at sizehint
+   # TODO: length column
+   # TODO: columns configurable
+   # TODO: show items configurable
+   # TODO: show items if object has iteritems()
 """
 from __future__ import absolute_import
 from __future__ import print_function

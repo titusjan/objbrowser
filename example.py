@@ -81,8 +81,8 @@ def call_viewer_test():
     # reference to each of them. Otherwise windows will be garbabe-
     # collected and will disappear.
     _locals_obj_browser = create_object_browser(obj = locals(), # without obj_name
-                                                show_callables = False,
-                                                show_special_methods = False,
+                                                show_callables = True,
+                                                show_special_methods = True,
                                                 width = 1000, height = 600) 
     _globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals',
                                                  show_root_node = True,  
