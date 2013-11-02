@@ -6,7 +6,11 @@
    # TODO: length column
    # TODO: columns configurable
    # TODO: show items configurable
+   # TODO: repr column
    # TODO: show items if object has iteritems()
+   # TODO: persistent settings.
+   # TODO: show root node <--> obj_name is None ?
+   # TODO: python 3
 """
 from __future__ import absolute_import
 from __future__ import print_function
@@ -82,6 +86,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.col_settings[TreeModel.COL_VALUE]     = ColumnSettings(visible=True,  width=defw)
         self.col_settings[TreeModel.COL_TYPE]      = ColumnSettings(visible=False, width=defw)
         self.col_settings[TreeModel.COL_CLASS]     = ColumnSettings(visible=True,  width=defw)
+        self.col_settings[TreeModel.COL_LEN]       = ColumnSettings(visible=True,  width=120)
         self.col_settings[TreeModel.COL_ID]        = ColumnSettings(visible=False,  width=120)
         self.col_settings[TreeModel.COL_PREDICATE] = ColumnSettings(visible=False,  width=defw)
         for idx, header in enumerate(TreeModel.HEADERS):

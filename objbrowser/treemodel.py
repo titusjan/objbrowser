@@ -23,10 +23,10 @@ def is_special_method(method_name):
 def predicates(obj):
     """ Returns the inspect module predicates that are true for this object
     """
-    all_pred = (inspect.ismodule, inspect.isclass, inspect.ismethod, 
+    all_pred = (inspect.ismodule, inspect.isclass, inspect.ismethod,
                 inspect.isfunction, inspect.isgeneratorfunction, inspect.isgenerator,
-                inspect.istraceback, inspect.isframe, inspect.iscode, 
-                inspect.isbuiltin, inspect.isroutine, inspect.isabstract, 
+                inspect.istraceback, inspect.isframe, inspect.iscode,
+                inspect.isbuiltin, inspect.isroutine, inspect.isabstract,
                 inspect.ismethoddescriptor, inspect.isdatadescriptor, inspect.isgetsetdescriptor,
                 inspect.ismemberdescriptor)  
     has_predicates = [pred.__name__ for pred in all_pred if pred(obj)]
@@ -63,28 +63,30 @@ class TreeModel(QtCore.QAbstractItemModel):
     """
     
     # Tree column indices
-    COL_PATH      = 0   # A path to the data: e.g. var[1]['a'].item
-    COL_NAME      = 1   # The name of the node. 
-    COL_VALUE     = 2   # The value of the node for atomic nodes (int, str, etc)
-    COL_TYPE      = 3   # Type of the node determined using the builtin type() function
-    COL_CLASS     = 4   # The name of the class of the node via node.__class__.__name__
-    COL_ID        = 5   # The identifier of the object with calculated using the id() function
-    COL_PREDICATE = 6   # Predicates from the inspect module
+    COL_PATH = 0  # A path to the data: e.g. var[1]['a'].item
+    COL_NAME = 1  # The name of the node. 
+    COL_VALUE = 2  # The value of the node for atomic nodes (int, str, etc)
+    COL_TYPE = 3  # Type of the node determined using the builtin type() function
+    COL_CLASS = 4  # The name of the class of the node via node.__class__.__name__
+    COL_LEN = 5  # The length of the object via len(node)
+    COL_ID = 6  # The identifier of the object with calculated using the id() function
+    COL_PREDICATE = 7  # Predicates from the inspect module
     
-    N_COLS = 7
+    N_COLS = 8
     HEADERS = [None] * N_COLS 
-    HEADERS[COL_PATH]      = 'Path'
-    HEADERS[COL_NAME]      = 'Name'
-    HEADERS[COL_VALUE]     = 'Value'
-    HEADERS[COL_TYPE]      = 'Type'
-    HEADERS[COL_CLASS]     = 'Type Name'
-    HEADERS[COL_ID]        = 'Id'
+    HEADERS[COL_PATH] = 'Path'
+    HEADERS[COL_NAME] = 'Name'
+    HEADERS[COL_VALUE] = 'Value'
+    HEADERS[COL_TYPE] = 'Type'
+    HEADERS[COL_CLASS] = 'Type Name'
+    HEADERS[COL_LEN] = 'Length'
+    HEADERS[COL_ID] = 'Id'
     HEADERS[COL_PREDICATE] = 'Predicates'
     
-    def __init__(self, obj, obj_name = '', 
-                 show_callables = True, 
-                 show_special_methods = True, 
-                 show_root_node=False, 
+    def __init__(self, obj, obj_name='',
+                 show_callables=True,
+                 show_special_methods=True,
+                 show_root_node=False,
                  parent=None):
         """ Constructor
         
@@ -100,19 +102,19 @@ class TreeModel(QtCore.QAbstractItemModel):
             :param parent: the parent widget
         """
         super(TreeModel, self).__init__(parent)
-        self._root_obj  = obj
+        self._root_obj = obj
         self._root_name = obj_name 
         self._single_root_node = show_root_node
         self._show_callables = show_callables
         self._show_special_methods = show_special_methods
         self.root_item = self.populateTree(obj, obj_name, show_root_node)
         
-        self.regular_font = QtGui.QFont() # Font for members (non-functions)
-        self.special_method_font = QtGui.QFont() # Font for methods
+        self.regular_font = QtGui.QFont()  # Font for members (non-functions)
+        self.special_method_font = QtGui.QFont()  # Font for __special_methods__
         self.special_method_font.setItalic(True)
         
         self.regular_color = QtGui.QBrush(QtGui.QColor('black'))    
-        self.callable_color = QtGui.QBrush(QtGui.QColor('brown')) # for functions, methods, etc.
+        self.callable_color = QtGui.QBrush(QtGui.QColor('brown'))  # for functions, methods, etc.
 
 
     def columnCount(self, _parent):
@@ -141,6 +143,15 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return type(obj).__name__
             elif col == self.COL_VALUE:
                 return simple_value(obj)
+            elif col == self.COL_LEN:
+                if hasattr(obj, "__len__"):
+                    try:
+                        return len(obj)
+                    except:
+                        logger.error("No len() for: {}".format(obj))
+                        return ""
+                else:
+                    return ""
             elif col == self.COL_ID:
                 return "0x{:X}".format(id(obj))
             elif col == self.COL_PREDICATE:
@@ -251,7 +262,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             return 0
         else:
             result = not self.treeItem(parent).children_fetched 
-            #logger.debug("canFetchMore: {} = {}".format(parent, result))
+            # logger.debug("canFetchMore: {} = {}".format(parent, result))
             return result  
 
 
@@ -316,7 +327,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             
             Returns newly created tree item
         """
-        #logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
+        # logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
         tree_item = TreeItem(parent_item, obj, obj_name, obj_path)
         return tree_item
 
@@ -343,11 +354,11 @@ class TreeModel(QtCore.QAbstractItemModel):
     
         
     def _resetTree(self):
-        """ Emptiesa and re-populates the tree.
+        """ Empties and re-populates the tree.
         """
         self.beginResetModel()
         self.reset()
-        self.root_item = self.populateTree(self._root_obj, self._root_name, 
+        self.root_item = self.populateTree(self._root_obj, self._root_name,
                                            self._single_root_node)
         self.endResetModel()
     
