@@ -246,11 +246,6 @@ class ObjectBrowser(QtGui.QMainWindow):
 
     # End of setup_methods
 
-    def my_test(self):
-        """ Function for testing """
-        logger.debug("my_test")
-        
-
     @QtCore.Slot(QtCore.QModelIndex, QtCore.QModelIndex)
     def _update_details(self, current_index, _previous_index):
         """ Shows the object details in the editor given an index.
@@ -358,6 +353,11 @@ class ObjectBrowser(QtGui.QMainWindow):
         logger.debug("toggle_special_methods: {}".format(checked))
         self._tree_model.setShowSpecialMethods(checked)
 
+
+    def my_test(self):
+        """ Function for testing """
+        logger.debug("my_test")
+        
     def about(self):
         """ Shows the about message window. """
         QtGui.QMessageBox.about(self, "About %s" % PROGRAM_NAME, ABOUT_MESSAGE)
