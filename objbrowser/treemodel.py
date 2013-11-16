@@ -20,33 +20,8 @@ def is_special_method(method_name):
     return method_name.startswith('__') and method_name.endswith('__') 
 
 
-def predicates(obj):
-    """ Returns the inspect module predicates that are true for this object
-    """
-    all_pred = (inspect.ismodule, inspect.isclass, inspect.ismethod,
-                inspect.isfunction, inspect.isgeneratorfunction, inspect.isgenerator,
-                inspect.istraceback, inspect.isframe, inspect.iscode,
-                inspect.isbuiltin, inspect.isroutine, inspect.isabstract,
-                inspect.ismethoddescriptor, inspect.isdatadescriptor, inspect.isgetsetdescriptor,
-                inspect.ismemberdescriptor)  
-    has_predicates = [pred.__name__ for pred in all_pred if pred(obj)]
-    return ", ".join(has_predicates)
 
 
-def simple_value(obj):
-    """ Returns a the string representation of obj if it has a 'simple' type.
-        
-        That is: the type is a scalar or a string, not a compound such as a list.
-    """
-    obj_type = type(obj)
-    if obj_type in (types.BooleanType, types.FloatType, types.IntType, types.NoneType):
-        return repr(obj)
-    elif obj_type == types.StringType:
-        return repr(obj.encode('string_escape'))
-    elif obj_type == types.UnicodeType:
-        return repr(obj.encode('unicode_escape'))
-    else:
-        return ""
     
 # Keep the method names camelCase since it inherits from a Qt object.
 # Disabled need for docstrings. For a good explanation of the methods, take a look
@@ -62,36 +37,18 @@ class TreeModel(QtCore.QAbstractItemModel):
     """ Model that provides an interface to an objectree that is build of TreeItems. 
     """
     
-    # Tree column indices
-    COL_PATH = 0  # A path to the data: e.g. var[1]['a'].item
-    COL_NAME = 1  # The name of the node. 
-    COL_VALUE = 2  # The value of the node for atomic nodes (int, str, etc)
-    COL_TYPE = 3  # Type of the node determined using the builtin type() function
-    COL_CLASS = 4  # The name of the class of the node via node.__class__.__name__
-    COL_LEN = 5  # The length of the object via len(node)
-    COL_ID = 6  # The identifier of the object with calculated using the id() function
-    COL_PREDICATE = 7  # Predicates from the inspect module
-    
-    N_COLS = 8
-    HEADERS = [None] * N_COLS 
-    HEADERS[COL_PATH] = 'Path'
-    HEADERS[COL_NAME] = 'Name'
-    HEADERS[COL_VALUE] = 'Value'
-    HEADERS[COL_TYPE] = 'Type'
-    HEADERS[COL_CLASS] = 'Type Name'
-    HEADERS[COL_LEN] = 'Length'
-    HEADERS[COL_ID] = 'Id'
-    HEADERS[COL_PREDICATE] = 'Predicates'
-    
-    def __init__(self, obj, obj_name='',
-                 show_callables=True,
-                 show_special_methods=True,
-                 show_root_node=False,
-                 parent=None):
+    def __init__(self, root_obj, 
+                 root_obj_name = '',
+                 attr_cols = None, 
+                 show_callables = True,
+                 show_special_methods = True,
+                 show_root_node = False,
+                 parent = None):
         """ Constructor
         
             :param obj: any Python object or variable
             :param obj_name: name of the object as it will appear in the root node
+            :param attr_cols: list of AttributeColumn definitions
             :param show_callables: if True the callables objects, 
                 i.e. objects (such as function) that  a __call__ method, 
                 will be displayed (in brown). If False they are hidden.
@@ -102,12 +59,13 @@ class TreeModel(QtCore.QAbstractItemModel):
             :param parent: the parent widget
         """
         super(TreeModel, self).__init__(parent)
-        self._root_obj = obj
-        self._root_name = obj_name 
+        self._root_obj = root_obj
+        self._root_name = root_obj_name 
+        self._attr_cols = attr_cols
         self._single_root_node = show_root_node
         self._show_callables = show_callables
         self._show_special_methods = show_special_methods
-        self.root_item = self.populateTree(obj, obj_name, show_root_node)
+        self.root_item = self.populateTree(root_obj, root_obj_name, show_root_node)
         
         self.regular_font = QtGui.QFont()  # Font for members (non-functions)
         self.special_method_font = QtGui.QFont()  # Font for __special_methods__
@@ -119,7 +77,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def columnCount(self, _parent):
         """ Returns the number of columns in the tree """
-        return self.N_COLS
+        return len(self._attr_cols)
 
 
     def data(self, index, role):
@@ -133,33 +91,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         obj = tree_item.obj
 
         if role == Qt.DisplayRole:
-            if col == self.COL_PATH:
-                return tree_item.obj_path if tree_item.obj_path else '<root>'
-            elif col == self.COL_NAME:
-                return tree_item.obj_name if tree_item.obj_name else '<root>'
-            elif col == self.COL_TYPE:
-                return str(type(obj))
-            elif col == self.COL_CLASS:
-                return type(obj).__name__
-            elif col == self.COL_VALUE:
-                return simple_value(obj)
-            elif col == self.COL_LEN:
-                if hasattr(obj, "__len__"):
-                    try:
-                        return len(obj)
-                    except:
-                        logger.error("No len() for: {}".format(obj))
-                        return ""
-                else:
-                    return ""
-            elif col == self.COL_ID:
-                return "0x{:X}".format(id(obj))
-            elif col == self.COL_PREDICATE:
-                return predicates(obj)
-            else:
-                raise ValueError("Unexpected column: {}".format(col))
+            return self._attr_cols[col].data_fn(tree_item)
             
         elif role == Qt.TextAlignmentRole:
+            return Qt.AlignLeft
+                
+            # TODO: in attr columns
             if col == self.COL_ID:
                 return Qt.AlignRight
             else:
@@ -189,7 +126,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def headerData(self, section, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.HEADERS[section]
+            return self._attr_cols[section].name
         else:
             return None
 

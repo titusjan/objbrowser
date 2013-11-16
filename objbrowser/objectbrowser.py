@@ -11,13 +11,14 @@
    # TODO: persistent settings.
    # TODO: show root node <--> obj_name is None ?
    # TODO: python 3
+   # TODO: zebra striping.
 """
 from __future__ import absolute_import
 from __future__ import print_function
 import os, logging, pprint, inspect, traceback
 from PySide import QtCore, QtGui
 from objbrowser.treemodel import TreeModel
-
+from objbrowser.attribute_column import DEFAULT_ATTR_COLS
 logger = logging.getLogger(__name__)
 
 DEBUGGING = True
@@ -32,7 +33,7 @@ ABOUT_MESSAGE = u"""%(prog)s version %(version)s
 
 # ColumnSettings is an simple settings object
 # pylint: disable=R0903    
-class ColumnSettings(object):
+class __ColumnSettings(object):
     """ Class that stores INITIAL column settings. """
     
     def __init__(self, width=120, visible=True, name=None):
@@ -73,24 +74,14 @@ class ObjectBrowser(QtGui.QMainWindow):
         super(ObjectBrowser, self).__init__()
         
         # Model
-        self._tree_model = TreeModel(obj, obj_name = obj_name, 
+        self._attr_cols = DEFAULT_ATTR_COLS
+        
+        self._tree_model = TreeModel(obj, 
+                                     root_obj_name = obj_name,
+                                     attr_cols = self._attr_cols,  
                                      show_root_node = show_root_node,
                                      show_callables = show_callables, 
                                      show_special_methods = show_special_methods)
-        
-        # Table columns
-        defw = 200
-        self.col_settings = [None] * TreeModel.N_COLS
-        self.col_settings[TreeModel.COL_PATH]      = ColumnSettings(visible=True,  width=350)
-        self.col_settings[TreeModel.COL_NAME]      = ColumnSettings(visible=True,  width=defw)
-        self.col_settings[TreeModel.COL_VALUE]     = ColumnSettings(visible=True,  width=defw)
-        self.col_settings[TreeModel.COL_TYPE]      = ColumnSettings(visible=False, width=defw)
-        self.col_settings[TreeModel.COL_CLASS]     = ColumnSettings(visible=True,  width=defw)
-        self.col_settings[TreeModel.COL_LEN]       = ColumnSettings(visible=True,  width=120)
-        self.col_settings[TreeModel.COL_ID]        = ColumnSettings(visible=False,  width=120)
-        self.col_settings[TreeModel.COL_PREDICATE] = ColumnSettings(visible=False,  width=defw)
-        for idx, header in enumerate(TreeModel.HEADERS):
-            self.col_settings[idx].name = header
         
         # Views
         self._setup_actions()
@@ -101,9 +92,9 @@ class ObjectBrowser(QtGui.QMainWindow):
         app.lastWindowClosed.connect(app.quit) 
         
         # Update views with model
-        for settings in self.col_settings:
-            settings.toggle_action.setChecked(settings.visible)
-
+        for action, attr_col in zip(self.toggle_column_actions, self._attr_cols):
+            action.setChecked(attr_col.visible)
+            
         self.radio_str.setChecked(True)
         
         if show_root_node is True:
@@ -115,31 +106,45 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         if width and height:
             self.resize(width, height)
+            
+            
+    def _make_show_column_function(self, column_idx):
+        """ Creates a function that shows or hides a column."""
+        show_column = lambda checked: self.obj_tree.setColumnHidden(column_idx, not checked)
+        return show_column            
 
 
     def _setup_actions(self):
-        """ Creates the MainWindow actions.
+        """ Creates the main window actions.
         """
-        # Create actions for the table columns from its settings.
-        for col_idx, settings in enumerate(self.col_settings):
-            settings.toggle_action = \
-                QtGui.QAction("Show {} Column".format(settings.name), 
-                              self, checkable=True, checked=True,
-                              statusTip = "Shows or hides the {} column".format(settings.name))
+        # Show/hide table column actions
+        self.toggle_column_actions = []
+        self.__toggle_functions = []  # for keeping references
+        for col_idx, attr_col in enumerate(self._attr_cols):
+            action = QtGui.QAction("Show {} Column".format(attr_col.name), 
+                                   self, checkable=True, checked=True,
+                                   statusTip = "Shows or hides the {} column".format(attr_col.name))
+            self.toggle_column_actions.append(action)
+                
             if col_idx >= 0 and col_idx <= 9:
-                settings.toggle_action.setShortcut("Ctrl+{:d}".format(col_idx))
-            settings.toggle_function = self._make_show_column_function(col_idx) # keep reference
-            assert settings.toggle_action.toggled.connect(settings.toggle_function)
+                action.setShortcut("Ctrl+{:d}".format(col_idx))
+                
+            func = self._make_show_column_function(col_idx) 
+            self.__toggle_functions.append(func) # keep reference
+            assert action.toggled.connect(func)
             
+        # Show/hide callable objects
         self.toggle_callable_action = \
             QtGui.QAction("Show callable objects", self, checkable=True, checked=True,
                           statusTip = "Shows or hides callable objects (functions, methods, etc)")
         assert self.toggle_callable_action.toggled.connect(self.toggle_callables)
                               
+        # Show/hide special methods
         self.toggle_special_method_action = \
             QtGui.QAction("Show __special_methods__", self, checkable=True, checked=True,
                           statusTip = "Shows or hides __special_methods__")
         assert self.toggle_special_method_action.toggled.connect(self.toggle_special_methods)
+                              
                               
     def _setup_menu(self):
         """ Sets up the main menu.
@@ -152,8 +157,8 @@ class ObjectBrowser(QtGui.QMainWindow):
             file_menu.addAction("&Test", self.my_test, "Ctrl+T")
         
         view_menu = self.menuBar().addMenu("&View")
-        for _idx, settings in enumerate(self.col_settings):
-            view_menu.addAction(settings.toggle_action)
+        for action in self.toggle_column_actions:
+            view_menu.addAction(action)
         view_menu.addSeparator()
         view_menu.addAction(self.toggle_callable_action)
         view_menu.addAction(self.toggle_special_method_action)
@@ -177,10 +182,9 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.obj_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
         
-        for idx, settings in enumerate(self.col_settings):
-            #logger.debug("resizing {}: {:d}".format(settings.name, settings.width))
-            self.obj_tree.header().resizeSection(idx, settings.width)
-        
+        for idx, attr_col in enumerate(self._attr_cols):
+            self.obj_tree.header().resizeSection(idx, attr_col.width)
+            
         # Stretch last column? 
         # It doesn't play nice when columns are hidden and then shown again.
         self.obj_tree.header().setStretchLastSection(False) 
@@ -331,11 +335,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             self.editor.setPlainText("{}\n\n{}".format(ex, stack_trace))
             if DEBUGGING is True:
                 raise
-            
-    def _make_show_column_function(self, column_idx):
-        """ Creates a function that shows or hides a column."""
-        show_column = lambda checked: self.obj_tree.setColumnHidden(column_idx, not checked)
-        return show_column
+
     
     def toggle_callables(self, checked):
         """ Shows/hides the special callable objects.
