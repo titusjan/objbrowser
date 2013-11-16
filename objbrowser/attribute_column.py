@@ -2,6 +2,8 @@
 """
 from __future__ import absolute_import
 
+from PySide.QtCore import Qt
+
 import logging, inspect, types
 
 logger = logging.getLogger(__name__)
@@ -14,9 +16,9 @@ class AttributeColumn(object):
     def __init__(self, name,
                  doc = "<no help available>",  
                  data_fn = None,  
-                 width = DEF_COL_WIDTH, 
                  visible = True, 
-                 to_str_fn = None):
+                 width = DEF_COL_WIDTH,
+                 alignment = Qt.AlignLeft):
 
         if type(data_fn) != types.FunctionType:
             raise ValueError("data_fn should be function(TreeItem)->string")
@@ -26,6 +28,8 @@ class AttributeColumn(object):
         self.data_fn = data_fn
         self.visible = visible
         self.width = width
+        self.alignment = alignment
+        
 
 ###################
 # Data functions ##
@@ -82,52 +86,62 @@ def tio_length(tree_item):
 #######################
 
 ATTR_COL_PATH = AttributeColumn('Path', 
-        doc     = "A path to the data: e.g. var[1]['a'].item", 
-        data_fn = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
-        visible = True,  
-        width   = DEF_COL_WIDTH) 
+        doc       = "A path to the data: e.g. var[1]['a'].item", 
+        data_fn   = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
+        visible   = True,  
+        width     = DEF_COL_WIDTH, 
+        alignment = Qt.AlignLeft) 
 
 ATTR_COL_NAME = AttributeColumn('Name', 
-        doc     = "The name of the node.", 
-        data_fn = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
-        visible = True,  
-        width   = DEF_COL_WIDTH) 
+        doc       = "The name of the node.", 
+        data_fn   = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
+        visible   = True,  
+        width     = DEF_COL_WIDTH, 
+        alignment = Qt.AlignLeft) 
 
 ATTR_COL_VALUE = AttributeColumn('Value', 
-        doc     = "The value of the node for atomic nodes (int, str, etc)", 
-        data_fn = tio_simple_value,
-        visible = True,  
-        width   = DEF_COL_WIDTH) 
+        doc       = "The value of the node for atomic nodes (int, str, etc)", 
+        data_fn   = tio_simple_value,
+        visible   = True,  
+        width     = DEF_COL_WIDTH, 
+        alignment = Qt.AlignLeft) 
 
 ATTR_COL_TYPE = AttributeColumn('Type', 
-        doc     = "Type of the node determined using the builtin type() function", 
-        data_fn = lambda(tree_item): str(type(tree_item.obj)),
-        visible = False,  
-        width   = DEF_COL_WIDTH) 
+        doc       = "Type of the node determined using the builtin type() function", 
+        data_fn   = lambda(tree_item): str(type(tree_item.obj)),
+        visible   = False,  
+        width     = DEF_COL_WIDTH, 
+        alignment = Qt.AlignLeft) 
 
 ATTR_COL_CLASS = AttributeColumn('Type Name', 
-        doc     = "The name of the class of the node via node.__class__.__name__", 
-        data_fn = lambda(tree_item): type(tree_item.obj).__name__,
-        visible = True,  
-        width   = DEF_COL_WIDTH) 
+        doc       = "The name of the class of the node via node.__class__.__name__", 
+        data_fn   = lambda(tree_item): type(tree_item.obj).__name__,
+        visible   = True,  
+        width     = DEF_COL_WIDTH, 
+        alignment = Qt.AlignLeft) 
 
 ATTR_COL_LENGTH = AttributeColumn('Length', 
-        doc     = "The length of the object via len(node)", 
-        data_fn = tio_length, 
-        visible = True,  
-        width   = 120) 
+        doc       = "The length of the object via len(node)", 
+        data_fn   = tio_length, 
+        visible   = True,  
+        width     = 120,
+        alignment = Qt.AlignLeft) 
+ 
 
 ATTR_COL_ID = AttributeColumn('Id', 
-        doc     = "The identifier of the object with calculated using the id() function", 
-        data_fn = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
-        visible = False,  
-        width   = 120) 
+        doc       = "The identifier of the object with calculated using the id() function", 
+        data_fn   = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
+        visible   = False,  
+        width     = 120,
+        alignment = Qt.AlignRight) 
+ 
 
 ATTR_COL_PRED = AttributeColumn('Predicates', 
-        doc     = "Predicates from the inspect module" ,
-        data_fn = tio_predicates, 
-        visible = False,  
-        width   = DEF_COL_WIDTH) 
+        doc       = "Predicates from the inspect module" ,
+        data_fn   = tio_predicates, 
+        visible   = False,  
+        width     = DEF_COL_WIDTH, 
+        alignment = Qt.AlignLeft) 
 
 
 DEFAULT_ATTR_COLS = (ATTR_COL_PATH, 

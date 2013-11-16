@@ -4,7 +4,7 @@
 # See: http://harmattan-dev.nokia.com/docs/library/html/qt4/itemviews-simpletreemodel.html
 
 from __future__ import absolute_import
-import logging, types, inspect
+import logging, inspect
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt
 from objbrowser.treeitem import TreeItem
@@ -94,13 +94,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             return self._attr_cols[col].data_fn(tree_item)
             
         elif role == Qt.TextAlignmentRole:
-            return Qt.AlignLeft
-                
-            # TODO: in attr columns
-            if col == self.COL_ID:
-                return Qt.AlignRight
-            else:
-                return Qt.AlignLeft
+            return self._attr_cols[col].alignment
             
         elif role == Qt.ForegroundRole:
             if is_callable(obj):
