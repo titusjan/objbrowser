@@ -1,24 +1,25 @@
 """ 
    Program that shows the local Python environment using the inspect module
+   # TODO: show items configurable
+   # TODO: persistent settings.
+   # TODO: show items if object has iteritems()
+   # TODO: repr column
    # TODO: unicode
    # TODO: look at QStandardItemModel
-   # TODO: look at sizehint
-   # TODO: length column
-   # TODO: columns configurable
-   # TODO: show items configurable
-   # TODO: repr column
-   # TODO: show items if object has iteritems()
-   # TODO: persistent settings.
    # TODO: show root node <--> obj_name is None ?
+   # TODO: tool-tips
    # TODO: python 3
    # TODO: zebra striping.
 """
 from __future__ import absolute_import
 from __future__ import print_function
-import os, logging, pprint, inspect, traceback
+import os, logging, traceback
 from PySide import QtCore, QtGui
+
 from objbrowser.treemodel import TreeModel
 from objbrowser.attribute_column import DEFAULT_ATTR_COLS
+from objbrowser.attribute_detail import DEFAULT_ATTR_DETAILS
+
 logger = logging.getLogger(__name__)
 
 DEBUGGING = True
@@ -30,21 +31,6 @@ IMAGE_DIRECTORY = PROGRAM_DIRECTORY + '/images/'
 ABOUT_MESSAGE = u"""%(prog)s version %(version)s
 """ % {"prog": PROGRAM_NAME, "version": PROGRAM_VERSION}
 
-
-# ColumnSettings is an simple settings object
-# pylint: disable=R0903    
-class __ColumnSettings(object):
-    """ Class that stores INITIAL column settings. """
-    
-    def __init__(self, width=120, visible=True, name=None):
-        """ Constructor to set mandatory and default settings) """
-        self.name = name
-        self.visible = visible
-        self.width = width
-        self.toggle_action = None  # action to show/hide column
-        self.toggle_function = None # function that shows/hides column
-# pylint: enable=R0903    
-        
         
 # The main window inherits from a Qt class, therefore it has many 
 # ancestors public methods and attributes.
@@ -75,6 +61,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Model
         self._attr_cols = DEFAULT_ATTR_COLS
+        self._attr_details = DEFAULT_ATTR_DETAILS
         
         self._tree_model = TreeModel(obj, 
                                      root_obj_name = obj_name,
@@ -95,7 +82,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         for action, attr_col in zip(self.toggle_column_actions, self._attr_cols):
             action.setChecked(attr_col.visible)
             
-        self.radio_str.setChecked(True)
+        self.radio_buttons[0].setChecked(True)
         
         if show_root_node is True:
             self.obj_tree.expandToDepth(0)
@@ -209,17 +196,9 @@ class ObjectBrowser(QtGui.QMainWindow):
             radio_layout.addWidget(radio_button) 
             return radio_button
         
-        self.radio_str            = create_radio("str")
-        self.radio_repr           = create_radio("repr")
-        self.radio_pretty         = create_radio("pretty print")
-        self.radio_doc            = create_radio("doc string")
-        self.radio_getdoc         = create_radio("inspect.getdoc")
-        self.radio_getcomments    = create_radio("inspect.getcomments")
-        self.radio_getfile        = create_radio("inspect.getfile")
-        self.radio_getmodule      = create_radio("inspect.getmodule")
-        self.radio_getsourcefile  = create_radio("inspect.getsourcefile")
-        self.radio_getsourcelines = create_radio("inspect.getsourcelines")
-        self.radio_getsource      = create_radio("inspect.getsource")
+        self.radio_buttons = []
+        for attr_detail in self._attr_details:
+            self.radio_buttons.append(create_radio(attr_detail.name))
         
         radio_layout.addStretch(1)
         group_box.setLayout(radio_layout)
@@ -272,63 +251,16 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.editor.setStyleSheet("color: black;")
         try:
             obj = tree_item.obj
-            if self.radio_str.isChecked():
-                data = str(obj)
+            selected_button = None
+            for radio_button, attr_detail in zip(self.radio_buttons, self._attr_details):
+                if radio_button.isChecked():
+                    selected_button = radio_button
+                    data = attr_detail.data_fn(obj)
+                    break
                 
-            elif self.radio_repr.isChecked():
-                data = repr(obj)
-                
-            elif self.radio_doc.isChecked():
-                try:
-                    data = obj.__doc__
-                except AttributeError:
-                    data = '<no doc string found>'
-                    
-            elif self.radio_pretty.isChecked():
-                pretty_printer = pprint.PrettyPrinter(indent=4)
-                data = pretty_printer.pformat(obj)
-                
-            elif self.radio_getdoc.isChecked():
-                data = inspect.getdoc(obj)
-                
-            elif self.radio_getcomments.isChecked():
-                data = inspect.getcomments(obj)
-                
-            elif self.radio_getfile.isChecked():
-                try:
-                    data = inspect.getfile(obj)
-                except TypeError:
-                    data = ''
-                    
-            elif self.radio_getmodule.isChecked():
-                module = inspect.getmodule(obj)
-                if module:
-                    data = module.__name__
-                else:
-                    data = ''
-                    
-            elif self.radio_getsourcefile.isChecked():
-                try:
-                    data = inspect.getsourcefile(obj)
-                except TypeError:
-                    data = ''                
-                    
-            elif self.radio_getsourcelines.isChecked():
-                try:
-                    data = repr(inspect.getsourcelines(obj))
-                except TypeError:
-                    data = ''        
-                
-            elif self.radio_getsource.isChecked():
-                try:
-                    data = inspect.getsource(obj)
-                except TypeError:
-                    data = ''
-                    
-            else:
-                assert False, "No radio button checked."
-                
+            assert selected_button is not None, "No radio button selected. Please report this bug."
             self.editor.setPlainText(data)
+            
         except StandardError, ex:
             self.editor.setStyleSheet("color: red;")
             stack_trace = traceback.format_exc()
@@ -352,7 +284,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         logger.debug("toggle_special_methods: {}".format(checked))
         self._tree_model.setShowSpecialMethods(checked)
-
 
     def my_test(self):
         """ Function for testing """

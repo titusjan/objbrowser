@@ -20,11 +20,11 @@ class AttributeColumn(object):
                  width = DEF_COL_WIDTH,
                  alignment = Qt.AlignLeft):
 
-        if type(data_fn) != types.FunctionType:
-            raise ValueError("data_fn should be function(TreeItem)->string")
+        if not callable(data_fn):
+            raise ValueError("data_fn must be function(TreeItem)->string")
             
         self.name = name
-        doc = doc
+        self.doc = doc
         self.data_fn = data_fn
         self.visible = visible
         self.width = width
@@ -93,40 +93,39 @@ ATTR_COL_PATH = AttributeColumn('Path',
         alignment = Qt.AlignLeft) 
 
 ATTR_COL_NAME = AttributeColumn('Name', 
-        doc       = "The name of the node.", 
+        doc       = "The name of the object.", 
         data_fn   = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
         visible   = True,  
         width     = DEF_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
 ATTR_COL_VALUE = AttributeColumn('Value', 
-        doc       = "The value of the node for atomic nodes (int, str, etc)", 
+        doc       = "The value of the object for atomic objects (int, str, etc)", 
         data_fn   = tio_simple_value,
         visible   = True,  
         width     = DEF_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
 ATTR_COL_TYPE = AttributeColumn('Type', 
-        doc       = "Type of the node determined using the builtin type() function", 
+        doc       = "Type of the object determined using the builtin type() function", 
         data_fn   = lambda(tree_item): str(type(tree_item.obj)),
         visible   = False,  
         width     = DEF_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
 ATTR_COL_CLASS = AttributeColumn('Type Name', 
-        doc       = "The name of the class of the node via node.__class__.__name__", 
+        doc       = "The name of the class of the object via obj.__class__.__name__", 
         data_fn   = lambda(tree_item): type(tree_item.obj).__name__,
         visible   = True,  
         width     = DEF_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
 ATTR_COL_LENGTH = AttributeColumn('Length', 
-        doc       = "The length of the object via len(node)", 
+        doc       = "The length of the object using the len() function", 
         data_fn   = tio_length, 
         visible   = True,  
         width     = 120,
         alignment = Qt.AlignLeft) 
- 
 
 ATTR_COL_ID = AttributeColumn('Id', 
         doc       = "The identifier of the object with calculated using the id() function", 
@@ -134,7 +133,6 @@ ATTR_COL_ID = AttributeColumn('Id',
         visible   = False,  
         width     = 120,
         alignment = Qt.AlignRight) 
- 
 
 ATTR_COL_PRED = AttributeColumn('Predicates', 
         doc       = "Predicates from the inspect module" ,
@@ -144,11 +142,13 @@ ATTR_COL_PRED = AttributeColumn('Predicates',
         alignment = Qt.AlignLeft) 
 
 
-DEFAULT_ATTR_COLS = (ATTR_COL_PATH, 
-                     ATTR_COL_NAME,
-                     ATTR_COL_VALUE,
-                     ATTR_COL_TYPE, 
-                     ATTR_COL_CLASS, 
-                     ATTR_COL_LENGTH, 
-                     ATTR_COL_ID, 
-                     ATTR_COL_PRED)
+ALL_ATTR_COLS = (ATTR_COL_PATH, 
+                 ATTR_COL_NAME,
+                 ATTR_COL_VALUE,
+                 ATTR_COL_TYPE, 
+                 ATTR_COL_CLASS, 
+                 ATTR_COL_LENGTH, 
+                 ATTR_COL_ID, 
+                 ATTR_COL_PRED)
+
+DEFAULT_ATTR_COLS = ALL_ATTR_COLS

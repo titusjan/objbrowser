@@ -14,12 +14,11 @@ logger = logging.getLogger(__name__)
 def is_callable(obj):
     "Returns is obj is callable"
     return hasattr(obj, "__call__")
+    
 
 def is_special_method(method_name):
     "Returns true if the method name starts and ends with two underscores"
     return method_name.startswith('__') and method_name.endswith('__') 
-
-
 
 
     
