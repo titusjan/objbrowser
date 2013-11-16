@@ -146,12 +146,12 @@ ALL_ATTR_DETAILS = (ATTR_DETAIL_STR,
 DEFAULT_ATTR_DETAILS = (ATTR_DETAIL_STR, 
                         ATTR_DETAIL_REPR,
                         ATTR_DETAIL_PRETTY_PRINT,
-                        ATTR_DETAIL_DOC_STRING, 
+                        #ATTR_DETAIL_DOC_STRING,  # not used, too similar to ATTR_DETAIL_GET_DOC
                         ATTR_DETAIL_GET_DOC, 
                         ATTR_DETAIL_GET_COMMENTS, 
                         ATTR_DETAIL_GET_FILE, 
                         ATTR_DETAIL_GET_MODULE, 
                         ATTR_DETAIL_GET_SOURCE_FILE, 
-                        ATTR_DETAIL_GET_SOURCE_LINES, 
+                        #ATTR_DETAIL_GET_SOURCE_LINES, # not used, ATTR_DETAIL_GET_SOURCE is better
                         ATTR_DETAIL_GET_SOURCE)
 

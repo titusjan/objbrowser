@@ -39,7 +39,11 @@ ABOUT_MESSAGE = u"""%(prog)s version %(version)s
 class ObjectBrowser(QtGui.QMainWindow):
     """ Object browser main application window.
     """
-    def __init__(self, obj = None, obj_name = '', 
+    def __init__(self, 
+                 obj = None, 
+                 obj_name = '',
+                 attr_columns = DEFAULT_ATTR_COLS,  
+                 attr_details = DEFAULT_ATTR_DETAILS,  
                  show_callables = True,
                  show_special_methods = True, 
                  show_root_node = False, 
@@ -60,8 +64,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         super(ObjectBrowser, self).__init__()
         
         # Model
-        self._attr_cols = DEFAULT_ATTR_COLS
-        self._attr_details = DEFAULT_ATTR_DETAILS
+        self._attr_cols = attr_columns
+        self._attr_details = attr_details
         
         self._tree_model = TreeModel(obj, 
                                      root_obj_name = obj_name,
