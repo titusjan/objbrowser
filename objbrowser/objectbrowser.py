@@ -87,13 +87,13 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.setWindowTitle("{} - {}".format(PROGRAM_NAME, obj_name))
         app = QtGui.QApplication.instance()
         app.lastWindowClosed.connect(app.quit) 
+
+        self._readSettings()
         
         # Update views with model
         for action, attr_col in zip(self.toggle_column_actions, self._attr_cols):
             action.setChecked(attr_col.visible)
             
-        self.radio_buttons[0].setChecked(True)
-        
         if show_root_node is True:
             self.obj_tree.expandToDepth(0)
      
@@ -101,10 +101,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         first_row = self._tree_model.first_item_index()
         self.obj_tree.setCurrentIndex(first_row)
         
-        #if width and height:
-        #    self.resize(width, height)
             
-        self._readSettings()
             
     def _make_show_column_function(self, column_idx):
         """ Creates a function that shows or hides a column."""
@@ -197,20 +194,17 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Radio buttons
         group_box = QtGui.QGroupBox("Details")
-        
         radio_layout = QtGui.QVBoxLayout()
+        self.button_group = QtGui.QButtonGroup(self) 
 
-        def create_radio(description):
-            "Adds a new radio button to the radio_layout"
-            radio_button = QtGui.QRadioButton(description)
-            radio_button.toggled.connect(self._change_details_field)
-            radio_layout.addWidget(radio_button) 
-            return radio_button
-        
-        self.radio_buttons = []
-        for attr_detail in self._attr_details:
-            self.radio_buttons.append(create_radio(attr_detail.name))
-        
+        for button_id, attr_detail in enumerate(self._attr_details):
+            radio_button = QtGui.QRadioButton(attr_detail.name)
+            radio_layout.addWidget(radio_button)
+            self.button_group.addButton(radio_button, button_id)
+
+        self.button_group.buttonClicked[int].connect(self._change_details_field)
+        self.button_group.button(0).setChecked(True)
+                
         radio_layout.addStretch(1)
         group_box.setLayout(radio_layout)
         pane_layout.addWidget(group_box)
@@ -248,13 +242,17 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         settings = QtCore.QSettings()
         settings.beginGroup("window_{:d}".format(self._instance_nr))
-        def_pos = QtCore.QPoint(20 * self._instance_nr, 20 * self._instnace_nr)
-        def_size = QtCore.QSize(1024, 700)
+        pos = QtCore.QPoint(20 * self._instance_nr, 20 * self._instance_nr)
+        size = QtCore.QSize(1024, 700)
+        details_button_idx = 0
         if not reset:
-            pos = settings.value("main_window/pos", def_pos)
-            size = settings.value("main_window/size", def_size)
+            pos = settings.value("main_window/pos", pos)
+            size = settings.value("main_window/size", size)
+            details_button_idx = settings.value("main_window/details_button_idx", 
+                                                details_button_idx)
         self.resize(size)
         self.move(pos)
+        self.button_group.button(details_button_idx).setChecked(True)
         
         if False: 
             self.central_splitter.restoreState(settings.value("self.central_splitter/state"))
@@ -283,6 +281,7 @@ class ObjectBrowser(QtGui.QMainWindow):
                         
             settings.setValue("self.central_splitter/state", self.central_splitter.saveState())
         
+        settings.setValue("main_window/details_button_idx", self.button_group.checkedId())
         settings.setValue("main_window/pos", self.pos())
         settings.setValue("main_window/size", self.size())
         settings.endGroup()
@@ -295,10 +294,11 @@ class ObjectBrowser(QtGui.QMainWindow):
         tree_item = self._tree_model.treeItem(current_index)
         self._update_details_for_item(tree_item)
 
-
-    def _change_details_field(self):
+        
+    def _change_details_field(self, _button_id=None):
         """ Changes the field that is displayed in the details pane
         """
+        #logger.debug("_change_details_field: {}".format(_button_id))
         current_index = self.obj_tree.selectionModel().currentIndex()
         tree_item = self._tree_model.treeItem(current_index)
         self._update_details_for_item(tree_item)
@@ -310,14 +310,9 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.editor.setStyleSheet("color: black;")
         try:
             obj = tree_item.obj
-            selected_button = None
-            for radio_button, attr_detail in zip(self.radio_buttons, self._attr_details):
-                if radio_button.isChecked():
-                    selected_button = radio_button
-                    data = attr_detail.data_fn(obj)
-                    break
-                
-            assert selected_button is not None, "No radio button selected. Please report this bug."
+            button_id = self.button_group.checkedId()
+            assert button_id >= 0, "No radio button selected. Please report this bug."
+            data = self._attr_details[button_id].data_fn(obj)
             self.editor.setPlainText(data)
             
         except StandardError, ex:
@@ -361,13 +356,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Closes all windows """
         app = QtGui.QApplication.instance()
         app.closeAllWindows()
-
-            
-    def __new__quitApplication(self):
-        """ Quits the application """
-        logger.debug("quitApplication")
-        self.close()
-        
 
     def closeEvent(self, event):
         """ Close all windows (e.g. the L0 window).
