@@ -7,6 +7,7 @@
    # TODO: unicode
    # TODO: look at QStandardItemModel
    # TODO: show root node <--> obj_name is None ?
+   # TODO: word wrap in attribute details
    # TODO: tool-tips
    # TODO: python 3
    # TODO: zebra striping.
@@ -17,7 +18,7 @@ import os, logging, traceback
 from PySide import QtCore, QtGui
 
 from objbrowser.treemodel import TreeModel
-from objbrowser.attribute_column import DEFAULT_ATTR_COLS
+from objbrowser.attribute_column import DEFAULT_ATTR_COLUMNS
 from objbrowser.attribute_detail import DEFAULT_ATTR_DETAILS
 
 logger = logging.getLogger(__name__)
@@ -39,10 +40,12 @@ ABOUT_MESSAGE = u"""%(prog)s version %(version)s
 class ObjectBrowser(QtGui.QMainWindow):
     """ Object browser main application window.
     """
+    _n_instances = 0
+    
     def __init__(self, 
                  obj = None, 
                  obj_name = '',
-                 attr_columns = DEFAULT_ATTR_COLS,  
+                 attr_columns = DEFAULT_ATTR_COLUMNS,  
                  attr_details = DEFAULT_ATTR_DETAILS,  
                  show_callables = True,
                  show_special_methods = True, 
@@ -62,6 +65,9 @@ class ObjectBrowser(QtGui.QMainWindow):
             :param height: if width and height are set, the main windows is resized.
         """
         super(ObjectBrowser, self).__init__()
+
+        ObjectBrowser._n_instances += 1
+        self._instance_nr = self._n_instances        
         
         # Model
         self._attr_cols = attr_columns
@@ -95,9 +101,10 @@ class ObjectBrowser(QtGui.QMainWindow):
         first_row = self._tree_model.first_item_index()
         self.obj_tree.setCurrentIndex(first_row)
         
-        if width and height:
-            self.resize(width, height)
+        #if width and height:
+        #    self.resize(width, height)
             
+        self._readSettings()
             
     def _make_show_column_function(self, column_idx):
         """ Creates a function that shows or hides a column."""
@@ -190,7 +197,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Radio buttons
         group_box = QtGui.QGroupBox("Details")
-
+        
         radio_layout = QtGui.QVBoxLayout()
 
         def create_radio(description):
@@ -230,8 +237,56 @@ class ObjectBrowser(QtGui.QMainWindow):
         selection_model = self.obj_tree.selectionModel()
         assert selection_model.currentChanged.connect(self._update_details)
 
-
     # End of setup_methods
+    
+    def _readSettings(self, reset=False):
+        """ Reads the persistent program settings
+        
+            :param reset: If True, the program resets to its default settings
+        """ 
+        logger.debug("Reading settings window: {:d}".format(self._instance_nr))
+        
+        settings = QtCore.QSettings()
+        settings.beginGroup("window_{:d}".format(self._instance_nr))
+        def_pos = QtCore.QPoint(20 * self._instance_nr, 20 * self._instnace_nr)
+        def_size = QtCore.QSize(1024, 700)
+        if not reset:
+            pos = settings.value("main_window/pos", def_pos)
+            size = settings.value("main_window/size", def_size)
+        self.resize(size)
+        self.move(pos)
+        
+        if False: 
+            self.central_splitter.restoreState(settings.value("self.central_splitter/state"))
+            
+            header = self.signal_table.horizontalHeader()
+            header.restoreState(settings.value("signal_table/header/state"))
+            header = self.avg_table.horizontalHeader()
+            header.restoreState(settings.value("avg_table/header/state"))
+            
+        settings.endGroup()
+
+
+    def _writeSettings(self):
+        """ Reads the persistent program settings
+        """         
+        logger.debug("Writing settings window: {:d}".format(self._instance_nr))
+        
+        settings = QtCore.QSettings()
+        settings.beginGroup("window_{:d}".format(self._instance_nr))
+        
+        if False:
+            header = self.avg_table.horizontalHeader()
+            settings.setValue("avg_table/header/state", header.saveState())
+            header = self.signal_table.horizontalHeader()
+            settings.setValue("signal_table/header/state", header.saveState())
+                        
+            settings.setValue("self.central_splitter/state", self.central_splitter.saveState())
+        
+        settings.setValue("main_window/pos", self.pos())
+        settings.setValue("main_window/size", self.size())
+        settings.endGroup()
+            
 
     @QtCore.Slot(QtCore.QModelIndex, QtCore.QModelIndex)
     def _update_details(self, current_index, _previous_index):
@@ -299,6 +354,7 @@ class ObjectBrowser(QtGui.QMainWindow):
 
     def close_window(self):
         """ Closes the window """
+        #self._writeSettings()
         self.close()
         
     def quit_application(self):
@@ -306,4 +362,19 @@ class ObjectBrowser(QtGui.QMainWindow):
         app = QtGui.QApplication.instance()
         app.closeAllWindows()
 
+            
+    def __new__quitApplication(self):
+        """ Quits the application """
+        logger.debug("quitApplication")
+        self.close()
+        
+
+    def closeEvent(self, event):
+        """ Close all windows (e.g. the L0 window).
+        """
+        logger.debug("closeEvent")
+        self._writeSettings()                
+        self.close()
+        event.accept()
+            
 

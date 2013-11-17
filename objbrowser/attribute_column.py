@@ -85,56 +85,56 @@ def tio_length(tree_item):
 # Column definitions ##
 #######################
 
-ATTR_COL_PATH = AttributeColumn('Path', 
+ATTR_COLUMN_PATH = AttributeColumn('Path', 
         doc       = "A path to the data: e.g. var[1]['a'].item", 
         data_fn   = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
         visible   = True,  
         width     = DEF_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
-ATTR_COL_NAME = AttributeColumn('Name', 
+ATTR_COLUMN_NAME = AttributeColumn('Name', 
         doc       = "The name of the object.", 
         data_fn   = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
         visible   = True,  
         width     = DEF_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
-ATTR_COL_VALUE = AttributeColumn('Value', 
+ATTR_COLUMN_VALUE = AttributeColumn('Value', 
         doc       = "The value of the object for atomic objects (int, str, etc)", 
         data_fn   = tio_simple_value,
         visible   = True,  
         width     = DEF_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
-ATTR_COL_TYPE = AttributeColumn('Type', 
+ATTR_COLUMN_TYPE = AttributeColumn('Type', 
         doc       = "Type of the object determined using the builtin type() function", 
         data_fn   = lambda(tree_item): str(type(tree_item.obj)),
         visible   = False,  
         width     = DEF_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
-ATTR_COL_CLASS = AttributeColumn('Type Name', 
+ATTR_COLUMN_CLASS = AttributeColumn('Type Name', 
         doc       = "The name of the class of the object via obj.__class__.__name__", 
         data_fn   = lambda(tree_item): type(tree_item.obj).__name__,
         visible   = True,  
         width     = DEF_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
-ATTR_COL_LENGTH = AttributeColumn('Length', 
+ATTR_COLUMN_LENGTH = AttributeColumn('Length', 
         doc       = "The length of the object using the len() function", 
         data_fn   = tio_length, 
         visible   = True,  
         width     = 120,
         alignment = Qt.AlignLeft) 
 
-ATTR_COL_ID = AttributeColumn('Id', 
+ATTR_COLUMN_ID = AttributeColumn('Id', 
         doc       = "The identifier of the object with calculated using the id() function", 
         data_fn   = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
         visible   = False,  
         width     = 120,
         alignment = Qt.AlignRight) 
 
-ATTR_COL_PRED = AttributeColumn('Predicates', 
+ATTR_COLUMN_PRED = AttributeColumn('Predicates', 
         doc       = "Predicates from the inspect module" ,
         data_fn   = tio_predicates, 
         visible   = False,  
@@ -142,13 +142,13 @@ ATTR_COL_PRED = AttributeColumn('Predicates',
         alignment = Qt.AlignLeft) 
 
 
-ALL_ATTR_COLS = (ATTR_COL_PATH, 
-                 ATTR_COL_NAME,
-                 ATTR_COL_VALUE,
-                 ATTR_COL_TYPE, 
-                 ATTR_COL_CLASS, 
-                 ATTR_COL_LENGTH, 
-                 ATTR_COL_ID, 
-                 ATTR_COL_PRED)
+ALL_ATTR_COLUMNS = (ATTR_COLUMN_PATH, 
+                    ATTR_COLUMN_NAME,
+                    ATTR_COLUMN_VALUE,
+                    ATTR_COLUMN_TYPE, 
+                    ATTR_COLUMN_CLASS, 
+                    ATTR_COLUMN_LENGTH, 
+                    ATTR_COLUMN_ID, 
+                    ATTR_COLUMN_PRED)
 
-DEFAULT_ATTR_COLS = ALL_ATTR_COLS
+DEFAULT_ATTR_COLUMNS = ALL_ATTR_COLUMNS

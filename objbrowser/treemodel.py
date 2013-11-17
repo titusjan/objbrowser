@@ -35,7 +35,6 @@ def is_special_method(method_name):
 class TreeModel(QtCore.QAbstractItemModel):
     """ Model that provides an interface to an objectree that is build of TreeItems. 
     """
-    
     def __init__(self, root_obj, 
                  root_obj_name = '',
                  attr_cols = None, 
@@ -58,6 +57,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             :param parent: the parent widget
         """
         super(TreeModel, self).__init__(parent)
+        
         self._root_obj = root_obj
         self._root_name = root_obj_name 
         self._attr_cols = attr_cols

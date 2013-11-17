@@ -6,7 +6,7 @@ __all__ = ['browse', 'execute', 'create_object_browser', 'logging_basic_config']
 import sys, os, logging, pprint, inspect
 from PySide import QtCore, QtGui
 
-from objbrowser.objectbrowser import ObjectBrowser
+from objbrowser.objectbrowser import ObjectBrowser, PROGRAM_NAME, PROGRAM_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +30,16 @@ def get_qapplication_instance():
     """ Returns the QApplication instance. Creates one if it doesn't exist.
     """
     app = QtGui.QApplication.instance()
+
     if app is None:
         app = QtGui.QApplication(sys.argv)
     check_class(app, QtGui.QApplication)
+    
+    app.setApplicationName(PROGRAM_NAME)
+    app.setApplicationVersion(PROGRAM_VERSION)
+    app.setOrganizationName("titusjan")
+    app.setOrganizationDomain("titusjan.nl")    
+    
     return app
 
 
