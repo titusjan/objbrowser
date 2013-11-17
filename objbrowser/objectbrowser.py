@@ -166,10 +166,10 @@ class ObjectBrowser(QtGui.QMainWindow):
     def _setup_views(self):
         """ Creates the UI widgets. 
         """
-        central_splitter = QtGui.QSplitter(self, orientation = QtCore.Qt.Vertical)
-        self.setCentralWidget(central_splitter)
+        self.central_splitter = QtGui.QSplitter(self, orientation = QtCore.Qt.Vertical)
+        self.setCentralWidget(self.central_splitter)
         central_layout = QtGui.QVBoxLayout()
-        central_splitter.setLayout(central_layout)
+        self.central_splitter.setLayout(central_layout)
         
         # Tree widget
         self.obj_tree = QtGui.QTreeView()
@@ -221,11 +221,11 @@ class ObjectBrowser(QtGui.QMainWindow):
         pane_layout.addWidget(self.editor)
         
         # Splitter parameters
-        central_splitter.setCollapsible(0, False)
-        central_splitter.setCollapsible(1, True)
-        central_splitter.setSizes([400, 200])
-        central_splitter.setStretchFactor(0, 10)
-        central_splitter.setStretchFactor(1, 0)
+        self.central_splitter.setCollapsible(0, False)
+        self.central_splitter.setCollapsible(1, True)
+        self.central_splitter.setSizes([400, 200])
+        self.central_splitter.setStretchFactor(0, 10)
+        self.central_splitter.setStretchFactor(1, 0)
                
         # Connect signals
         selection_model = self.obj_tree.selectionModel()
@@ -242,21 +242,22 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         settings = QtCore.QSettings()
         settings.beginGroup("window_{:d}".format(self._instance_nr))
+        
         pos = QtCore.QPoint(20 * self._instance_nr, 20 * self._instance_nr)
         size = QtCore.QSize(1024, 700)
         details_button_idx = 0
+        
         if not reset:
             pos = settings.value("main_window/pos", pos)
             size = settings.value("main_window/size", size)
-            details_button_idx = settings.value("main_window/details_button_idx", 
-                                                details_button_idx)
+            details_button_idx = settings.value("details_button_idx", details_button_idx)
+            self.central_splitter.restoreState(settings.value("central_splitter/state"))
+            
         self.resize(size)
         self.move(pos)
         self.button_group.button(details_button_idx).setChecked(True)
-        
+
         if False: 
-            self.central_splitter.restoreState(settings.value("self.central_splitter/state"))
-            
             header = self.signal_table.horizontalHeader()
             header.restoreState(settings.value("signal_table/header/state"))
             header = self.avg_table.horizontalHeader()
@@ -279,9 +280,9 @@ class ObjectBrowser(QtGui.QMainWindow):
             header = self.signal_table.horizontalHeader()
             settings.setValue("signal_table/header/state", header.saveState())
                         
-            settings.setValue("self.central_splitter/state", self.central_splitter.saveState())
-        
-        settings.setValue("main_window/details_button_idx", self.button_group.checkedId())
+            
+        settings.setValue("central_splitter/state", self.central_splitter.saveState())
+        settings.setValue("details_button_idx", self.button_group.checkedId())
         settings.setValue("main_window/pos", self.pos())
         settings.setValue("main_window/size", self.size())
         settings.endGroup()
