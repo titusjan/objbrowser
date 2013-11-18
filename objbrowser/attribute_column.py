@@ -8,7 +8,9 @@ import logging, inspect, types
 
 logger = logging.getLogger(__name__)
 
-DEF_COL_WIDTH = 200
+
+SMALL_COL_WIDTH = 120
+MEDIUM_COL_WIDTH = 200
 
 class AttributeColumn(object):
     """ Determines how an object attribute is rendered in a table column
@@ -17,7 +19,7 @@ class AttributeColumn(object):
                  doc = "<no help available>",  
                  data_fn = None,  
                  visible = True, 
-                 width = DEF_COL_WIDTH,
+                 width = MEDIUM_COL_WIDTH,
                  alignment = Qt.AlignLeft):
 
         if not callable(data_fn):
@@ -79,6 +81,11 @@ def tio_length(tree_item):
             return ""
     else:
         return ""
+    
+    
+def tio_is_callable(tree_item):
+    "Returns True if the tree item object is callable"
+    return hasattr(tree_item.obj, "__call__")    
 
 
 #######################
@@ -89,56 +96,63 @@ ATTR_COLUMN_PATH = AttributeColumn('Path',
         doc       = "A path to the data: e.g. var[1]['a'].item", 
         data_fn   = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
         visible   = True,  
-        width     = DEF_COL_WIDTH, 
+        width     = MEDIUM_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
 ATTR_COLUMN_NAME = AttributeColumn('Name', 
         doc       = "The name of the object.", 
         data_fn   = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
         visible   = True,  
-        width     = DEF_COL_WIDTH, 
+        width     = MEDIUM_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
 ATTR_COLUMN_VALUE = AttributeColumn('Value', 
         doc       = "The value of the object for atomic objects (int, str, etc)", 
         data_fn   = tio_simple_value,
         visible   = True,  
-        width     = DEF_COL_WIDTH, 
+        width     = MEDIUM_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
 ATTR_COLUMN_TYPE = AttributeColumn('Type', 
         doc       = "Type of the object determined using the builtin type() function", 
         data_fn   = lambda(tree_item): str(type(tree_item.obj)),
         visible   = False,  
-        width     = DEF_COL_WIDTH, 
+        width     = MEDIUM_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
 ATTR_COLUMN_CLASS = AttributeColumn('Type Name', 
         doc       = "The name of the class of the object via obj.__class__.__name__", 
         data_fn   = lambda(tree_item): type(tree_item.obj).__name__,
         visible   = True,  
-        width     = DEF_COL_WIDTH, 
+        width     = MEDIUM_COL_WIDTH, 
+        alignment = Qt.AlignLeft) 
+
+ATTR_COLUMN_CALLABLE = AttributeColumn('Callable', 
+        doc       = "The if the is callable (e.g. a function or a method)", 
+        data_fn   = tio_is_callable, 
+        visible   = True,  
+        width     = SMALL_COL_WIDTH,
         alignment = Qt.AlignLeft) 
 
 ATTR_COLUMN_LENGTH = AttributeColumn('Length', 
         doc       = "The length of the object using the len() function", 
         data_fn   = tio_length, 
-        visible   = True,  
-        width     = 120,
+        visible   = False,  
+        width     = SMALL_COL_WIDTH,
         alignment = Qt.AlignLeft) 
 
 ATTR_COLUMN_ID = AttributeColumn('Id', 
         doc       = "The identifier of the object with calculated using the id() function", 
         data_fn   = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
         visible   = False,  
-        width     = 120,
+        width     = SMALL_COL_WIDTH,
         alignment = Qt.AlignRight) 
 
 ATTR_COLUMN_PRED = AttributeColumn('Predicates', 
         doc       = "Predicates from the inspect module" ,
         data_fn   = tio_predicates, 
         visible   = False,  
-        width     = DEF_COL_WIDTH, 
+        width     = MEDIUM_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
 
@@ -147,6 +161,7 @@ ALL_ATTR_COLUMNS = (ATTR_COLUMN_PATH,
                     ATTR_COLUMN_VALUE,
                     ATTR_COLUMN_TYPE, 
                     ATTR_COLUMN_CLASS, 
+                    ATTR_COLUMN_CALLABLE, 
                     ATTR_COLUMN_LENGTH, 
                     ATTR_COLUMN_ID, 
                     ATTR_COLUMN_PRED)

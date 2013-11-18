@@ -11,6 +11,12 @@
    # TODO: tool-tips
    # TODO: python 3
    # TODO: zebra striping.
+   # TODO: show_callables/special methods should also apply to dict and list members, otherwise
+           it's confusing. Or the color should be adapted.
+   # TODO: hide members?
+   
+   # Examples, binary, octal, hex    
+           
 """
 from __future__ import absolute_import
 from __future__ import print_function
@@ -47,9 +53,9 @@ class ObjectBrowser(QtGui.QMainWindow):
                  obj_name = '',
                  attr_columns = DEFAULT_ATTR_COLUMNS,  
                  attr_details = DEFAULT_ATTR_DETAILS,  
-                 show_callables = True,
-                 show_special_methods = True, 
-                 show_root_node = False, 
+                 show_callables = None,
+                 show_special_methods = None, 
+                 show_root_node = None, 
                  width = 1200, height = 800):
         """ Constructor
         
@@ -73,12 +79,17 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._attr_cols = attr_columns
         self._attr_details = attr_details
         
+        (show_callables, 
+         show_special_methods, 
+         show_root_node) = self._readModelSettings(show_callables = show_callables,
+                                                   show_special_methods = show_special_methods, 
+                                                   show_root_node = show_root_node)
         self._tree_model = TreeModel(obj, 
                                      root_obj_name = obj_name,
                                      attr_cols = self._attr_cols,  
-                                     show_root_node = show_root_node,
                                      show_callables = show_callables, 
-                                     show_special_methods = show_special_methods)
+                                     show_special_methods = show_special_methods, 
+                                     show_root_node = show_root_node)
         
         # Views
         self._setup_actions()
@@ -88,11 +99,14 @@ class ObjectBrowser(QtGui.QMainWindow):
         app = QtGui.QApplication.instance()
         app.lastWindowClosed.connect(app.quit) 
 
-        self._readSettings()
+        self._readViewSettings()
         
         # Update views with model
         for action, attr_col in zip(self.toggle_column_actions, self._attr_cols):
             action.setChecked(attr_col.visible)
+            
+        self.toggle_special_method_action.setChecked(show_special_methods)
+        self.toggle_callable_action.setChecked(show_callables)
             
         if show_root_node is True:
             self.obj_tree.expandToDepth(0)
@@ -100,7 +114,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Select first row so that a hidden root node will not be selected.
         first_row = self._tree_model.first_item_index()
         self.obj_tree.setCurrentIndex(first_row)
-        
             
             
     def _make_show_column_function(self, column_idx):
@@ -130,13 +143,13 @@ class ObjectBrowser(QtGui.QMainWindow):
             
         # Show/hide callable objects
         self.toggle_callable_action = \
-            QtGui.QAction("Show callable objects", self, checkable=True, checked=True,
-                          statusTip = "Shows or hides callable objects (functions, methods, etc)")
+            QtGui.QAction("Show callable attributes", self, checkable=True, 
+                          statusTip = "Shows or hides callable attributes (functions, methods, etc)")
         assert self.toggle_callable_action.toggled.connect(self.toggle_callables)
                               
         # Show/hide special methods
         self.toggle_special_method_action = \
-            QtGui.QAction("Show __special_methods__", self, checkable=True, checked=True,
+            QtGui.QAction("Show __special_methods__", self, checkable=True, 
                           statusTip = "Shows or hides __special_methods__")
         assert self.toggle_special_method_action.toggled.connect(self.toggle_special_methods)
                               
@@ -233,25 +246,62 @@ class ObjectBrowser(QtGui.QMainWindow):
 
     # End of setup_methods
     
-    def _readSettings(self, reset=False):
+    def _readModelSettings(self, 
+                           show_callables = None,
+                           show_special_methods = None, 
+                           show_root_node = None):
+        """ Reads the persistent model settings
+        """ 
+        logger.debug("Reading model settings for window: {:d}".format(self._instance_nr))
+        
+        settings = QtCore.QSettings()
+        settings.beginGroup("model_{:d}".format(self._instance_nr))
+        if show_callables is None:
+            show_callables = settings.value("show_callables", True)
+        if show_special_methods is None:
+            show_special_methods = settings.value("show_special_methods", True)
+        if show_root_node is None:
+            show_root_node = settings.value("show_root_node", False)
+        settings.endGroup()
+        return (show_callables, show_special_methods, show_root_node)
+                    
+    
+    def _writeModelSettings(self):
+        """ Writes the model settings to the persistent store
+        """         
+        logger.debug("Writing model settings for window: {:d}".format(self._instance_nr))
+        
+        settings = QtCore.QSettings()
+        settings.beginGroup("model_{:d}".format(self._instance_nr))
+        settings.setValue("show_callables", self._tree_model.getShowCallables())
+        settings.setValue("show_special_methods", self._tree_model.getShowSpecialMethods())
+        settings.setValue("show_root_node", self._tree_model.getShowRootNode())
+        
+        logger.debug("show_callables: %s", self._tree_model.getShowCallables())
+        logger.debug("show_special_methods: %s", self._tree_model.getShowSpecialMethods())
+        logger.debug("show_root_node: %s", self._tree_model.getShowRootNode())
+        settings.endGroup()
+            
+            
+    def _readViewSettings(self, reset=False):
         """ Reads the persistent program settings
         
             :param reset: If True, the program resets to its default settings
         """ 
-        logger.debug("Reading settings window: {:d}".format(self._instance_nr))
-        
-        settings = QtCore.QSettings()
-        settings.beginGroup("window_{:d}".format(self._instance_nr))
+        logger.debug("Reading view settings for window: {:d}".format(self._instance_nr))
         
         pos = QtCore.QPoint(20 * self._instance_nr, 20 * self._instance_nr)
         size = QtCore.QSize(1024, 700)
         details_button_idx = 0
         
         if not reset:
+            settings = QtCore.QSettings()
+            settings.beginGroup("view_{:d}".format(self._instance_nr))
             pos = settings.value("main_window/pos", pos)
             size = settings.value("main_window/size", size)
             details_button_idx = settings.value("details_button_idx", details_button_idx)
             self.central_splitter.restoreState(settings.value("central_splitter/state"))
+            settings.endGroup()
             
         self.resize(size)
         self.move(pos)
@@ -262,17 +312,15 @@ class ObjectBrowser(QtGui.QMainWindow):
             header.restoreState(settings.value("signal_table/header/state"))
             header = self.avg_table.horizontalHeader()
             header.restoreState(settings.value("avg_table/header/state"))
-            
-        settings.endGroup()
 
 
-    def _writeSettings(self):
-        """ Reads the persistent program settings
+    def _writeViewSettings(self):
+        """ Writes the view settings to the persistent store
         """         
-        logger.debug("Writing settings window: {:d}".format(self._instance_nr))
+        logger.debug("Writing view settings for window: {:d}".format(self._instance_nr))
         
         settings = QtCore.QSettings()
-        settings.beginGroup("window_{:d}".format(self._instance_nr))
+        settings.beginGroup("view_{:d}".format(self._instance_nr))
         
         if False:
             header = self.avg_table.horizontalHeader()
@@ -350,7 +398,7 @@ class ObjectBrowser(QtGui.QMainWindow):
 
     def close_window(self):
         """ Closes the window """
-        #self._writeSettings()
+        #self._writeViewSettings()
         self.close()
         
     def quit_application(self):
@@ -362,7 +410,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Close all windows (e.g. the L0 window).
         """
         logger.debug("closeEvent")
-        self._writeSettings()                
+        self._writeModelSettings()                
+        self._writeViewSettings()                
         self.close()
         event.accept()
             

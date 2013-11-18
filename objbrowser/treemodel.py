@@ -292,6 +292,9 @@ class TreeModel(QtCore.QAbstractItemModel):
                                            self._single_root_node)
         self.endResetModel()
     
+    
+    def getShowCallables(self):
+        return self._show_callables
         
     def setShowCallables(self, show_callables):
         """ Shows/hides show_callables, which have a __call__ attribute.
@@ -301,6 +304,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._show_callables = show_callables
         self._resetTree()
     
+
+    def getShowSpecialMethods(self):
+        return self._show_special_methods
         
     def setShowSpecialMethods(self, show_special_methods):
         """ Shows/hides special methods, which begin with an underscore.
@@ -310,5 +316,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._show_special_methods = show_special_methods
         self._resetTree()
         
+    def getShowRootNode(self):
+        return self._single_root_node
+
 
         
