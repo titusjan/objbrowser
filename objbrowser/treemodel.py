@@ -40,12 +40,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                  attr_cols = None, 
                  show_callables = True,
                  show_special_methods = True,
-                 show_root_node = False,
                  parent = None):
         """ Constructor
         
             :param obj: any Python object or variable
             :param obj_name: name of the object as it will appear in the root node
+                             If empty, no root node drawn. 
             :param attr_cols: list of AttributeColumn definitions
             :param show_callables: if True the callables objects, 
                 i.e. objects (such as function) that  a __call__ method, 
@@ -53,7 +53,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             :param show_special_methods: if True the objects special methods, 
                 i.e. methods with a name that starts and ends with two underscores, 
                 will be displayed (in italics). If False they are hidden.
-            :param show_root_node: If true, all items are grouped under a single root item
             :param parent: the parent widget
         """
         super(TreeModel, self).__init__(parent)
@@ -61,10 +60,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._root_obj = root_obj
         self._root_name = root_obj_name 
         self._attr_cols = attr_cols
-        self._single_root_node = show_root_node
         self._show_callables = show_callables
         self._show_special_methods = show_special_methods
-        self.root_item = self.populateTree(root_obj, root_obj_name, show_root_node)
+        self.root_item = self.populateTree(root_obj, root_obj_name, )
         
         self.regular_font = QtGui.QFont()  # Font for members (non-functions)
         self.special_method_font = QtGui.QFont()  # Font for __special_methods__
@@ -77,7 +75,11 @@ class TreeModel(QtCore.QAbstractItemModel):
     def columnCount(self, _parent):
         """ Returns the number of columns in the tree """
         return len(self._attr_cols)
-
+    
+    @property
+    def show_root_node(self):
+        """ If True, a root node is present"""
+        return (self._root_name != '')
 
     def data(self, index, role):
         """ Returns the tree item at the given index and role
@@ -163,7 +165,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         """ Returns the root item index or, if the single_root_node property is False, 
             the index(0, 0, root_item)
         """
-        if self._single_root_node is True:
+        if self.show_root_node is True:
             root_parent_index = self.createIndex(0, 0, self.root_item)
             return self.index(0, 0, root_parent_index)
         else:
@@ -289,7 +291,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.beginResetModel()
         self.reset()
         self.root_item = self.populateTree(self._root_obj, self._root_name,
-                                           self._single_root_node)
+                                           self.show_root_node)
         self.endResetModel()
     
     
@@ -317,7 +319,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._resetTree()
         
     def getShowRootNode(self):
-        return self._single_root_node
+        return self.show_root_node
 
 
         

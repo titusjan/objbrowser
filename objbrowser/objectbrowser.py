@@ -1,13 +1,14 @@
 """ 
    Program that shows the local Python environment using the inspect module
-   # TODO: show items configurable
+   # TODO: show items configurable (merge with attributes)
+   
    # TODO: persistent settings.
    # TODO: show items if object has iteritems()
    # TODO: repr column
    # TODO: unicode
    # TODO: look at QStandardItemModel
-   # TODO: show root node <--> obj_name is None ?
    # TODO: word wrap in attribute details
+   # TODO: remove \n from strings when showing in table
    # TODO: tool-tips
    # TODO: python 3
    # TODO: zebra striping.
@@ -16,6 +17,10 @@
    # TODO: hide members?
    
    # Examples, binary, octal, hex    
+   
+Changes:
+   #  removed show_root_node parameter. Is implicit by testing obj_name == None
+    
            
 """
 from __future__ import absolute_import
@@ -55,7 +60,6 @@ class ObjectBrowser(QtGui.QMainWindow):
                  attr_details = DEFAULT_ATTR_DETAILS,  
                  show_callables = None,
                  show_special_methods = None, 
-                 show_root_node = None, 
                  width = 1200, height = 800):
         """ Constructor
         
@@ -80,16 +84,13 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._attr_details = attr_details
         
         (show_callables, 
-         show_special_methods, 
-         show_root_node) = self._readModelSettings(show_callables = show_callables,
-                                                   show_special_methods = show_special_methods, 
-                                                   show_root_node = show_root_node)
+         show_special_methods) = self._readModelSettings(show_callables = show_callables,
+                                                   show_special_methods = show_special_methods)
         self._tree_model = TreeModel(obj, 
                                      root_obj_name = obj_name,
                                      attr_cols = self._attr_cols,  
                                      show_callables = show_callables, 
-                                     show_special_methods = show_special_methods, 
-                                     show_root_node = show_root_node)
+                                     show_special_methods = show_special_methods)
         
         # Views
         self._setup_actions()
@@ -102,13 +103,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._readViewSettings()
         
         # Update views with model
-
-            
         self.toggle_special_method_action.setChecked(show_special_methods)
         self.toggle_callable_action.setChecked(show_callables)
-            
-        if show_root_node is True:
-            self.obj_tree.expandToDepth(0)
      
         # Select first row so that a hidden root node will not be selected.
         first_row = self._tree_model.first_item_index()
@@ -244,8 +240,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     
     def _readModelSettings(self, 
                            show_callables = None,
-                           show_special_methods = None, 
-                           show_root_node = None):
+                           show_special_methods = None):
         """ Reads the persistent model settings
         """ 
         logger.debug("Reading model settings for window: {:d}".format(self._instance_nr))
@@ -256,10 +251,8 @@ class ObjectBrowser(QtGui.QMainWindow):
             show_callables = settings.value("show_callables", True)
         if show_special_methods is None:
             show_special_methods = settings.value("show_special_methods", True)
-        if show_root_node is None:
-            show_root_node = settings.value("show_root_node", False)
         settings.endGroup()
-        return (show_callables, show_special_methods, show_root_node)
+        return (show_callables, show_special_methods)
                     
     
     def _writeModelSettings(self):
@@ -393,6 +386,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         logger.debug("toggle_callables: {}".format(checked))
         self._tree_model.setShowCallables(checked)
+        if self._tree_model.show_root_node:
+            self.obj_tree.expandToDepth(0)        
 
     def toggle_special_methods(self, checked):
         """ Shows/hides the special methods.
@@ -401,6 +396,9 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         logger.debug("toggle_special_methods: {}".format(checked))
         self._tree_model.setShowSpecialMethods(checked)
+        if self._tree_model.show_root_node:
+            self.obj_tree.expandToDepth(0)
+
 
     def my_test(self):
         """ Function for testing """
