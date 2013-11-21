@@ -59,20 +59,21 @@ class ObjectBrowser(QtGui.QMainWindow):
                  attr_columns = DEFAULT_ATTR_COLUMNS,  
                  attr_details = DEFAULT_ATTR_DETAILS,  
                  show_callables = None,
-                 show_special_methods = None, 
-                 width = 1200, height = 800):
+                 show_special_methods = None):
         """ Constructor
         
             :param obj: any Python object or variable
             :param obj_name: name of the object as it will appear in the root node
+            :param attr_columns: list of AttributeColumn objects that define which columns
+                                 are present in the table and their defaults
+            :param attr_details: list of AttributeDetails objects that define which attributes
+                                 can be selected in the details pane.
             :param show_callables: if True the callables objects, 
                 i.e. objects (such as function) that  a __call__ method, 
                 will be displayed (in brown). If False they are hidden.
             :param show_special_methods: if True the objects special methods, 
                 i.e. methods with a name that starts and ends with two underscores, 
                 will be displayed (in grey). If False they are hidden.
-            :param width: if width and height are set, the main windows is resized. 
-            :param height: if width and height are set, the main windows is resized.
         """
         super(ObjectBrowser, self).__init__()
 
@@ -91,7 +92,6 @@ class ObjectBrowser(QtGui.QMainWindow):
                                      attr_cols = self._attr_cols,  
                                      show_callables = show_callables, 
                                      show_special_methods = show_special_methods)
-        
         # Views
         self._setup_actions()
         self._setup_menu()
@@ -139,7 +139,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Show/hide callable objects
         self.toggle_callable_action = \
             QtGui.QAction("Show callable attributes", self, checkable=True, 
-                          statusTip = "Shows or hides callable attributes (functions, methods, etc)")
+                          statusTip = "Shows/hides callable attributes (functions, methods, etc)")
         assert self.toggle_callable_action.toggled.connect(self.toggle_callables)
                               
         # Show/hide special methods
