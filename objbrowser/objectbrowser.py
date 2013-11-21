@@ -276,7 +276,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings.endGroup()
             
             
-    def _readViewSettings(self, reset=False):
+    def _readViewSettings(self, reset=Fals):
         """ Reads the persistent program settings
         
             :param reset: If True, the program resets to its default settings
@@ -286,6 +286,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         pos = QtCore.QPoint(20 * self._instance_nr, 20 * self._instance_nr)
         window_size = QtCore.QSize(1024, 700)
         details_button_idx = 0
+        section_sizes = [col.width for col in self._attr_cols]
         
         if not reset:
             settings = QtCore.QSettings()
@@ -297,10 +298,9 @@ class ObjectBrowser(QtGui.QMainWindow):
             
             # TODO: use setResizeMode
 
-            section_sizes = []
             for idx, attr_col in enumerate(self._attr_cols):
                 key = "table_col/{}".format(attr_col.settings_name)
-                section_sizes.append(settings.value(key, attr_col.width))
+                section_sizes[idx] = settings.value(key, section_sizes[idx])
                 #logger.debug("readValue: {} = {}".format(key, section_sizes[idx] ))
                 
             settings.endGroup()
