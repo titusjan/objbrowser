@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 from PySide.QtCore import Qt
 
-import logging, inspect, types
+import logging, inspect, types, string
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,14 @@ class AttributeColumn(object):
         self.width = width
         self.alignment = alignment
         
+    
+    @property
+    def settings_name(self):
+        """ The name where spaces are replaced by underscores 
+        """
+        sname = self.name.replace(' ', '_')
+        return sname.translate(None, string.punctuation).translate(None, string.whitespace)
+
 
 ###################
 # Data functions ##

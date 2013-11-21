@@ -296,10 +296,13 @@ class ObjectBrowser(QtGui.QMainWindow):
             details_button_idx = settings.value("details_button_idx", details_button_idx)
             self.central_splitter.restoreState(settings.value("central_splitter/state"))
             
-            for idx, section_size in enumerate(section_sizes):
-                section_sizes[idx] = settings.value("table_col/size_{:d}".format(idx), 300)
-                logger.debug("read size {} to: {}".format("table_col/size_{:d}".format(idx), section_sizes[idx]))
-                
+            # TODO: use setResizeMode
+            
+            # We cannot use QHeaderView.restoreState or QSettings.beginReadArray because the
+            # header does not always contain the same columns, so we store the with by name. # TODO: implement
+            for idx, attr_col in enumerate(self._attr_cols):
+                section_sizes[idx] = settings.value("table_col/{}".format(attr_col.settings_name), 
+                                                    section_sizes[idx])
             settings.endGroup()
             
         self.resize(window_size)
@@ -308,7 +311,6 @@ class ObjectBrowser(QtGui.QMainWindow):
 
         header = self.obj_tree.header()
         for idx, size in enumerate(section_sizes):
-            #logger.debug("set size {} to: {}".format(idx, size))
             header.resizeSection(idx, size)
 
 
@@ -321,10 +323,9 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings.beginGroup("view_{:d}".format(self._instance_nr))
         
         header = self.obj_tree.header()
-        logger.debug("header: {}".format(header))
         for idx in range(header.count()):
-            logger.debug("writing size {!r} to: {}".format("table_col/size_{:d}".format(idx), header.sectionSize(idx)))
-            settings.setValue("table_col/size_{:d}".format(idx), header.sectionSize(idx))
+            settings.setValue("table_col/{}".format(self._attr_cols[idx].settings_name), 
+                              header.sectionSize(idx))
             
         settings.setValue("central_splitter/state", self.central_splitter.saveState())
         settings.setValue("details_button_idx", self.button_group.checkedId())
