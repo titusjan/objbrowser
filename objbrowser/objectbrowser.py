@@ -286,7 +286,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         pos = QtCore.QPoint(20 * self._instance_nr, 20 * self._instance_nr)
         window_size = QtCore.QSize(1024, 700)
         details_button_idx = 0
-        section_sizes = [col.width for col in self._attr_cols]
         
         if not reset:
             settings = QtCore.QSettings()
@@ -297,12 +296,13 @@ class ObjectBrowser(QtGui.QMainWindow):
             self.central_splitter.restoreState(settings.value("central_splitter/state"))
             
             # TODO: use setResizeMode
-            
-            # We cannot use QHeaderView.restoreState or QSettings.beginReadArray because the
-            # header does not always contain the same columns, so we store the with by name. # TODO: implement
+
+            section_sizes = []
             for idx, attr_col in enumerate(self._attr_cols):
-                section_sizes[idx] = settings.value("table_col/{}".format(attr_col.settings_name), 
-                                                    section_sizes[idx])
+                key = "table_col/{}".format(attr_col.settings_name)
+                section_sizes.append(settings.value(key, attr_col.width))
+                #logger.debug("readValue: {} = {}".format(key, section_sizes[idx] ))
+                
             settings.endGroup()
             
         self.resize(window_size)
@@ -311,7 +311,9 @@ class ObjectBrowser(QtGui.QMainWindow):
 
         header = self.obj_tree.header()
         for idx, size in enumerate(section_sizes):
-            header.resizeSection(idx, size)
+            if size > 0: # Just in case 
+                #logger.debug("set column width: {} = {}".format(idx, size ))
+                header.resizeSection(idx, size)
 
 
     def _writeViewSettings(self):
@@ -322,10 +324,15 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings = QtCore.QSettings()
         settings.beginGroup("view_{:d}".format(self._instance_nr))
         
+        # We cannot use QHeaderView.restoreState or QSettings.beginReadArray because the
+        # header does not always contain the same columns, so we store the with by name.
         header = self.obj_tree.header()
         for idx in range(header.count()):
-            settings.setValue("table_col/{}".format(self._attr_cols[idx].settings_name), 
-                              header.sectionSize(idx))
+            section_size = header.sectionSize(idx)
+            if section_size != 0: # only save visible columns.
+                key = "table_col/{}".format(self._attr_cols[idx].settings_name)
+                settings.setValue(key, section_size)
+                #logger.debug("SetValue: {} = {}".format(key, header.sectionSize(idx)))
             
         settings.setValue("central_splitter/state", self.central_splitter.saveState())
         settings.setValue("details_button_idx", self.button_group.checkedId())
