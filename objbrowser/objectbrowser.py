@@ -102,8 +102,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._readViewSettings()
         
         # Update views with model
-        for action, attr_col in zip(self.toggle_column_actions, self._attr_cols):
-            action.setChecked(attr_col.visible)
+
             
         self.toggle_special_method_action.setChecked(show_special_methods)
         self.toggle_callable_action.setChecked(show_callables)
@@ -276,7 +275,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings.endGroup()
             
             
-    def _readViewSettings(self, reset=Fals):
+    def _readViewSettings(self, reset=False):
         """ Reads the persistent program settings
         
             :param reset: If True, the program resets to its default settings
@@ -286,7 +285,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         pos = QtCore.QPoint(20 * self._instance_nr, 20 * self._instance_nr)
         window_size = QtCore.QSize(1024, 700)
         details_button_idx = 0
-        section_sizes = [col.width for col in self._attr_cols]
+        column_sizes = [col.width for col in self._attr_cols]
+        column_visible = [col.visible for col in self._attr_cols]
         
         if not reset:
             settings = QtCore.QSettings()
@@ -299,9 +299,11 @@ class ObjectBrowser(QtGui.QMainWindow):
             # TODO: use setResizeMode
 
             for idx, attr_col in enumerate(self._attr_cols):
-                key = "table_col/{}".format(attr_col.settings_name)
-                section_sizes[idx] = settings.value(key, section_sizes[idx])
-                #logger.debug("readValue: {} = {}".format(key, section_sizes[idx] ))
+                key = "table_col/{}/width".format(attr_col.settings_name)
+                column_sizes[idx] = settings.value(key, column_sizes[idx])
+                key = "table_col/{}/visible".format(attr_col.settings_name)
+                column_visible[idx] = settings.value(key, column_visible[idx])
+                #logger.debug("readValue: {} = {}".format(key, column_sizes[idx] ))
                 
             settings.endGroup()
             
@@ -310,10 +312,12 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.button_group.button(details_button_idx).setChecked(True)
 
         header = self.obj_tree.header()
-        for idx, size in enumerate(section_sizes):
+        for idx, size in enumerate(column_sizes):
             if size > 0: # Just in case 
-                #logger.debug("set column width: {} = {}".format(idx, size ))
                 header.resizeSection(idx, size)
+
+        for idx, visible in enumerate(column_visible):
+            self.toggle_column_actions[idx].setChecked(visible)                
 
 
     def _writeViewSettings(self):
@@ -328,11 +332,16 @@ class ObjectBrowser(QtGui.QMainWindow):
         # header does not always contain the same columns, so we store the with by name.
         header = self.obj_tree.header()
         for idx in range(header.count()):
-            section_size = header.sectionSize(idx)
-            if section_size != 0: # only save visible columns.
-                key = "table_col/{}".format(self._attr_cols[idx].settings_name)
-                settings.setValue(key, section_size)
-                #logger.debug("SetValue: {} = {}".format(key, header.sectionSize(idx)))
+            key = "table_col/{}/visible".format(self._attr_cols[idx].settings_name)
+            visible = not header.isSectionHidden(idx)
+            settings.setValue(key, visible)
+            #logger.debug("SetValue: {} = {}".format(key, visible))
+            if visible: # only save visible columns.
+                column_size = header.sectionSize(idx)
+                assert (column_size > 0), "Sanity check: column_size: {}".format(column_size) 
+                key = "table_col/{}/width".format(self._attr_cols[idx].settings_name)
+                settings.setValue(key, column_size)
+                
             
         settings.setValue("central_splitter/state", self.central_splitter.saveState())
         settings.setValue("details_button_idx", self.button_group.checkedId())
