@@ -229,7 +229,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         # Since every variable is an object we also add its members to the tree.
         obj_members = []
         for memb in sorted(inspect.getmembers(obj)):
-            logger.debug("inspect.getmembers(obj): {} ({})".format(memb, is_callable(memb[1])))
+            #logger.debug("inspect.getmembers(obj): {} ({})".format(memb, is_callable(memb[1])))
             if (self._show_callables or not is_callable(memb[1])) \
             and (self._show_special_methods or not is_special_method(memb[0])):
                 obj_members.append(memb)

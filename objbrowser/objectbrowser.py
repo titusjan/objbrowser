@@ -190,9 +190,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.obj_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
         
-        for idx, attr_col in enumerate(self._attr_cols):
-            self.obj_tree.header().resizeSection(idx, attr_col.width)
-            
         # Stretch last column? 
         # It doesn't play nice when columns are hidden and then shown again.
         self.obj_tree.header().setStretchLastSection(False) 
@@ -276,10 +273,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings.setValue("show_callables", self._tree_model.getShowCallables())
         settings.setValue("show_special_methods", self._tree_model.getShowSpecialMethods())
         settings.setValue("show_root_node", self._tree_model.getShowRootNode())
-        
-        logger.debug("show_callables: %s", self._tree_model.getShowCallables())
-        logger.debug("show_special_methods: %s", self._tree_model.getShowSpecialMethods())
-        logger.debug("show_root_node: %s", self._tree_model.getShowRootNode())
         settings.endGroup()
             
             
@@ -291,27 +284,32 @@ class ObjectBrowser(QtGui.QMainWindow):
         logger.debug("Reading view settings for window: {:d}".format(self._instance_nr))
         
         pos = QtCore.QPoint(20 * self._instance_nr, 20 * self._instance_nr)
-        size = QtCore.QSize(1024, 700)
+        window_size = QtCore.QSize(1024, 700)
         details_button_idx = 0
+        section_sizes = [col.width for col in self._attr_cols]
         
         if not reset:
             settings = QtCore.QSettings()
             settings.beginGroup("view_{:d}".format(self._instance_nr))
             pos = settings.value("main_window/pos", pos)
-            size = settings.value("main_window/size", size)
+            window_size = settings.value("main_window/size", window_size)
             details_button_idx = settings.value("details_button_idx", details_button_idx)
             self.central_splitter.restoreState(settings.value("central_splitter/state"))
+            
+            for idx, section_size in enumerate(section_sizes):
+                section_sizes[idx] = settings.value("table_col/size_{:d}".format(idx), 300)
+                logger.debug("read size {} to: {}".format("table_col/size_{:d}".format(idx), section_sizes[idx]))
+                
             settings.endGroup()
             
-        self.resize(size)
+        self.resize(window_size)
         self.move(pos)
         self.button_group.button(details_button_idx).setChecked(True)
 
-        if False: 
-            header = self.signal_table.horizontalHeader()
-            header.restoreState(settings.value("signal_table/header/state"))
-            header = self.avg_table.horizontalHeader()
-            header.restoreState(settings.value("avg_table/header/state"))
+        header = self.obj_tree.header()
+        for idx, size in enumerate(section_sizes):
+            #logger.debug("set size {} to: {}".format(idx, size))
+            header.resizeSection(idx, size)
 
 
     def _writeViewSettings(self):
@@ -322,12 +320,11 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings = QtCore.QSettings()
         settings.beginGroup("view_{:d}".format(self._instance_nr))
         
-        if False:
-            header = self.avg_table.horizontalHeader()
-            settings.setValue("avg_table/header/state", header.saveState())
-            header = self.signal_table.horizontalHeader()
-            settings.setValue("signal_table/header/state", header.saveState())
-                        
+        header = self.obj_tree.header()
+        logger.debug("header: {}".format(header))
+        for idx in range(header.count()):
+            logger.debug("writing size {!r} to: {}".format("table_col/size_{:d}".format(idx), header.sectionSize(idx)))
+            settings.setValue("table_col/size_{:d}".format(idx), header.sectionSize(idx))
             
         settings.setValue("central_splitter/state", self.central_splitter.saveState())
         settings.setValue("details_button_idx", self.button_group.checkedId())
@@ -398,7 +395,6 @@ class ObjectBrowser(QtGui.QMainWindow):
 
     def close_window(self):
         """ Closes the window """
-        #self._writeViewSettings()
         self.close()
         
     def quit_application(self):
