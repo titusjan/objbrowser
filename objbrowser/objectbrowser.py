@@ -187,7 +187,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Stretch last column? 
         # It doesn't play nice when columns are hidden and then shown again.
-        self.obj_tree.header().setStretchLastSection(False) 
+        self.obj_tree.header().setStretchLastSection(True) 
 
         central_layout.addWidget(self.obj_tree)
 
@@ -296,7 +296,6 @@ class ObjectBrowser(QtGui.QMainWindow):
                 column_sizes[idx] = settings.value(key, column_sizes[idx])
                 key = "table_col/{}/visible".format(attr_col.settings_name)
                 column_visible[idx] = settings.value(key, column_visible[idx])
-                #logger.debug("readValue: {} = {}".format(key, column_sizes[idx] ))
                 
             settings.endGroup()
             
@@ -322,13 +321,12 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings.beginGroup("view_{:d}".format(self._instance_nr))
         
         # We cannot use QHeaderView.restoreState or QSettings.beginReadArray because the
-        # header does not always contain the same columns, so we store the with by name.
+        # header does not always contain the same columns, so we store the by name.
         header = self.obj_tree.header()
         for idx in range(header.count()):
             key = "table_col/{}/visible".format(self._attr_cols[idx].settings_name)
             visible = not header.isSectionHidden(idx)
             settings.setValue(key, visible)
-            #logger.debug("SetValue: {} = {}".format(key, visible))
             if visible: # only save visible columns.
                 column_size = header.sectionSize(idx)
                 assert (column_size > 0), "Sanity check: column_size: {}".format(column_size) 
