@@ -13,7 +13,7 @@
    # TODO: python 3
    # TODO: zebra striping.
    # TODO: show_callables/special methods should also apply to dict and list members, otherwise
-           it's confusing. Or the color should be adapted.
+           it's confusing. Or the color should be adapted. This happens when browse(locals())
    # TODO: hide members?
    
    # Examples, binary, octal, hex    
