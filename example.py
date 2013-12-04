@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import sys, logging
 from objbrowser import browse, create_object_browser, execute, logging_basic_config
-from objbrowser.attribute_column import ALL_ATTR_COLUMNS
+from objbrowser.attribute_model import ALL_ATTR_MODELS
 from objbrowser.attribute_detail import ALL_ATTR_DETAILS
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ def call_viewer_test():
                                                 show_special_methods = None, 
                                                 show_callables = None ) 
     #_globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals',
-    #                                             attr_columns = ALL_ATTR_COLUMNS[1:4], 
+    #                                             attr_columns = ALL_ATTR_MODELS[1:4], 
     #                                             attr_details = ALL_ATTR_DETAILS)
     exit_code = execute()
     return exit_code

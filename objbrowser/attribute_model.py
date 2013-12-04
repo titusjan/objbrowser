@@ -1,4 +1,4 @@
-""" Module that defines AttributeColumn
+""" Module that defines AttributeModel
 """
 from __future__ import absolute_import
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 SMALL_COL_WIDTH = 120
 MEDIUM_COL_WIDTH = 200
 
-class AttributeColumn(object):
+class AttributeModel(object):
     """ Determines how an object attribute is rendered in a table column
     """ 
     def __init__(self, name,
@@ -100,63 +100,63 @@ def tio_is_callable(tree_item):
 # Column definitions ##
 #######################
 
-ATTR_COLUMN_PATH = AttributeColumn('Path', 
+ATTR_MODEL_PATH = AttributeModel('Path', 
         doc       = "A path to the data: e.g. var[1]['a'].item", 
         data_fn   = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
         visible   = True,  
         width     = MEDIUM_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
-ATTR_COLUMN_NAME = AttributeColumn('Name', 
+ATTR_MODEL_NAME = AttributeModel('Name', 
         doc       = "The name of the object.", 
         data_fn   = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
         visible   = True,  
         width     = MEDIUM_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
-ATTR_COLUMN_VALUE = AttributeColumn('Value', 
+ATTR_MODEL_VALUE = AttributeModel('Value', 
         doc       = "The value of the object for atomic objects (int, str, etc)", 
         data_fn   = tio_simple_value,
         visible   = True,  
         width     = MEDIUM_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
-ATTR_COLUMN_TYPE = AttributeColumn('Type', 
+ATTR_MODEL_TYPE = AttributeModel('Type', 
         doc       = "Type of the object determined using the builtin type() function", 
         data_fn   = lambda(tree_item): str(type(tree_item.obj)),
         visible   = False,  
         width     = MEDIUM_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
-ATTR_COLUMN_CLASS = AttributeColumn('Type Name', 
+ATTR_MODEL_CLASS = AttributeModel('Type Name', 
         doc       = "The name of the class of the object via obj.__class__.__name__", 
         data_fn   = lambda(tree_item): type(tree_item.obj).__name__,
         visible   = True,  
         width     = MEDIUM_COL_WIDTH, 
         alignment = Qt.AlignLeft) 
 
-ATTR_COLUMN_CALLABLE = AttributeColumn('Callable', 
+ATTR_MODEL_CALLABLE = AttributeModel('Callable', 
         doc       = "The if the is callable (e.g. a function or a method)", 
         data_fn   = tio_is_callable, 
         visible   = True,  
         width     = SMALL_COL_WIDTH,
         alignment = Qt.AlignLeft) 
 
-ATTR_COLUMN_LENGTH = AttributeColumn('Length', 
+ATTR_MODEL_LENGTH = AttributeModel('Length', 
         doc       = "The length of the object using the len() function", 
         data_fn   = tio_length, 
         visible   = False,  
         width     = SMALL_COL_WIDTH,
         alignment = Qt.AlignLeft) 
 
-ATTR_COLUMN_ID = AttributeColumn('Id', 
+ATTR_MODEL_ID = AttributeModel('Id', 
         doc       = "The identifier of the object with calculated using the id() function", 
         data_fn   = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
         visible   = False,  
         width     = SMALL_COL_WIDTH,
         alignment = Qt.AlignRight) 
 
-ATTR_COLUMN_PRED = AttributeColumn('Predicates', 
+ATTR_MODEL_PRED = AttributeModel('Predicates', 
         doc       = "Predicates from the inspect module" ,
         data_fn   = tio_predicates, 
         visible   = False,  
@@ -164,14 +164,14 @@ ATTR_COLUMN_PRED = AttributeColumn('Predicates',
         alignment = Qt.AlignLeft) 
 
 
-ALL_ATTR_COLUMNS = (ATTR_COLUMN_PATH, 
-                    ATTR_COLUMN_NAME,
-                    ATTR_COLUMN_VALUE,
-                    ATTR_COLUMN_TYPE, 
-                    ATTR_COLUMN_CLASS, 
-                    ATTR_COLUMN_CALLABLE, 
-                    ATTR_COLUMN_LENGTH, 
-                    ATTR_COLUMN_ID, 
-                    ATTR_COLUMN_PRED)
+ALL_ATTR_MODELS = (ATTR_MODEL_PATH, 
+                    ATTR_MODEL_NAME,
+                    ATTR_MODEL_VALUE,
+                    ATTR_MODEL_TYPE, 
+                    ATTR_MODEL_CLASS, 
+                    ATTR_MODEL_CALLABLE, 
+                    ATTR_MODEL_LENGTH, 
+                    ATTR_MODEL_ID, 
+                    ATTR_MODEL_PRED)
 
-DEFAULT_ATTR_COLUMNS = ALL_ATTR_COLUMNS
+DEFAULT_ATTR_MODELS = ALL_ATTR_MODELS
