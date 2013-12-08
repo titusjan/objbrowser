@@ -122,7 +122,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Creates the main window actions.
         """
         # Show/hide table column actions
-        self.__toggle_column_actions = []
         self.toggle_column_actions_group = QtGui.QActionGroup(self)
         self.toggle_column_actions_group.setExclusive(False)
         
@@ -131,7 +130,6 @@ class ObjectBrowser(QtGui.QMainWindow):
             action = QtGui.QAction("Show {} Column".format(attr_col.name), 
                                    self.toggle_column_actions_group, checkable=True, checked=True,
                                    statusTip = "Shows or hides the {} column".format(attr_col.name))
-            #self.toggle_column_actions.append(action)
                 
             if col_idx >= 0 and col_idx <= 9:
                 action.setShortcut("Ctrl+{:d}".format(col_idx))
@@ -194,6 +192,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         # It doesn't play nice when columns are hidden and then shown again.
         obj_tree_header = self.obj_tree.header()
         obj_tree_header.setStretchLastSection(True)
+        #obj_tree_header.setResizeMode(0, QtGui.QHeaderView.Stretch) # doesn't work smoothly
         obj_tree_header.setContextMenuPolicy(Qt.ActionsContextMenu)
         for action in self.toggle_column_actions_group.actions():
             obj_tree_header.addAction(action)
