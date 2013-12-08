@@ -122,13 +122,16 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Creates the main window actions.
         """
         # Show/hide table column actions
-        self.toggle_column_actions = []
+        self.__toggle_column_actions = []
+        self.toggle_column_actions_group = QtGui.QActionGroup(self)
+        self.toggle_column_actions_group.setExclusive(False)
+        
         self.__toggle_functions = []  # for keeping references
         for col_idx, attr_col in enumerate(self._attr_cols):
             action = QtGui.QAction("Show {} Column".format(attr_col.name), 
-                                   self, checkable=True, checked=True,
+                                   self.toggle_column_actions_group, checkable=True, checked=True,
                                    statusTip = "Shows or hides the {} column".format(attr_col.name))
-            self.toggle_column_actions.append(action)
+            #self.toggle_column_actions.append(action)
                 
             if col_idx >= 0 and col_idx <= 9:
                 action.setShortcut("Ctrl+{:d}".format(col_idx))
@@ -162,7 +165,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         view_menu = self.menuBar().addMenu("&View")
         show_cols_submenu = view_menu.addMenu("Table columns")
-        for action in self.toggle_column_actions:
+        for action in self.toggle_column_actions_group.actions():
             show_cols_submenu.addAction(action)
         view_menu.addSeparator()
         view_menu.addAction(self.toggle_callable_action)
@@ -192,7 +195,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         obj_tree_header = self.obj_tree.header()
         obj_tree_header.setStretchLastSection(True)
         obj_tree_header.setContextMenuPolicy(Qt.ActionsContextMenu)
-        for action in self.toggle_column_actions:
+        for action in self.toggle_column_actions_group.actions():
             obj_tree_header.addAction(action)
 
         central_layout.addWidget(self.obj_tree)
@@ -315,7 +318,7 @@ class ObjectBrowser(QtGui.QMainWindow):
                 header.resizeSection(idx, size)
 
         for idx, visible in enumerate(column_visible):
-            self.toggle_column_actions[idx].setChecked(visible)                
+            self.toggle_column_actions_group.actions()[idx].setChecked(visible)                
 
 
     def _writeViewSettings(self):
