@@ -27,6 +27,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 import os, logging, traceback
 from PySide import QtCore, QtGui
+from PySide.QtCore import Qt
 
 from objbrowser.treemodel import TreeModel
 from objbrowser.attribute_model import DEFAULT_ATTR_MODELS
@@ -160,8 +161,9 @@ class ObjectBrowser(QtGui.QMainWindow):
             file_menu.addAction("&Test", self.my_test, "Ctrl+T")
         
         view_menu = self.menuBar().addMenu("&View")
+        show_cols_submenu = view_menu.addMenu("Table columns")
         for action in self.toggle_column_actions:
-            view_menu.addAction(action)
+            show_cols_submenu.addAction(action)
         view_menu.addSeparator()
         view_menu.addAction(self.toggle_callable_action)
         view_menu.addAction(self.toggle_special_method_action)
@@ -187,7 +189,11 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Stretch last column? 
         # It doesn't play nice when columns are hidden and then shown again.
-        self.obj_tree.header().setStretchLastSection(True) 
+        obj_tree_header = self.obj_tree.header()
+        obj_tree_header.setStretchLastSection(True)
+        obj_tree_header.setContextMenuPolicy(Qt.ActionsContextMenu)
+        for action in self.toggle_column_actions:
+            obj_tree_header.addAction(action)
 
         central_layout.addWidget(self.obj_tree)
 
