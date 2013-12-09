@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 DEBUGGING = True
 
 PROGRAM_NAME = 'pyobjbrowser'
-PROGRAM_VERSION = '0.9.1'
+PROGRAM_VERSION = '0.9.2'
 PROGRAM_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
 IMAGE_DIRECTORY = PROGRAM_DIRECTORY + '/images/'
 ABOUT_MESSAGE = u"""%(prog)s version %(version)s
