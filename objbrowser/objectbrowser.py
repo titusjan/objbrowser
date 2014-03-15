@@ -3,21 +3,22 @@
    # TODO: show items configurable (merge with attributes)
    
    # TODO: persistent settings.
-   # TODO: show items if object has iteritems()
+   # TODO: show items if object has iteritems() (example dtype.fields)
    # TODO: repr column
    # TODO: unicode
-   # TODO: look at QStandardItemModel
    # TODO: word wrap in attribute details
    # TODO: remove \n from strings when showing in table
    # TODO: tool-tips
    # TODO: python 3
-   # TODO: zebra striping.
    # TODO: show_callables/special methods should also apply to dict and list members, otherwise
            it's confusing. Or the color should be adapted. This happens when browse(locals())
    # TODO: hide members?
+   # TODO: allow obj_name to be a list
    
    # Examples, binary, octal, hex    
-   
+   # Test under linux (table)
+   # Test all possible python object (from reference book)
+   # Pyside.
 Changes:
    #  removed show_root_node parameter. Is implicit by testing obj_name == None
     
@@ -184,6 +185,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Tree widget
         self.obj_tree = QtGui.QTreeView()
+        self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._tree_model)
         self.obj_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
