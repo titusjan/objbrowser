@@ -57,9 +57,9 @@ def call_viewer_test():
     # Some comments just above
     # the function definition.
     def my_function(param):
-        'demo function'
+        "demo function"
         return param
-
+    
     _copyright = types.__builtins__['copyright'] 
     
     x_plus_2 = lambda x: x+2
@@ -75,7 +75,7 @@ def call_viewer_test():
     
     # These will give error in the str() representation. 
     # I deliberately did not use string.encode('ascii', 'backslashreplace') to 
-    # demonstrate the difference between str( and repr()
+    # demonstrate the difference between str() and repr()
     u1 = unichr(40960) + u'ab\ncd' + unichr(1972)
     u2 = u"a\xac\u1234\u20ac\U00008000"
     u3 = u'no strange chars'

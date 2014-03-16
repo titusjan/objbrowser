@@ -2,12 +2,8 @@
    Program that shows the local Python environment using the inspect module
    
    Version 1.0:
-   # TODO: repr column
-   # TODO: remove \n from strings when showing in table
-   # TODO: show items if object has iteritems() (example dtype.fields)
    # TODO: show_callables/special methods should also apply to dict and list members, otherwise
            it's confusing. Or the color should be adapted. This happens when browse(locals())
-   # TODO: unicode
    # TODO: word wrap in attribute details
    # TODO: hide members?
    # TODO: allow obj_name to be a list
@@ -17,10 +13,11 @@
    # TODO: python 3
    
    
-   # Examples, binary, octal, hex    
+   # Examples, binary, octal, hex, hex_codec    
    # Test under linux (table)
    # Test all possible python object (from reference book)
    # Pyside.
+
    
    
 Changes:

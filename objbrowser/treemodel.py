@@ -230,7 +230,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             obj_items = [('pop()', elem) for elem in sorted(obj)]
             path_strings = ['{0}.pop()'.format(obj_path, item[0]) if obj_path else item[0] 
                             for item in obj_items]
-        elif isinstance(obj, dict):
+        elif hasattr(obj, 'iteritems'): # dictionaries and the likes
             obj_items = sorted(obj.iteritems())
             path_strings = ['{}[{!r}]'.format(obj_path, item[0]) if obj_path else item[0] 
                             for item in obj_items]
