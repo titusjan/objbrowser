@@ -92,7 +92,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         obj = tree_item.obj
 
         if role == Qt.DisplayRole:
-            return self._attr_cols[col].data_fn(tree_item)
+            try:
+                return self._attr_cols[col].data_fn(tree_item).replace('\n', '\\n')
+                #return self._attr_cols[col].data_fn(tree_item)
+            except StandardError, ex:
+                logger.exception(ex)
+                return "*ERROR*: {}".format(ex) 
             
         elif role == Qt.TextAlignmentRole:
             return self._attr_cols[col].alignment
