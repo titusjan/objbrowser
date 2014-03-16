@@ -2,7 +2,6 @@
    Program that shows the local Python environment using the inspect module
    
    Version 1.0:
-   # TODO: show items configurable (merge with attributes)
    # TODO: repr column
    # TODO: remove \n from strings when showing in table
    # TODO: show items if object has iteritems() (example dtype.fields)
@@ -294,7 +293,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         window_size = QtCore.QSize(1024, 700)
         details_button_idx = 0
         column_sizes = [col.width for col in self._attr_cols]
-        column_visible = [col.visible for col in self._attr_cols]
+        column_visible = [col.col_visible for col in self._attr_cols]
         
         if not reset:
             settings = QtCore.QSettings()
@@ -307,7 +306,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             for idx, attr_col in enumerate(self._attr_cols):
                 key = "table_col/{}/width".format(attr_col.settings_name)
                 column_sizes[idx] = settings.value(key, column_sizes[idx])
-                key = "table_col/{}/visible".format(attr_col.settings_name)
+                key = "table_col/{}/col_visible".format(attr_col.settings_name)
                 column_visible[idx] = settings.value(key, column_visible[idx])
                 
             settings.endGroup()
@@ -337,10 +336,10 @@ class ObjectBrowser(QtGui.QMainWindow):
         # header does not always contain the same columns, so we store the by name.
         header = self.obj_tree.header()
         for idx in range(header.count()):
-            key = "table_col/{}/visible".format(self._attr_cols[idx].settings_name)
+            key = "table_col/{}/col_visible".format(self._attr_cols[idx].settings_name)
             visible = not header.isSectionHidden(idx)
             settings.setValue(key, visible)
-            if visible: # only save visible columns.
+            if visible: # only save col_visible columns.
                 column_size = header.sectionSize(idx)
                 assert (column_size > 0), "Sanity check: column_size: {}".format(column_size) 
                 key = "table_col/{}/width".format(self._attr_cols[idx].settings_name)

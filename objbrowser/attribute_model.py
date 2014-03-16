@@ -17,7 +17,7 @@ class AttributeModel(object):
     def __init__(self, name,
                  doc = "<no help available>",  
                  data_fn = None,  
-                 visible = True, 
+                 col_visible = True, 
                  width = MEDIUM_COL_WIDTH,
                  alignment = Qt.AlignLeft):
         """
@@ -29,8 +29,8 @@ class AttributeModel(object):
             :type doc: string
             :param data_fn: function that calculates the value shown in the UI
             :type  data_fn: function(TreeItem_ to string.
-            :param visible: if True, the attribute is visible by default in the table
-            :type visible: bool
+            :param col_visible: if True, the attribute is col_visible by default in the table
+            :type col_visible: bool
             :param width: default width in the attribute table
             :type with: int
             :param alignment: alignment of the value in the table
@@ -43,7 +43,7 @@ class AttributeModel(object):
         self.name = name
         self.doc = doc
         self.data_fn = data_fn
-        self.visible = visible
+        self.col_visible = col_visible
         self.width = width
         self.alignment = alignment
         
@@ -178,179 +178,182 @@ def tio_get_source(tree_item):
 #######################
 
 ATTR_MODEL_PATH = AttributeModel('Path', 
-        doc       = "A path to the data: e.g. var[1]['a'].item", 
-        data_fn   = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
-        visible   = True,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft) 
+    doc         = "A path to the data: e.g. var[1]['a'].item", 
+    data_fn     = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
+    col_visible = True,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft) 
 
 ATTR_MODEL_NAME = AttributeModel('Name', 
-        doc       = "The name of the object.", 
-        data_fn   = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
-        visible   = True,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft) 
+    doc         = "The name of the object.", 
+    data_fn     = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
+    col_visible = True,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft) 
 
 ATTR_MODEL_VALUE = AttributeModel('Value', 
-        doc       = "The value of the object for atomic objects (int, str, etc)", 
-        data_fn   = tio_simple_value,
-        visible   = True,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft) 
+    doc         = "The value of the object for atomic objects (int, str, etc)", 
+    data_fn     = tio_simple_value,
+    col_visible = True,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft) 
 
 ATTR_MODEL_TYPE = AttributeModel('Type', 
-        doc       = "Type of the object determined using the builtin type() function", 
-        data_fn   = lambda(tree_item): str(type(tree_item.obj)),
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft) 
+    doc         = "Type of the object determined using the builtin type() function", 
+    data_fn     = lambda(tree_item): str(type(tree_item.obj)),
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft) 
 
 ATTR_MODEL_CLASS = AttributeModel('Type Name', 
-        doc       = "The name of the class of the object via obj.__class__.__name__", 
-        data_fn   = lambda(tree_item): type(tree_item.obj).__name__,
-        visible   = True,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft) 
+    doc         = "The name of the class of the object via obj.__class__.__name__", 
+    data_fn     = lambda(tree_item): type(tree_item.obj).__name__,
+    col_visible = True,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft) 
 
 ATTR_MODEL_CALLABLE = AttributeModel('Callable', 
-        doc       = "The if the is callable (e.g. a function or a method)", 
-        data_fn   = tio_is_callable, 
-        visible   = True,  
-        width     = SMALL_COL_WIDTH,
-        alignment = Qt.AlignLeft) 
+    doc         = "The if the is callable (e.g. a function or a method)", 
+    data_fn     = tio_is_callable, 
+    col_visible = True,  
+    width       = SMALL_COL_WIDTH,
+    alignment   = Qt.AlignLeft) 
 
-ATTR_MODEL_LENGTH = AttributeModel('Length', 
-        doc       = "The length of the object using the len() function", 
-        data_fn   = tio_length, 
-        visible   = False,  
-        width     = SMALL_COL_WIDTH,
-        alignment = Qt.AlignLeft) 
+ATTR_MODEL_LENGTH   = AttributeModel('Length', 
+    doc         = "The length of the object using the len() function", 
+    data_fn     = tio_length, 
+    col_visible = False,  
+    width       = SMALL_COL_WIDTH,
+    alignment   = Qt.AlignLeft) 
 
 ATTR_MODEL_ID = AttributeModel('Id', 
-        doc       = "The identifier of the object with calculated using the id() function", 
-        data_fn   = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
-        visible   = False,  
-        width     = SMALL_COL_WIDTH,
-        alignment = Qt.AlignRight) 
+    doc         = "The identifier of the object with calculated using the id() function", 
+    data_fn     = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
+    col_visible = False,  
+    width       = SMALL_COL_WIDTH,
+    alignment   = Qt.AlignRight) 
 
 ATTR_MODEL_PRED = AttributeModel('Predicates', 
-        doc       = "Predicates from the inspect module" ,
-        data_fn   = tio_predicates, 
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft) 
+    doc         = "Predicates from the inspect module" ,
+    data_fn     = tio_predicates, 
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft) 
 
 ATTR_MODEL_STR = AttributeModel('str', 
-        doc     = "The string representation of the object using the str() function.",
-        data_fn = lambda(tree_item): str(tree_item.obj), 
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft) 
+    doc         = "The string representation of the object using the str() function.",
+    data_fn     = lambda(tree_item): str(tree_item.obj), 
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft) 
  
 ATTR_MODEL_REPR = AttributeModel('repr', 
-        doc     = "The string representation of the object using the repr() function.", 
-        data_fn = lambda(tree_item): repr(tree_item.obj),         
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft)
+    doc         = "The string representation of the object using the repr() function.", 
+    data_fn     = lambda(tree_item): repr(tree_item.obj),         
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft)
         
 ATTR_MODEL_PRETTY_PRINT = AttributeModel('pretty print', 
-        doc     = "Pretty printed representation of the object using the pprint module.", 
-        data_fn = lambda(tree_item): PRETTY_PRINTER.pformat(tree_item.obj),         
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft) 
+    doc         = "Pretty printed representation of the object using the pprint module.", 
+    data_fn     = lambda(tree_item): PRETTY_PRINTER.pformat(tree_item.obj),         
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft) 
         
 ATTR_MODEL_DOC_STRING = AttributeModel('doc string', 
-        doc     = "The object's doc string", 
-        data_fn = tio_doc_str,         
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft)
+    doc         = "The object's doc string", 
+    data_fn     = tio_doc_str,         
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft)
         
 ATTR_MODEL_GET_DOC = AttributeModel('inspect.getdoc', 
-        doc     = "The objects doc string cleaned up by inspect.getdoc()", 
-        data_fn = lambda(tree_item): inspect.getdoc(tree_item.obj),         
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft)
+    doc         = "The objects doc string cleaned up by inspect.getdoc()", 
+    data_fn     = lambda(tree_item): inspect.getdoc(tree_item.obj),         
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft)
         
 ATTR_MODEL_GET_COMMENTS = AttributeModel('inspect.getcomments', 
-        doc     = "Comments above the object's definition retrieved using inspect.getcomments()", 
-        data_fn = lambda(tree_item): inspect.getcomments(tree_item.obj),         
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft)
+    doc         = "Comments above the object's definition retrieved using inspect.getcomments()", 
+    data_fn     = lambda(tree_item): inspect.getcomments(tree_item.obj),         
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft)
         
 ATTR_MODEL_GET_FILE = AttributeModel('inspect.getfile', 
-        doc     = "The file where the object is defined retrieved using inspect.getfile()", 
-        data_fn = tio_get_file_name,         
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft)
+    doc         = "The file where the object is defined retrieved using inspect.getfile()", 
+    data_fn     = tio_get_file_name,         
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft)
         
 ATTR_MODEL_GET_MODULE = AttributeModel('inspect.getmodule', 
-        doc     = "The module where the object is defined retrieved using inspect.module()", 
-        data_fn = tio_get_module_name,         
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft) 
+    doc         = "The module where the object is defined retrieved using inspect.module()", 
+    data_fn     = tio_get_module_name,         
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft) 
         
 ATTR_MODEL_GET_SOURCE_FILE = AttributeModel('inspect.getsourcefile', 
-        doc     = "The Python file where the object is defined retrieved using inspect.getfile()", 
-        data_fn = tio_get_source_file_name,         
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft)
+    doc         = "The Python file where the object is defined retrieved using inspect.getfile()", 
+    data_fn     = tio_get_source_file_name,         
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft)
         
 ATTR_MODEL_GET_SOURCE_LINES = AttributeModel('inspect.getsourcelines', 
-        doc     = "Uses inspect.getsourcelines() to get a list of source lines for the object", 
-        data_fn = tio_get_source_lines,         
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft)
+    doc         = "Uses inspect.getsourcelines() to get a list of source lines for the object", 
+    data_fn     = tio_get_source_lines,         
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft)
         
 ATTR_MODEL_GET_SOURCE = AttributeModel('inspect.getsource', 
-        doc     = "The source code of an object retrieved using inspect.getsource()", 
-        data_fn = tio_get_source,         
-        visible   = False,  
-        width     = MEDIUM_COL_WIDTH, 
-        alignment = Qt.AlignLeft) 
+    doc         = "The source code of an object retrieved using inspect.getsource()", 
+    data_fn     = tio_get_source,         
+    col_visible = False,  
+    width       = MEDIUM_COL_WIDTH, 
+    alignment   = Qt.AlignLeft) 
         
 
-ALL_ATTR_DETAILS = (ATTR_MODEL_STR, 
-                    ATTR_MODEL_REPR,
-                    ATTR_MODEL_PRETTY_PRINT,
-                    ATTR_MODEL_DOC_STRING, 
-                    ATTR_MODEL_GET_DOC, 
-                    ATTR_MODEL_GET_COMMENTS, 
-                    ATTR_MODEL_GET_FILE, 
-                    ATTR_MODEL_GET_MODULE, 
-                    ATTR_MODEL_GET_SOURCE_FILE, 
-                    ATTR_MODEL_GET_SOURCE_LINES, 
-                    ATTR_MODEL_GET_SOURCE)
-
-DEFAULT_ATTR_DETAILS = (ATTR_MODEL_STR, 
-                        ATTR_MODEL_REPR,
-                        ATTR_MODEL_PRETTY_PRINT,
-                        #ATTR_MODEL_DOC_STRING,  # not used, too similar to ATTR_MODEL_GET_DOC
-                        ATTR_MODEL_GET_DOC, 
-                        ATTR_MODEL_GET_COMMENTS, 
-                        ATTR_MODEL_GET_FILE, 
-                        ATTR_MODEL_GET_MODULE, 
-                        ATTR_MODEL_GET_SOURCE_FILE, 
-                        #ATTR_MODEL_GET_SOURCE_LINES, # not used, ATTR_MODEL_GET_SOURCE is better
-                        ATTR_MODEL_GET_SOURCE)
-
-
-ALL_ATTR_COLS = (ATTR_MODEL_PATH, 
-                 ATTR_MODEL_NAME,
-                 ATTR_MODEL_VALUE,
-                 ATTR_MODEL_TYPE, 
-                 ATTR_MODEL_CLASS, 
-                 ATTR_MODEL_CALLABLE, 
-                 ATTR_MODEL_LENGTH, 
-                 ATTR_MODEL_ID, 
-                 ATTR_MODEL_PRED)
+ALL_ATTR_COLS = (
+    ATTR_MODEL_PATH, 
+    ATTR_MODEL_NAME,
+    ATTR_MODEL_VALUE,
+    ATTR_MODEL_TYPE, 
+    ATTR_MODEL_CLASS, 
+    ATTR_MODEL_CALLABLE, 
+    ATTR_MODEL_LENGTH, 
+    ATTR_MODEL_ID, 
+    ATTR_MODEL_PRED)
 
 DEFAULT_ATTR_COLS = ALL_ATTR_COLS
+
+
+ALL_ATTR_DETAILS = (
+    ATTR_MODEL_STR, 
+    ATTR_MODEL_REPR,
+    ATTR_MODEL_PRETTY_PRINT,
+    ATTR_MODEL_DOC_STRING, 
+    ATTR_MODEL_GET_DOC, 
+    ATTR_MODEL_GET_COMMENTS, 
+    ATTR_MODEL_GET_FILE, 
+    ATTR_MODEL_GET_MODULE, 
+    ATTR_MODEL_GET_SOURCE_FILE, 
+    ATTR_MODEL_GET_SOURCE_LINES, 
+    ATTR_MODEL_GET_SOURCE)
+
+DEFAULT_ATTR_DETAILS = (
+    ATTR_MODEL_STR, 
+    ATTR_MODEL_REPR,
+    ATTR_MODEL_PRETTY_PRINT,
+    #ATTR_MODEL_DOC_STRING,  # not used, too similar to ATTR_MODEL_GET_DOC
+    ATTR_MODEL_GET_DOC, 
+    ATTR_MODEL_GET_COMMENTS, 
+    ATTR_MODEL_GET_FILE, 
+    ATTR_MODEL_GET_MODULE, 
+    ATTR_MODEL_GET_SOURCE_FILE, 
+    #ATTR_MODEL_GET_SOURCE_LINES, # not used, ATTR_MODEL_GET_SOURCE is better
+    ATTR_MODEL_GET_SOURCE)
