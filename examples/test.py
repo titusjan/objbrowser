@@ -5,8 +5,6 @@ from __future__ import print_function
 
 import sys, logging
 from objbrowser import browse, create_object_browser, execute, logging_basic_config
-from objbrowser.attribute_model import ALL_ATTR_MODELS
-from objbrowser.attribute_detail import ALL_ATTR_DETAILS
 
 logger = logging.getLogger(__name__)
 

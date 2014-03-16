@@ -36,8 +36,8 @@ from PySide import QtCore, QtGui
 from PySide.QtCore import Qt
 
 from objbrowser.treemodel import TreeModel
-from objbrowser.attribute_model import DEFAULT_ATTR_MODELS
-from objbrowser.attribute_detail import DEFAULT_ATTR_DETAILS
+from objbrowser.attribute_model import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
+ 
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     def __init__(self, 
                  obj = None, 
                  obj_name = '',
-                 attr_columns = DEFAULT_ATTR_MODELS,  
+                 attr_columns = DEFAULT_ATTR_COLS,  
                  attr_details = DEFAULT_ATTR_DETAILS,  
                  show_callables = None,
                  show_special_methods = None):
