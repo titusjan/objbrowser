@@ -110,7 +110,7 @@ def tio_length(tree_item):
     
 def tio_is_callable(tree_item):
     "Returns True if the tree item object is callable"
-    return hasattr(tree_item.obj, "__call__")    
+    return str(hasattr(tree_item.obj, "__call__"))    
 
 
 def tio_doc_str(tree_item):
@@ -177,63 +177,63 @@ def tio_get_source(tree_item):
 # Column definitions ##
 #######################
 
-ATTR_MODEL_PATH = AttributeModel('Path', 
+ATTR_MODEL_PATH = AttributeModel('path', 
     doc         = "A path to the data: e.g. var[1]['a'].item", 
     data_fn     = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
     alignment   = Qt.AlignLeft) 
 
-ATTR_MODEL_NAME = AttributeModel('Name', 
+ATTR_MODEL_NAME = AttributeModel('name', 
     doc         = "The name of the object.", 
     data_fn     = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
     alignment   = Qt.AlignLeft) 
 
-ATTR_MODEL_VALUE = AttributeModel('Value', 
+ATTR_MODEL_VALUE = AttributeModel('value', 
     doc         = "The value of the object for atomic objects (int, str, etc)", 
     data_fn     = tio_simple_value,
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
     alignment   = Qt.AlignLeft) 
 
-ATTR_MODEL_TYPE = AttributeModel('Type', 
+ATTR_MODEL_TYPE = AttributeModel('type', 
     doc         = "Type of the object determined using the builtin type() function", 
     data_fn     = lambda(tree_item): str(type(tree_item.obj)),
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH, 
     alignment   = Qt.AlignLeft) 
 
-ATTR_MODEL_CLASS = AttributeModel('Type Name', 
+ATTR_MODEL_CLASS = AttributeModel('type name', 
     doc         = "The name of the class of the object via obj.__class__.__name__", 
     data_fn     = lambda(tree_item): type(tree_item.obj).__name__,
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
     alignment   = Qt.AlignLeft) 
 
-ATTR_MODEL_CALLABLE = AttributeModel('Callable', 
+ATTR_MODEL_CALLABLE = AttributeModel('callable', 
     doc         = "The if the is callable (e.g. a function or a method)", 
     data_fn     = tio_is_callable, 
     col_visible = True,  
     width       = SMALL_COL_WIDTH,
     alignment   = Qt.AlignLeft) 
 
-ATTR_MODEL_LENGTH   = AttributeModel('Length', 
+ATTR_MODEL_LENGTH   = AttributeModel('length', 
     doc         = "The length of the object using the len() function", 
     data_fn     = tio_length, 
     col_visible = False,  
     width       = SMALL_COL_WIDTH,
     alignment   = Qt.AlignLeft) 
 
-ATTR_MODEL_ID = AttributeModel('Id', 
+ATTR_MODEL_ID = AttributeModel('id', 
     doc         = "The identifier of the object with calculated using the id() function", 
     data_fn     = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
     col_visible = False,  
     width       = SMALL_COL_WIDTH,
     alignment   = Qt.AlignRight) 
 
-ATTR_MODEL_PRED = AttributeModel('Predicates', 
+ATTR_MODEL_PRED = AttributeModel('predicates', 
     doc         = "Predicates from the inspect module" ,
     data_fn     = tio_predicates, 
     col_visible = False,  
@@ -243,14 +243,14 @@ ATTR_MODEL_PRED = AttributeModel('Predicates',
 ATTR_MODEL_STR = AttributeModel('str', 
     doc         = "The string representation of the object using the str() function.",
     data_fn     = lambda(tree_item): str(tree_item.obj), 
-    col_visible = False,  
+    col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
     alignment   = Qt.AlignLeft) 
  
 ATTR_MODEL_REPR = AttributeModel('repr', 
     doc         = "The string representation of the object using the repr() function.", 
     data_fn     = lambda(tree_item): repr(tree_item.obj),         
-    col_visible = False,  
+    col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
     alignment   = Qt.AlignLeft)
         
@@ -318,21 +318,18 @@ ATTR_MODEL_GET_SOURCE = AttributeModel('inspect.getsource',
     alignment   = Qt.AlignLeft) 
         
 
-ALL_ATTR_COLS = (
+ALL_ATTR_MODELS = (
     ATTR_MODEL_PATH, 
     ATTR_MODEL_NAME,
     ATTR_MODEL_VALUE,
+    ATTR_MODEL_STR, 
+    ATTR_MODEL_REPR,    
     ATTR_MODEL_TYPE, 
     ATTR_MODEL_CLASS, 
     ATTR_MODEL_CALLABLE, 
     ATTR_MODEL_LENGTH, 
     ATTR_MODEL_ID, 
-    ATTR_MODEL_PRED)
-
-DEFAULT_ATTR_COLS = ALL_ATTR_COLS
-
-
-ALL_ATTR_DETAILS = (
+    ATTR_MODEL_PRED,
     ATTR_MODEL_STR, 
     ATTR_MODEL_REPR,
     ATTR_MODEL_PRETTY_PRINT,
@@ -344,6 +341,19 @@ ALL_ATTR_DETAILS = (
     ATTR_MODEL_GET_SOURCE_FILE, 
     ATTR_MODEL_GET_SOURCE_LINES, 
     ATTR_MODEL_GET_SOURCE)
+
+DEFAULT_ATTR_COLS = (
+    ATTR_MODEL_PATH, 
+    ATTR_MODEL_NAME,
+    ATTR_MODEL_VALUE,
+    ATTR_MODEL_STR, 
+    ATTR_MODEL_REPR,    
+    ATTR_MODEL_TYPE, 
+    ATTR_MODEL_CLASS, 
+    ATTR_MODEL_CALLABLE, 
+    ATTR_MODEL_LENGTH, 
+    ATTR_MODEL_ID, 
+    ATTR_MODEL_PRED)
 
 DEFAULT_ATTR_DETAILS = (
     ATTR_MODEL_STR, 

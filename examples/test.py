@@ -18,47 +18,49 @@ def call_viewer_test():
     import types, os
     from os.path import join
     
-    class OldStyleClass: 
-        """ An old style class (pre Python 2.2)
-            See: http://docs.python.org/2/reference/datamodel.html#new-style-and-classic-classes
-        """
-        static_member = 'static_value'
-        def __init__(self, s, i):
-            'constructor'            
-            self._member_str = s
-            self.__member_int = i
+    if 1:
+        class OldStyleClass: 
+            """ An old style class (pre Python 2.2)
+                See: http://docs.python.org/2/reference/datamodel.html#new-style-and-classic-classes
+            """
+            static_member = 'static_value'
+            def __init__(self, s, i):
+                'constructor'            
+                self._member_str = s
+                self.__member_int = i
+                
+        class NewStyleClass(object):
+            """ A new style class (Python 2.2 and later). Note it inherits 'object'.
+                See: http://docs.python.org/2/reference/datamodel.html#new-style-and-classic-classes
+            """
+            static_member = 'static_value'
+            def __init__(self, s, i):
+                'constructor'
+                self._member_str = s
+                self.__member_int = i
+                
+            @property
+            def member_int(self):
+                return self.__member_int
+                
+            @member_int.setter
+            def member_int(self, value):
+                self.__member_int = value
+                
+            def method(self):
+                pass
             
-    class NewStyleClass(object):
-        """ A new style class (Python 2.2 and later). Note it inherits 'object'.
-            See: http://docs.python.org/2/reference/datamodel.html#new-style-and-classic-classes
-        """
-        static_member = 'static_value'
-        def __init__(self, s, i):
-            'constructor'
-            self._member_str = s
-            self.__member_int = i
-            
-        @property
-        def member_int(self):
-            return self.__member_int
-            
-        @member_int.setter
-        def member_int(self, value):
-            self.__member_int = value
-            
-        def method(self):
-            pass
         
+        old_style_object = OldStyleClass('member_value', 44)    
+        new_style_object = NewStyleClass('member_value', -66)    
+
     # Some comments just above
     # the function definition.
     def my_function(param):
         'demo function'
         return param
-    
+
     _copyright = types.__builtins__['copyright'] 
-    
-    old_style_object = OldStyleClass('member_value', 44)    
-    new_style_object = NewStyleClass('member_value', -66)    
     
     x_plus_2 = lambda x: x+2
     

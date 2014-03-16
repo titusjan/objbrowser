@@ -132,7 +132,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         self.__toggle_functions = []  # for keeping references
         for col_idx, attr_col in enumerate(self._attr_cols):
-            action = QtGui.QAction("Show {} Column".format(attr_col.name), 
+            action = QtGui.QAction("Show {} column".format(attr_col.name), 
                                    self.toggle_column_actions_group, checkable=True, checked=True,
                                    statusTip = "Shows or hides the {} column".format(attr_col.name))
                 
