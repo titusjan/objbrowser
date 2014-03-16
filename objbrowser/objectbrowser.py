@@ -376,10 +376,10 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         self.editor.setStyleSheet("color: black;")
         try:
-            obj = tree_item.obj
+            #obj = tree_item.obj
             button_id = self.button_group.checkedId()
             assert button_id >= 0, "No radio button selected. Please report this bug."
-            data = self._attr_details[button_id].data_fn(obj)
+            data = self._attr_details[button_id].data_fn(tree_item)
             self.editor.setPlainText(data)
             
         except StandardError, ex:

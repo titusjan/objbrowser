@@ -2,7 +2,7 @@
 """
 from __future__ import absolute_import
 
-import logging, inspect, types, pprint
+import logging, inspect, pprint
 
 logger = logging.getLogger(__name__)
 
@@ -30,52 +30,58 @@ class AttributeDetail(object):
 PRETTY_PRINTER = pprint.PrettyPrinter(indent=4)
 
 
-def obj_doc_str(obj):
+def tio_doc_str(tree_item):
     """ Returns the doc string of an object
     """
+    tio = tree_item.obj
     try:
-        return obj.__doc__
+        return tio.__doc__
     except AttributeError:
         return '<no doc string found>'
                     
-def obj_get_file_name(obj):
+def tio_get_file_name(tree_item):
     """ Returns the file name that defines an object
     """
+    tio = tree_item.obj
     try:
-        return inspect.getfile(obj)
+        return inspect.getfile(tio)
     except TypeError:
         return ''
                     
-def obj_get_module_name(obj):
+def tio_get_module_name(tree_item):
     """ Returns the module name that defines an object
     """
-    module = inspect.getmodule(obj)
+    tio = tree_item.obj
+    module = inspect.getmodule(tio)
     if module:
         return module.__name__
     else:
         return ''
         
-def obj_get_source_file_name(obj):
+def tio_get_source_file_name(tree_item):
     """ Returns the Python source file name that defines an object
     """
+    tio = tree_item.obj
     try:
-        return inspect.getsourcefile(obj)
+        return inspect.getsourcefile(tio)
     except TypeError:
         return ''                
         
-def obj_get_source_lines(obj):
+def tio_get_source_lines(tree_item):
     """ Returns the string representation of a list of source code lines of an object 
     """
+    tio = tree_item.obj
     try:
-        return repr(inspect.getsourcelines(obj))
+        return repr(inspect.getsourcelines(tio))
     except TypeError:
         return ''        
     
-def obj_get_source(obj):
+def tio_get_source(tree_item):
     """ Returns source code of an object 
     """
+    tio = tree_item.obj
     try:
-        return inspect.getsource(obj)
+        return inspect.getsource(tio)
     except TypeError:
         return ''
         
@@ -87,48 +93,47 @@ def obj_get_source(obj):
 
 ATTR_DETAIL_STR = AttributeDetail('str', 
         doc     = "The string representation of the object using the str() function.",
-        #data_fn = str) 
-        data_fn = lambda(obj): str(obj)) 
+        data_fn = lambda(tree_item): str(tree_item.obj)) 
         
 ATTR_DETAIL_REPR = AttributeDetail('repr', 
         doc     = "The string representation of the object using the repr() function.", 
-        data_fn = lambda(obj): repr(obj)) 
+        data_fn = lambda(tree_item): repr(tree_item.obj)) 
         
 ATTR_DETAIL_PRETTY_PRINT = AttributeDetail('pretty print', 
         doc     = "Pretty printed representation of the object using the pprint module.", 
-        data_fn = PRETTY_PRINTER.pformat) 
+        data_fn = lambda(tree_item): PRETTY_PRINTER.pformat(tree_item.obj)) 
         
 ATTR_DETAIL_DOC_STRING = AttributeDetail('doc string', 
         doc     = "The object's doc string", 
-        data_fn = obj_doc_str) 
+        data_fn = tio_doc_str) 
         
 ATTR_DETAIL_GET_DOC = AttributeDetail('inspect.getdoc', 
         doc     = "The objects doc string cleaned up by inspect.getdoc()", 
-        data_fn = inspect.getdoc) 
+        data_fn = lambda(tree_item): inspect.getdoc(tree_item.obj)) 
         
 ATTR_DETAIL_GET_COMMENTS = AttributeDetail('inspect.getcomments', 
         doc     = "Comments above the object's definition retrieved using inspect.getcomments()", 
-        data_fn = inspect.getcomments) 
+        data_fn = lambda(tree_item): inspect.getcomments(tree_item.obj))
         
 ATTR_DETAIL_GET_FILE = AttributeDetail('inspect.getfile', 
         doc     = "The file where the object is defined retrieved using inspect.getfile()", 
-        data_fn = obj_get_file_name) 
+        data_fn = tio_get_file_name) 
         
 ATTR_DETAIL_GET_MODULE = AttributeDetail('inspect.getmodule', 
         doc     = "The module where the object is defined retrieved using inspect.module()", 
-        data_fn = obj_get_module_name) 
+        data_fn = tio_get_module_name) 
         
 ATTR_DETAIL_GET_SOURCE_FILE = AttributeDetail('inspect.getsourcefile', 
         doc     = "The Python file where the object is defined retrieved using inspect.getfile()", 
-        data_fn = obj_get_source_file_name) 
+        data_fn = tio_get_source_file_name) 
         
 ATTR_DETAIL_GET_SOURCE_LINES = AttributeDetail('inspect.getsourcelines', 
         doc     = "Uses inspect.getsourcelines() to get a list of source lines for the object", 
-        data_fn = obj_get_source_lines) 
+        data_fn = tio_get_source_lines) 
         
 ATTR_DETAIL_GET_SOURCE = AttributeDetail('inspect.getsource', 
         doc     = "The source code of an object retrieved using inspect.getsource()", 
-        data_fn = obj_get_source) 
+        data_fn = tio_get_source) 
         
 
 ALL_ATTR_DETAILS = (ATTR_DETAIL_STR, 
