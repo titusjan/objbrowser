@@ -88,9 +88,9 @@ def tio_simple_value(tree_item):
     if tio_type in (types.BooleanType, types.FloatType, types.IntType, types.NoneType):
         return repr(tio)
     elif tio_type == types.StringType:
-        return repr(tio.encode('string_escape'))
+        return tio
     elif tio_type == types.UnicodeType:
-        return repr(tio.encode('unicode_escape'))
+        return tio
     else:
         return ""
     
@@ -356,6 +356,7 @@ DEFAULT_ATTR_COLS = (
     ATTR_MODEL_PRED)
 
 DEFAULT_ATTR_DETAILS = (
+    ATTR_MODEL_VALUE,
     ATTR_MODEL_STR, 
     ATTR_MODEL_REPR,
     ATTR_MODEL_PRETTY_PRINT,

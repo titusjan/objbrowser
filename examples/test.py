@@ -72,12 +72,15 @@ def call_viewer_test():
     lst = [4, '4', d, ['r', dir], main]
     my_set = set([3, 4, 4, 8])
     my_frozenset = frozenset([3, 4, 5, 6, 6])
-    #TODO: look at http://docs.python.org/2/howto/unicode.html
+    
+    # These will give error in the str() representation. 
+    # I deliberately did not use string.encode('ascii', 'backslashreplace') to 
+    # demonstrate the difference between str( and repr()
     u1 = unichr(40960) + u'ab\ncd' + unichr(1972)
     u2 = u"a\xac\u1234\u20ac\U00008000"
     u3 = u'no strange chars'
-    multi_line_str = """ hello\nworld
-                        the end."""
+    multi_line_str = """hello\r\nworld
+                        the\rend."""
     
     # When creating multiple object browsers, make sure to keep a
     # reference to each of them. Otherwise windows will be garbabe-

@@ -93,8 +93,13 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         if role == Qt.DisplayRole:
             try:
-                return self._attr_cols[col].data_fn(tree_item).replace('\n', '\\n')
-                #return self._attr_cols[col].data_fn(tree_item)
+                attr = self._attr_cols[col].data_fn(tree_item)
+                # Replace carriage returns and line feeds with unicode glyphs 
+                # so that all table rows fit on one line. 
+                #return attr.replace('\n', unichr(0x240A)).replace('\r', unichr(0x240D))
+                return (attr.replace('\r\n', unichr(0x21B5))
+                            .replace('\n', unichr(0x21B5))
+                            .replace('\r', unichr(0x21B5)))
             except StandardError, ex:
                 logger.exception(ex)
                 return "*ERROR*: {}".format(ex) 
