@@ -101,9 +101,9 @@ def tio_length(tree_item):
     tio = tree_item.obj
     if hasattr(tio, "__len__"):
         try:
-            return len(tio)
+            return str(len(tio))
         except:
-            logger.error("No len() for: {}".format(tio))
+            logger.error("No len() for: {}".format(tio)) # when does this happen?
             return ""
     else:
         return ""
