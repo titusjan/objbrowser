@@ -2,7 +2,9 @@
 """
 from __future__ import absolute_import
 
+
 from PySide.QtCore import Qt
+from PySide.QtGui import QTextOption
 
 import logging, inspect, types, string, pprint
 
@@ -19,7 +21,8 @@ class AttributeModel(object):
                  data_fn = None,  
                  col_visible = True, 
                  width = MEDIUM_COL_WIDTH,
-                 alignment = Qt.AlignLeft):
+                 alignment = Qt.AlignLeft, 
+                 line_wrap = QTextOption.WrapAtWordBoundaryOrAnywhere):
         """
             Constructor
             
@@ -35,6 +38,8 @@ class AttributeModel(object):
             :type with: int
             :param alignment: alignment of the value in the table
             :type alighment: Qt.AlignmentFlag 
+            :param line_wrap: Line wrap mode of the attribute in the details pane
+            :type line_wrap: QtGui.QPlainTextEdit
         """
 
         if not callable(data_fn):
@@ -46,6 +51,7 @@ class AttributeModel(object):
         self.col_visible = col_visible
         self.width = width
         self.alignment = alignment
+        self.line_wrap = line_wrap
         
     
     @property
@@ -245,15 +251,17 @@ ATTR_MODEL_STR = AttributeModel('str',
     data_fn     = lambda(tree_item): str(tree_item.obj), 
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
-    alignment   = Qt.AlignLeft) 
+    alignment   = Qt.AlignLeft,  
+    line_wrap   = QTextOption.NoWrap) 
  
 ATTR_MODEL_REPR = AttributeModel('repr', 
     doc         = "The string representation of the object using the repr() function.", 
     data_fn     = lambda(tree_item): repr(tree_item.obj),         
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
-    alignment   = Qt.AlignLeft)
-        
+    alignment   = Qt.AlignLeft, 
+    line_wrap   = QTextOption.NoWrap) 
+
 ATTR_MODEL_PRETTY_PRINT = AttributeModel('pretty print', 
     doc         = "Pretty printed representation of the object using the pprint module.", 
     data_fn     = lambda(tree_item): PRETTY_PRINTER.pformat(tree_item.obj),         

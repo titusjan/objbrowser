@@ -4,7 +4,6 @@
    Version 1.0:
    # TODO: show_callables/special methods should also apply to dict and list members, otherwise
            it's confusing. Or the color should be adapted. This happens when browse(locals())
-   # TODO: word wrap in attribute details
    # TODO: hide members?
    # TODO: allow obj_name to be a list
    
@@ -375,13 +374,16 @@ class ObjectBrowser(QtGui.QMainWindow):
             #obj = tree_item.obj
             button_id = self.button_group.checkedId()
             assert button_id >= 0, "No radio button selected. Please report this bug."
-            data = self._attr_details[button_id].data_fn(tree_item)
+            attr_details = self._attr_details[button_id]
+            data = attr_details.data_fn(tree_item)
             self.editor.setPlainText(data)
+            self.editor.setWordWrapMode(attr_details.line_wrap)
             
         except StandardError, ex:
             self.editor.setStyleSheet("color: red;")
             stack_trace = traceback.format_exc()
             self.editor.setPlainText("{}\n\n{}".format(ex, stack_trace))
+            self.editor.setWordWrapMode(QtGui.QTextOption.WrapAtWordBoundaryOrAnywhere)
             if DEBUGGING is True:
                 raise
 
