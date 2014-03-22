@@ -111,7 +111,12 @@ def tio_simple_value(tree_item):
             logger.debug("Unable to construct value, objects len() call failed: {}".format(ex))
             return ""
         else:
-            return "{} of {} items".format(type(tio).__name__, n_items)
+            if n_items == 0:
+                return "empty {}".format(type(tio).__name__)
+            if n_items == 1:
+                return "{} of {} item".format(type(tio).__name__, n_items)
+            else:
+                return "{} of {} item(s)".format(type(tio).__name__, n_items)
     else:
         return ""
     
