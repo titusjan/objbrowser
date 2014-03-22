@@ -183,15 +183,15 @@ def tio_get_source(tree_item):
 # Column definitions ##
 #######################
 
-ATTR_MODEL_PATH = AttributeModel('path', 
-    doc         = "A path to the data: e.g. var[1]['a'].item", 
-    data_fn     = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
-    col_visible = True,  
-    width       = MEDIUM_COL_WIDTH) 
-
 ATTR_MODEL_NAME = AttributeModel('name', 
     doc         = "The name of the object.", 
     data_fn     = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
+    col_visible = True,  
+    width       = MEDIUM_COL_WIDTH) 
+
+ATTR_MODEL_PATH = AttributeModel('path', 
+    doc         = "A path to the data: e.g. var[1]['a'].item", 
+    data_fn     = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH) 
 
@@ -199,12 +199,13 @@ ATTR_MODEL_VALUE = AttributeModel('value',
     doc         = "The value of the object for atomic objects (int, str, etc)", 
     data_fn     = tio_simple_value,
     col_visible = True,  
+    alignment   = Qt.AlignLeft,
     width       = MEDIUM_COL_WIDTH) 
 
 ATTR_MODEL_STR = AttributeModel('str', 
     doc         = "The string representation of the object using the str() function.",
     data_fn     = lambda(tree_item): str(tree_item.obj), 
-    col_visible = True,  
+    col_visible = False,  
     width       = MEDIUM_COL_WIDTH, 
     line_wrap   = QTextOption.NoWrap) 
  

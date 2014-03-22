@@ -4,7 +4,8 @@
 from __future__ import print_function
 
 import sys, logging
-from objbrowser import browse, create_object_browser, execute, logging_basic_config
+from objbrowser import (browse, create_object_browser, execute, 
+                        logging_basic_config, ALL_ATTR_MODELS)
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,14 @@ def call_viewer_test():
                 
             def method(self):
                 pass
+         
+            @staticmethod       
+            def static_method(self):
+                pass
+            
+            @classmethod       
+            def class_method(self):
+                pass
             
         
         old_style_object = OldStyleClass('member_value', 44)    
@@ -64,6 +73,7 @@ def call_viewer_test():
     
     x_plus_2 = lambda x: x+2
     
+    Int = int
     d = {'4': 44, 's': 11}
     a = 6
     b = 'seven'
@@ -88,9 +98,9 @@ def call_viewer_test():
     _locals_obj_browser = create_object_browser(obj = locals(), # without obj_name
                                                 show_special_attributes = None, 
                                                 show_callables = None ) 
-    #_globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals',
-    #                                             attr_columns = ALL_ATTR_MODELS[1:4], 
-    #                                             attr_details = ALL_ATTR_DETAILS)
+    _globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals',
+                                                 attr_columns = ALL_ATTR_MODELS, 
+                                                 attr_details = ALL_ATTR_MODELS[1:4])
     exit_code = execute()
     return exit_code
     

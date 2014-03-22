@@ -101,8 +101,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                             .replace('\n', unichr(0x21B5))
                             .replace('\r', unichr(0x21B5)))
             except StandardError, ex:
-                logger.exception(ex)
-                return "*ERROR*: {}".format(ex) 
+                #logger.exception(ex)
+                return "**ERROR**: {}".format(ex) 
             
         elif role == Qt.TextAlignmentRole:
             return self._attr_cols[col].alignment

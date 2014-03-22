@@ -7,6 +7,9 @@ import sys, os, logging, pprint, inspect
 from PySide import QtCore, QtGui
 
 from objbrowser.objectbrowser import ObjectBrowser, PROGRAM_NAME, PROGRAM_VERSION
+from objbrowser.attribute_model import ALL_ATTR_MODELS, DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
+
+__version__ = PROGRAM_VERSION
 
 logger = logging.getLogger(__name__)
 
