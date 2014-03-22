@@ -16,7 +16,7 @@ def is_callable(obj):
     return hasattr(obj, "__call__")
     
 
-def is_special_method(method_name):
+def is_special_attribute(method_name):
     "Returns true if the method name starts and ends with two underscores"
     return method_name.startswith('__') and method_name.endswith('__') 
 
@@ -39,7 +39,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                  root_obj_name = '',
                  attr_cols = None, 
                  show_callables = True,
-                 show_special_methods = True,
+                 show_special_attributes = True,
                  parent = None):
         """ Constructor
         
@@ -50,7 +50,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             :param show_callables: if True the callables objects, 
                 i.e. objects (such as function) that  a __call__ method, 
                 will be displayed (in brown). If False they are hidden.
-            :param show_special_methods: if True the objects special methods, 
+            :param show_special_attributes: if True the objects special attributes, 
                 i.e. methods with a name that starts and ends with two underscores, 
                 will be displayed (in italics). If False they are hidden.
             :param parent: the parent widget
@@ -61,12 +61,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._root_name = root_obj_name 
         self._attr_cols = attr_cols
         self._show_callables = show_callables
-        self._show_special_methods = show_special_methods
+        self._show_special_attributes = show_special_attributes
         self.root_item = self.populateTree(root_obj, root_obj_name, )
         
         self.regular_font = QtGui.QFont()  # Font for members (non-functions)
-        self.special_method_font = QtGui.QFont()  # Font for __special_methods__
-        self.special_method_font.setItalic(True)
+        self.special_attribute_font = QtGui.QFont()  # Font for __special_attributes__
+        self.special_attribute_font.setItalic(True)
         
         self.regular_color = QtGui.QBrush(QtGui.QColor('black'))    
         self.callable_color = QtGui.QBrush(QtGui.QColor('brown'))  # for functions, methods, etc.
@@ -114,8 +114,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return self.regular_color
             
         elif role == Qt.FontRole:
-            if is_special_method(tree_item.obj_name):
-                return self.special_method_font
+            if is_special_attribute(tree_item.obj_name):
+                return self.special_attribute_font
             else:
                 return self.regular_font
         else:
@@ -243,7 +243,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         for memb in sorted(inspect.getmembers(obj)):
             #logger.debug("inspect.getmembers(obj): {} ({})".format(memb, is_callable(memb[1])))
             if (self._show_callables or not is_callable(memb[1])) \
-            and (self._show_special_methods or not is_special_method(memb[0])):
+            and (self._show_special_attributes or not is_special_attribute(memb[0])):
                 obj_members.append(memb)
         obj_items.extend(obj_members)
         path_strings.extend(['{}.{}'.format(obj_path, memb[0]) if obj_path else memb[0] 
@@ -317,15 +317,15 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._resetTree()
     
 
-    def getShowSpecialMethods(self):
-        return self._show_special_methods
+    def getShowSpecialAttributes(self):
+        return self._show_special_attributes
         
-    def setShowSpecialMethods(self, show_special_methods):
-        """ Shows/hides special methods, which begin with an underscore.
+    def setShowSpecialAttributes(self, show_special_attributes):
+        """ Shows/hides special attributes, which begin with an underscore.
             Repopulates the tree.
         """
-        logger.debug("setShowSpecialMethods: {}".format(show_special_methods))
-        self._show_special_methods = show_special_methods
+        logger.debug("setShowSpecialAttributes: {}".format(show_special_attributes))
+        self._show_special_attributes = show_special_attributes
         self._resetTree()
         
     def getShowRootNode(self):

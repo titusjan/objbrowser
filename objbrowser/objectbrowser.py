@@ -2,21 +2,30 @@
    Program that shows the local Python environment using the inspect module
    
    Version 1.0:
-   # TODO: show_callables/special methods should also apply to dict and list members, otherwise
+   # Test all possible python object (from reference book)
+   # TODO: show_callables/special attributes should also apply to dict and list members, otherwise
            it's confusing. Or the color should be adapted. This happens when browse(locals())
    # TODO: hide members?
    # TODO: allow obj_name to be a list
+   # Rename obj_name to name
+   
+   # Examples:
+    - binary, octal, hex, hex_codec
+    - Qt
+    - Casting
+    - Callable 
+   
+   # Installing
+    - Pip
+    - Test under linux (table)
+    - Python Package Index
+    - sphynx
+
    
    Version 1.x:
    # TODO: tool-tips
    # TODO: python 3
    
-   
-   # Examples, binary, octal, hex, hex_codec    
-   # Test under linux (table)
-   # Test all possible python object (from reference book)
-   # Pyside.
-
    
    
 Changes:
@@ -61,7 +70,7 @@ class ObjectBrowser(QtGui.QMainWindow):
                  attr_columns = DEFAULT_ATTR_COLS,  
                  attr_details = DEFAULT_ATTR_DETAILS,  
                  show_callables = None,
-                 show_special_methods = None):
+                 show_special_attributes = None):
         """ Constructor
         
             :param obj: any Python object or variable
@@ -73,7 +82,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             :param show_callables: if True the callables objects, 
                 i.e. objects (such as function) that  a __call__ method, 
                 will be displayed (in brown). If False they are hidden.
-            :param show_special_methods: if True the objects special methods, 
+            :param show_special_attributes: if True the objects special attributes, 
                 i.e. methods with a name that starts and ends with two underscores, 
                 will be displayed (in grey). If False they are hidden.
         """
@@ -87,13 +96,13 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._attr_details = attr_details
         
         (show_callables, 
-         show_special_methods) = self._readModelSettings(show_callables = show_callables,
-                                                   show_special_methods = show_special_methods)
+         show_special_attributes) = self._readModelSettings(show_callables = show_callables,
+                                                   show_special_attributes = show_special_attributes)
         self._tree_model = TreeModel(obj, 
                                      root_obj_name = obj_name,
                                      attr_cols = self._attr_cols,  
                                      show_callables = show_callables, 
-                                     show_special_methods = show_special_methods)
+                                     show_special_attributes = show_special_attributes)
         # Views
         self._setup_actions()
         self._setup_menu()
@@ -105,7 +114,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._readViewSettings()
         
         # Update views with model
-        self.toggle_special_method_action.setChecked(show_special_methods)
+        self.toggle_special_attribute_action.setChecked(show_special_attributes)
         self.toggle_callable_action.setChecked(show_callables)
      
         # Select first row so that a hidden root node will not be selected.
@@ -145,11 +154,11 @@ class ObjectBrowser(QtGui.QMainWindow):
                           statusTip = "Shows/hides callable attributes (functions, methods, etc)")
         assert self.toggle_callable_action.toggled.connect(self.toggle_callables)
                               
-        # Show/hide special methods
-        self.toggle_special_method_action = \
-            QtGui.QAction("Show __special_methods__", self, checkable=True, 
-                          statusTip = "Shows or hides __special_methods__")
-        assert self.toggle_special_method_action.toggled.connect(self.toggle_special_methods)
+        # Show/hide special attributes
+        self.toggle_special_attribute_action = \
+            QtGui.QAction("Show __special_attributes__", self, checkable=True, 
+                          statusTip = "Shows or hides __special_attributes__")
+        assert self.toggle_special_attribute_action.toggled.connect(self.toggle_special_attributes)
                               
                               
     def _setup_menu(self):
@@ -168,7 +177,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             show_cols_submenu.addAction(action)
         view_menu.addSeparator()
         view_menu.addAction(self.toggle_callable_action)
-        view_menu.addAction(self.toggle_special_method_action)
+        view_menu.addAction(self.toggle_special_attribute_action)
         
         self.menuBar().addSeparator()
         help_menu = self.menuBar().addMenu("&Help")
@@ -250,7 +259,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     
     def _readModelSettings(self, 
                            show_callables = None,
-                           show_special_methods = None):
+                           show_special_attributes = None):
         """ Reads the persistent model settings
         """ 
         logger.debug("Reading model settings for window: {:d}".format(self._instance_nr))
@@ -259,10 +268,10 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings.beginGroup("model_{:d}".format(self._instance_nr))
         if show_callables is None:
             show_callables = settings.value("show_callables", True)
-        if show_special_methods is None:
-            show_special_methods = settings.value("show_special_methods", True)
+        if show_special_attributes is None:
+            show_special_attributes = settings.value("show_special_attributes", True)
         settings.endGroup()
-        return (show_callables, show_special_methods)
+        return (show_callables, show_special_attributes)
                     
     
     def _writeModelSettings(self):
@@ -273,7 +282,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings = QtCore.QSettings()
         settings.beginGroup("model_{:d}".format(self._instance_nr))
         settings.setValue("show_callables", self._tree_model.getShowCallables())
-        settings.setValue("show_special_methods", self._tree_model.getShowSpecialMethods())
+        settings.setValue("show_special_attributes", self._tree_model.getShowSpecialAttributes())
         settings.setValue("show_root_node", self._tree_model.getShowRootNode())
         settings.endGroup()
             
@@ -398,13 +407,13 @@ class ObjectBrowser(QtGui.QMainWindow):
         if self._tree_model.show_root_node:
             self.obj_tree.expandToDepth(0)        
 
-    def toggle_special_methods(self, checked):
-        """ Shows/hides the special methods.
+    def toggle_special_attributes(self, checked):
+        """ Shows/hides the special attributes.
             
-            Special methods are objects that have names that start and end with two underscores.
+            special attributes are objects that have names that start and end with two underscores.
         """
-        logger.debug("toggle_special_methods: {}".format(checked))
-        self._tree_model.setShowSpecialMethods(checked)
+        logger.debug("toggle_special_attributes: {}".format(checked))
+        self._tree_model.setShowSpecialAttributes(checked)
         if self._tree_model.show_root_node:
             self.obj_tree.expandToDepth(0)
 
