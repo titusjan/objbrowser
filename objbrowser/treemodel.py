@@ -4,7 +4,7 @@
 # See: http://harmattan-dev.nokia.com/docs/library/html/qt4/itemviews-simpletreemodel.html
 
 from __future__ import absolute_import
-import logging, inspect
+import logging, inspect, types
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt
 from objbrowser.treeitem import TreeItem
@@ -217,6 +217,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         obj = parent_item.obj
         obj_path = parent_item.obj_path
+
+        obj_children = []
+        path_strings = []
         
         if isinstance(obj, (list, tuple)):
             obj_children = sorted(enumerate(obj))
@@ -226,14 +229,18 @@ class TreeModel(QtCore.QAbstractItemModel):
             obj_children = [('pop()', elem) for elem in sorted(obj)]
             path_strings = ['{0}.pop()'.format(obj_path, item[0]) if obj_path else item[0] 
                             for item in obj_children]
-        elif hasattr(obj, 'iteritems'): # dictionaries and the likes
-            obj_children = sorted(obj.iteritems())
-            path_strings = ['{}[{!r}]'.format(obj_path, item[0]) if obj_path else item[0] 
-                            for item in obj_children]
-        else:
-            obj_children = []
-            path_strings = []
-            
+        elif hasattr(obj, 'iteritems'): # dictionaries and the likes. 
+            try: 
+                obj_children = sorted(obj.iteritems())
+            except StandardError, ex:
+                # Can happen if the iteritems method expects an argument, for instance the  
+                # types.DictType.iteritems method expects a dictionary.
+                logger.info("No items expanded. Objects iteritems() call failed: {}".format(ex))
+            else:
+                path_strings = ['{}[{!r}]'.format(obj_path, item[0]) if obj_path else item[0] 
+                                for item in obj_children]
+        
+        assert len(obj_children) == len(path_strings), "sanity check"    
         is_attr_list = [False] * len(obj_children)
         
         # Object attributes
@@ -243,6 +250,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                 obj_children.append( (attr_name, attr_value) )
                 path_strings.append('{}.{}'.format(obj_path, attr_name) if obj_path else attr_name)
                 is_attr_list.append(True)
+
+        assert len(obj_children) == len(path_strings), "sanity check"
     
         # Append children to tree
         self.beginInsertRows(parent, 0, len(obj_children))

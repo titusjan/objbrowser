@@ -6,9 +6,6 @@
     # TODO: version 1.0 #
     #####################
     
-    # bug when expanding __class__
-    
-    
     # Examples:
      - binary, octal, hex, hex_codec
      - Qt
