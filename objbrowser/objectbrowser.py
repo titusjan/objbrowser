@@ -7,20 +7,19 @@
             it's confusing. Or the color should be adapted. This happens when browse(locals())
             - isroutine column 
             - parent relation: attribute, element, item.
-    # TODO: hide members?
+    # TODO: hide attributes?
     # TODO: allow obj_name to be a list
     # Rename obj_name to name
+    # bug when expanding __class__
 
-    
-    
    
    # Examples:
     - binary, octal, hex, hex_codec
     - Qt
     - Casting
-    - Callable 
    
    # Installing
+    - Pylint (google Pyside and Pylint)
     - Pip
     - Test under linux (table)
     - Python Package Index
@@ -155,14 +154,14 @@ class ObjectBrowser(QtGui.QMainWindow):
             
         # Show/hide callable objects
         self.toggle_callable_action = \
-            QtGui.QAction("Show callable attributes", self, checkable=True, 
-                          statusTip = "Shows/hides callable attributes (functions, methods, etc)")
+            QtGui.QAction("Show routine attributes", self, checkable=True, 
+                          statusTip = "Shows/hides attributes that are routings (functions, methods, etc)")
         assert self.toggle_callable_action.toggled.connect(self.toggle_callables)
                               
         # Show/hide special attributes
         self.toggle_special_attribute_action = \
-            QtGui.QAction("Show __special_attributes__", self, checkable=True, 
-                          statusTip = "Shows or hides __special_attributes__")
+            QtGui.QAction("Show __special__ attributes", self, checkable=True, 
+                          statusTip = "Shows or hides __special__ attributes")
         assert self.toggle_special_attribute_action.toggled.connect(self.toggle_special_attributes)
                               
                               

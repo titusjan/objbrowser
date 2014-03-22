@@ -95,12 +95,13 @@ def call_viewer_test():
     # When creating multiple object browsers, make sure to keep a
     # reference to each of them. Otherwise windows will be garbabe-
     # collected and will disappear.
-    _locals_obj_browser = create_object_browser(obj = locals(), # without obj_name
+    _locals_obj_browser = create_object_browser(locals(), 'locals', # without obj_name
                                                 show_special_attributes = None, 
-                                                show_callables = None ) 
-    _globals_obj_browser = create_object_browser(obj = globals(), obj_name = 'globals',
-                                                 attr_columns = ALL_ATTR_MODELS, 
-                                                 attr_details = ALL_ATTR_MODELS[1:4])
+                                                show_callables = None )
+    if 1: 
+        _globals_obj_browser = create_object_browser(globals(), obj_name = 'globals',
+                                                     attr_columns = ALL_ATTR_MODELS, 
+                                                     attr_details = ALL_ATTR_MODELS[1:4])
     exit_code = execute()
     return exit_code
     

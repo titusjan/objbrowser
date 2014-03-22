@@ -102,7 +102,7 @@ def tio_simple_value(tree_item):
     
 
 def tio_length(tree_item):
-    """ Returns a the length the tree_item.obj if it has one
+    """ Returns the length the tree_item.obj if it has one
     """
     tio = tree_item.obj
     if hasattr(tio, "__len__"):
@@ -113,10 +113,22 @@ def tio_length(tree_item):
             return ""
     else:
         return ""
+
+    
+def tio_is_attribute(tree_item):
+    """ Returns 'True' if the tree item object is an attribute of the parent 
+        opposed to e.g. a list element.
+    """
+    if tree_item.is_attribute is None:
+        return ''
+    else:
+        return str(tree_item.is_attribute)
+   
     
 def tio_is_callable(tree_item):
-    "Returns True if the tree item object is callable"
-    return str(hasattr(tree_item.obj, "__call__"))    
+    "Returns 'True' if the tree item object is callable"
+    return str(callable(tree_item.obj)) # Python 2
+    #return str(hasattr(tree_item.obj, "__call__")) # Python 3?
 
 
 def tio_doc_str(tree_item):
@@ -228,12 +240,6 @@ ATTR_MODEL_CLASS = AttributeModel('type name',
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH) 
 
-ATTR_MODEL_CALLABLE = AttributeModel('callable', 
-    doc         = "The if the is callable (e.g. a function or a method)", 
-    data_fn     = tio_is_callable, 
-    col_visible = True,  
-    width       = SMALL_COL_WIDTH) 
-
 ATTR_MODEL_LENGTH = AttributeModel('length', 
     doc         = "The length of the object using the len() function", 
     data_fn     = tio_length, 
@@ -246,6 +252,24 @@ ATTR_MODEL_ID = AttributeModel('id',
     data_fn     = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
     col_visible = False, 
     alignment   = Qt.AlignRight, 
+    width       = SMALL_COL_WIDTH) 
+
+ATTR_MODEL_IS_ATTRIBUTE = AttributeModel('is attribute', 
+    doc         = "The object is an attribute of the parent (opposed to e.g. a list element)", 
+    data_fn     = tio_is_attribute, 
+    col_visible = False,  
+    width       = SMALL_COL_WIDTH) 
+
+ATTR_MODEL_CALLABLE = AttributeModel('is callable', 
+    doc         = "The if the is callable (e.g. a function or a method)", 
+    data_fn     = tio_is_callable, 
+    col_visible = True,  
+    width       = SMALL_COL_WIDTH) 
+
+ATTR_MODEL_IS_ROUTINE = AttributeModel('is routine', 
+    doc         = "True if the object is a routine (function, method, etc.)" ,
+    data_fn     = lambda(tree_item): str(inspect.isroutine(tree_item.obj)), 
+    col_visible = False,  
     width       = SMALL_COL_WIDTH) 
 
 ATTR_MODEL_PRED = AttributeModel('predicates', 
@@ -317,12 +341,12 @@ ALL_ATTR_MODELS = (
     ATTR_MODEL_REPR,    
     ATTR_MODEL_TYPE, 
     ATTR_MODEL_CLASS, 
-    ATTR_MODEL_CALLABLE, 
     ATTR_MODEL_LENGTH, 
     ATTR_MODEL_ID, 
+    ATTR_MODEL_IS_ATTRIBUTE, 
+    ATTR_MODEL_CALLABLE, 
+    ATTR_MODEL_IS_ROUTINE,     
     ATTR_MODEL_PRED,
-    ATTR_MODEL_STR, 
-    ATTR_MODEL_REPR,
     ATTR_MODEL_PRETTY_PRINT,
     ATTR_MODEL_DOC_STRING, 
     ATTR_MODEL_GET_DOC, 
@@ -333,6 +357,7 @@ ALL_ATTR_MODELS = (
     ATTR_MODEL_GET_SOURCE_LINES, 
     ATTR_MODEL_GET_SOURCE)
 
+
 DEFAULT_ATTR_COLS = (
     ATTR_MODEL_NAME,
     ATTR_MODEL_PATH, 
@@ -342,8 +367,10 @@ DEFAULT_ATTR_COLS = (
     ATTR_MODEL_LENGTH, 
     ATTR_MODEL_TYPE, 
     ATTR_MODEL_CLASS, 
-    ATTR_MODEL_CALLABLE, 
     ATTR_MODEL_ID, 
+    ATTR_MODEL_IS_ATTRIBUTE,     
+    ATTR_MODEL_CALLABLE, 
+    ATTR_MODEL_IS_ROUTINE,     
     ATTR_MODEL_PRED,    
     ATTR_MODEL_GET_MODULE, 
     ATTR_MODEL_GET_FILE, 
@@ -362,3 +389,9 @@ DEFAULT_ATTR_DETAILS = (
     #ATTR_MODEL_GET_SOURCE_FILE,  # not used, already in table 
     #ATTR_MODEL_GET_SOURCE_LINES, # not used, ATTR_MODEL_GET_SOURCE is better
     ATTR_MODEL_GET_SOURCE)
+
+# Sanity check for duplicates
+assert len(ALL_ATTR_MODELS) == len(set(ALL_ATTR_MODELS))
+assert len(DEFAULT_ATTR_COLS) == len(set(DEFAULT_ATTR_COLS))
+assert len(DEFAULT_ATTR_DETAILS) == len(set(DEFAULT_ATTR_DETAILS))
+

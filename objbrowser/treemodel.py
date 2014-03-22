@@ -11,10 +11,6 @@ from objbrowser.treeitem import TreeItem
 
 logger = logging.getLogger(__name__)
 
-def is_callable(obj):
-    "Returns is obj is callable"
-    return hasattr(obj, "__call__")
-    
 
 def is_special_attribute(method_name):
     "Returns true if the method name starts and ends with two underscores"
@@ -69,7 +65,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.special_attribute_font.setItalic(True)
         
         self.regular_color = QtGui.QBrush(QtGui.QColor('black'))    
-        self.callable_color = QtGui.QBrush(QtGui.QColor('brown'))  # for functions, methods, etc.
+        self.routine_color = QtGui.QBrush(QtGui.QColor('brown'))  # for functions, methods, etc.
 
 
     def columnCount(self, _parent):
@@ -108,8 +104,8 @@ class TreeModel(QtCore.QAbstractItemModel):
             return self._attr_cols[col].alignment
             
         elif role == Qt.ForegroundRole:
-            if is_callable(obj):
-                return self.callable_color
+            if inspect.isroutine(obj):
+                return self.routine_color
             else:
                 return self.regular_color
             
@@ -223,43 +219,43 @@ class TreeModel(QtCore.QAbstractItemModel):
         obj_path = parent_item.obj_path
         
         if isinstance(obj, (list, tuple)):
-            obj_items = sorted(enumerate(obj))
+            obj_children = sorted(enumerate(obj))
             path_strings = ['{}[{}]'.format(obj_path, item[0]) if obj_path else item[0] 
-                            for item in obj_items]
+                            for item in obj_children]
         elif isinstance(obj, (set, frozenset)):
-            obj_items = [('pop()', elem) for elem in sorted(obj)]
+            obj_children = [('pop()', elem) for elem in sorted(obj)]
             path_strings = ['{0}.pop()'.format(obj_path, item[0]) if obj_path else item[0] 
-                            for item in obj_items]
+                            for item in obj_children]
         elif hasattr(obj, 'iteritems'): # dictionaries and the likes
-            obj_items = sorted(obj.iteritems())
+            obj_children = sorted(obj.iteritems())
             path_strings = ['{}[{!r}]'.format(obj_path, item[0]) if obj_path else item[0] 
-                            for item in obj_items]
+                            for item in obj_children]
         else:
-            obj_items = []
+            obj_children = []
             path_strings = []
+            
+        is_attr_list = [False] * len(obj_children)
         
-        # Since every variable is an object we also add its members to the tree.
-        obj_members = []
-        for memb in sorted(inspect.getmembers(obj)):
-            #logger.debug("inspect.getmembers(obj): {} ({})".format(memb, is_callable(memb[1])))
-            if (self._show_callables or not is_callable(memb[1])) \
-            and (self._show_special_attributes or not is_special_attribute(memb[0])):
-                obj_members.append(memb)
-        obj_items.extend(obj_members)
-        path_strings.extend(['{}.{}'.format(obj_path, memb[0]) if obj_path else memb[0] 
-                             for memb in obj_members])
-        
-        assert len(obj_items) == len(path_strings), "sanity check"
-        self.beginInsertRows(parent, 0, len(obj_items))
-        for item, path_str in zip(obj_items, path_strings):
+        # Object attributes
+        for attr_name, attr_value in sorted(inspect.getmembers(obj)):
+            if ((self._show_callables or not callable(attr_value)) and
+                (self._show_special_attributes or not is_special_attribute(attr_name))):
+                obj_children.append( (attr_name, attr_value) )
+                path_strings.append('{}.{}'.format(obj_path, attr_name) if obj_path else attr_name)
+                is_attr_list.append(True)
+    
+        # Append children to tree
+        self.beginInsertRows(parent, 0, len(obj_children))
+        for item, path_str, is_attr in zip(obj_children, path_strings, is_attr_list):
             name, child_obj = item
-            parent_item.append_child(self._addTreeItem(parent_item, child_obj, name, path_str))
+            parent_item.append_child(self._addTreeItem(parent_item, child_obj, 
+                                                       name, path_str, is_attr))
         parent_item.children_fetched = True                
         self.endInsertRows()                       
         
 
     
-    def _addTreeItem(self, parent_item, obj, obj_name, obj_path):
+    def _addTreeItem(self, parent_item, obj, obj_name, obj_path, is_attribute):
         """ Helper function that recursively adds nodes.
 
             :param parent_item: The parent 
@@ -270,7 +266,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             Returns newly created tree item
         """
         # logger.debug("Inserting: {} = {!r}".format(obj_name, obj))
-        tree_item = TreeItem(parent_item, obj, obj_name, obj_path)
+        tree_item = TreeItem(parent_item, obj, obj_name, obj_path, is_attribute)
         return tree_item
 
    
@@ -280,13 +276,15 @@ class TreeModel(QtCore.QAbstractItemModel):
         logger.debug("populateTree with object id = 0x{:x}".format(id(root_obj)))
         
         if single_root_node is True:
-            root_parent_item = TreeItem(None, None, '<root_parent>', '<root_parent>') 
+            root_parent_item = TreeItem(None, None, '<root_parent>', '<root_parent>', None) 
             root_parent_item.children_fetched = True
-            root_item = self._addTreeItem(root_parent_item, root_obj, root_name, root_name)
+            root_item = self._addTreeItem(root_parent_item, root_obj, root_name, root_name, 
+                                          is_attribute = None)
             root_parent_item.append_child(root_item)
             self.root_item = root_parent_item
         else:
-            self.root_item = self._addTreeItem(None, root_obj, root_name, root_name)
+            self.root_item = self._addTreeItem(None, root_obj, root_name, root_name, 
+                                               is_attribute = None)
             
             # Fetch all items of the root so we can select the first row in the constructor.
             root_index = self.index(0, 0)

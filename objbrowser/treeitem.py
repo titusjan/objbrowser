@@ -8,11 +8,12 @@
 class TreeItem(object):
     """ Tree node class that can be used to build trees of objects.
     """
-    def __init__(self, parent, obj, obj_name, obj_path):
+    def __init__(self, parent, obj, obj_name, obj_path, is_attribute):
         self.parent_item = parent
         self.obj = obj
         self.obj_name = str(obj_name)
         self.obj_path = str(obj_path)
+        self.is_attribute = is_attribute
         self.child_items = []
         self.has_children = True
         self.children_fetched = False
