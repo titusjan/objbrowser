@@ -2,14 +2,17 @@
    Program that shows the local Python environment using the inspect module
    
    Version 1.0:
-   # Test all possible python object (from reference book)
-   # TODO: show_callables/special attributes should also apply to dict and list members, otherwise
-           it's confusing. Or the color should be adapted. This happens when browse(locals())
-   # TODO: hide members?
-   # TODO: allow obj_name to be a list
-   # Rename obj_name to name
-   # Fix read/write settings
-   # Details checkbox within details group box?
+    # Test all possible python object (from reference book)
+    # TODO: show_callables/special attributes should also apply to dict and list members, otherwise
+            it's confusing. Or the color should be adapted. This happens when browse(locals())
+            - isroutine column 
+            - parent relation: attribute, element, item.
+    # TODO: hide members?
+    # TODO: allow obj_name to be a list
+    # Rename obj_name to name
+
+    
+    
    
    # Examples:
     - binary, octal, hex, hex_codec
@@ -331,7 +334,9 @@ class ObjectBrowser(QtGui.QMainWindow):
             
         self.resize(window_size)
         self.move(pos)
-        self.button_group.button(details_button_idx).setChecked(True)
+        button = self.button_group.button(details_button_idx)
+        if button is not None:
+            button.setChecked(True)
 
         header = self.obj_tree.header()
         for idx, size in enumerate(column_sizes):
