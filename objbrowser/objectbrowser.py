@@ -1,41 +1,39 @@
 """ 
-   Program that shows the local Python environment using the inspect module
-   
-   Version 1.0:
-    # Test all possible python object (from reference book)
-    # TODO: show_callables/special attributes should also apply to dict and list members, otherwise
-            it's confusing. Or the color should be adapted. This happens when browse(locals())
-            - isroutine column 
-            - parent relation: attribute, element, item.
-    # TODO: hide attributes?
-    # TODO: allow obj_name to be a list
-    # Rename obj_name to name
-    # bug when expanding __class__
-
-   
-   # Examples:
-    - binary, octal, hex, hex_codec
-    - Qt
-    - Casting
-   
-   # Installing
-    - Pylint (google Pyside and Pylint)
-    - Pip
-    - Test under linux (table)
-    - Python Package Index
-    - sphynx
-
-   
-   Version 1.x:
-   # TODO: tool-tips
-   # TODO: python 3
-   
-   
-   
-Changes:
-   #  removed show_root_node parameter. Is implicit by testing obj_name == None
+    Program that shows the local Python environment using the inspect module
     
-           
+    
+    #####################
+    # TODO: version 1.0 #
+    #####################
+    
+    # bug when expanding __class__
+    
+    
+    # Examples:
+     - binary, octal, hex, hex_codec
+     - Qt
+     - Casting
+    
+    # Installing
+     - Pylint (google Pyside and Pylint)
+     - Pip
+     - Test under linux (table)
+     - Python Package Index
+     - sphynx
+    
+    
+    #####################
+    # TODO: version 1.x #
+    #####################
+    
+    # Test all possible python object (from reference book)
+    # Ordered dict don't sort keys 
+    # hide non-attributes' attributes? That is, list's and dict's attributes are hidden.
+    # tool-tips
+    # TODO: python 3
+   
+    Changes:
+       # removed show_root_node parameter. Is implicit by testing obj_name == None
 """
 from __future__ import absolute_import
 from __future__ import print_function
@@ -68,27 +66,25 @@ class ObjectBrowser(QtGui.QMainWindow):
     """
     _n_instances = 0
     
-    def __init__(self, 
-                 obj = None, 
-                 obj_name = '',
+    def __init__(self, obj,  
+                 name = '',
                  attr_columns = DEFAULT_ATTR_COLS,  
                  attr_details = DEFAULT_ATTR_DETAILS,  
-                 show_callables = None,
+                 show_routine_attributes = None,
                  show_special_attributes = None):
         """ Constructor
         
             :param obj: any Python object or variable
-            :param obj_name: name of the object as it will appear in the root node
+            :param name: name of the object as it will appear in the root node
             :param attr_columns: list of AttributeColumn objects that define which columns
-                                 are present in the table and their defaults
+                are present in the table and their defaults
             :param attr_details: list of AttributeDetails objects that define which attributes
-                                 can be selected in the details pane.
-            :param show_callables: if True the callables objects, 
-                i.e. objects (such as function) that  a __call__ method, 
-                will be displayed (in brown). If False they are hidden.
-            :param show_special_attributes: if True the objects special attributes, 
-                i.e. methods with a name that starts and ends with two underscores, 
-                will be displayed (in grey). If False they are hidden.
+                can be selected in the details pane.
+            :param show_routine_attributes: if True rows where the 'is attribute' and 'is routine'
+                columns are both True, are displayed. Otherwise they are hidden. 
+            :param show_special_attributes: if True rows where the 'is attribute' is True and
+                the object name starts and ends with two underscores, are displayed. Otherwise 
+                they are hidden. 
         """
         super(ObjectBrowser, self).__init__()
 
@@ -99,19 +95,19 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._attr_cols = attr_columns
         self._attr_details = attr_details
         
-        (show_callables, 
-         show_special_attributes) = self._readModelSettings(show_callables = show_callables,
-                                                   show_special_attributes = show_special_attributes)
+        (show_routine_attributes, 
+         show_special_attributes) = self._readModelSettings(show_routine_attributes = show_routine_attributes,
+                                                            show_special_attributes = show_special_attributes)
         self._tree_model = TreeModel(obj, 
-                                     root_obj_name = obj_name,
+                                     root_obj_name = name,
                                      attr_cols = self._attr_cols,  
-                                     show_callables = show_callables, 
+                                     show_routine_attributes = show_routine_attributes, 
                                      show_special_attributes = show_special_attributes)
         # Views
         self._setup_actions()
         self._setup_menu()
         self._setup_views()
-        self.setWindowTitle("{} - {}".format(PROGRAM_NAME, obj_name))
+        self.setWindowTitle("{} - {}".format(PROGRAM_NAME, name))
         app = QtGui.QApplication.instance()
         app.lastWindowClosed.connect(app.quit) 
 
@@ -119,7 +115,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Update views with model
         self.toggle_special_attribute_action.setChecked(show_special_attributes)
-        self.toggle_callable_action.setChecked(show_callables)
+        self.toggle_callable_action.setChecked(show_routine_attributes)
      
         # Select first row so that a hidden root node will not be selected.
         first_row = self._tree_model.first_item_index()
@@ -273,7 +269,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     # End of setup_methods
     
     def _readModelSettings(self, 
-                           show_callables = None,
+                           show_routine_attributes = None,
                            show_special_attributes = None):
         """ Reads the persistent model settings
         """ 
@@ -281,12 +277,12 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         settings = QtCore.QSettings()
         settings.beginGroup("model_{:d}".format(self._instance_nr))
-        if show_callables is None:
-            show_callables = settings.value("show_callables", True)
+        if show_routine_attributes is None:
+            show_routine_attributes = settings.value("show_routine_attributes", True)
         if show_special_attributes is None:
             show_special_attributes = settings.value("show_special_attributes", True)
         settings.endGroup()
-        return (show_callables, show_special_attributes)
+        return (show_routine_attributes, show_special_attributes)
                     
     
     def _writeModelSettings(self):
@@ -296,9 +292,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         settings = QtCore.QSettings()
         settings.beginGroup("model_{:d}".format(self._instance_nr))
-        settings.setValue("show_callables", self._tree_model.getShowCallables())
+        settings.setValue("show_routine_attributes", self._tree_model.getShowCallables())
         settings.setValue("show_special_attributes", self._tree_model.getShowSpecialAttributes())
-        settings.setValue("show_root_node", self._tree_model.getShowRootNode())
         settings.endGroup()
             
             

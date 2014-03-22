@@ -22,7 +22,8 @@ def main():
     x = np.zeros((2,),dtype=('i4,f4,a10'))
     x[:] = [(1,2.,'Hello'),(2,3.,"World")]
     
-    exit_code = browse(x.dtype.fields, obj_name='x.dtype.fields', show_special_attributes=False)
+    exit_code = browse(x.dtype.fields, name='x.dtype.fields', 
+                       show_special_attributes=False)
 
     logging.info('Done example')
     sys.exit(exit_code)

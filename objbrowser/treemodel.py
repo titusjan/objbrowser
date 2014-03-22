@@ -34,16 +34,16 @@ class TreeModel(QtCore.QAbstractItemModel):
     def __init__(self, root_obj, 
                  root_obj_name = '',
                  attr_cols = None, 
-                 show_callables = True,
+                 show_routine_attributes = True,
                  show_special_attributes = True,
                  parent = None):
         """ Constructor
         
             :param obj: any Python object or variable
-            :param obj_name: name of the object as it will appear in the root node
+            :param name: name of the object as it will appear in the root node
                              If empty, no root node drawn. 
             :param attr_cols: list of AttributeColumn definitions
-            :param show_callables: if True the callables objects, 
+            :param show_routine_attributes: if True the callables objects, 
                 i.e. objects (such as function) that  a __call__ method, 
                 will be displayed (in brown). If False they are hidden.
             :param show_special_attributes: if True the objects special attributes, 
@@ -56,7 +56,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._root_obj = root_obj
         self._root_name = root_obj_name 
         self._attr_cols = attr_cols
-        self._show_callables = show_callables
+        self._show_callables = show_routine_attributes
         self._show_special_attributes = show_special_attributes
         self.root_item = self.populateTree(root_obj, root_obj_name, )
         
@@ -326,8 +326,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._show_special_attributes = show_special_attributes
         self._resetTree()
         
-    def getShowRootNode(self):
-        return self.show_root_node
 
 
         
