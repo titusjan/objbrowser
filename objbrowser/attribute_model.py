@@ -6,7 +6,9 @@ from __future__ import absolute_import
 from PySide.QtCore import Qt
 from PySide.QtGui import QTextOption
 
-import logging, inspect, types, string, pprint
+import logging, inspect, string, pprint, numbers
+
+from types import (NoneType, BooleanType, EllipsisType, SliceType)
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +55,10 @@ class AttributeModel(object):
         self.alignment = alignment
         self.line_wrap = line_wrap
         
+    def __repr__(self):
+        """ String representation """
+        return "<AttributeModel for {!r}>".format(self.name)
+        
     
     @property
     def settings_name(self):
@@ -90,13 +96,22 @@ def tio_simple_value(tree_item):
         That is: the type is a scalar or a string, not a compound such as a list.
     """
     tio = tree_item.obj
-    tio_type = type(tio)
-    if tio_type in (types.BooleanType, types.FloatType, types.IntType, types.NoneType):
+    if isinstance(tio, numbers.Number):
         return repr(tio)
-    elif tio_type == types.StringType:
+    elif isinstance(tio, (NoneType, BooleanType, EllipsisType, SliceType)):
+        return repr(tio)
+    elif isinstance(tio, basestring):
         return tio
-    elif tio_type == types.UnicodeType:
-        return tio
+    elif hasattr(tio, '__len__'):  
+        try: 
+            n_items = len(tio)
+        except StandardError, ex:
+            # Can happen if the len method expects an argument, for instance the  
+            # types.DictType.iteritems method expects a dictionary.
+            logger.debug("Unable to construct value, objects len() call failed: {}".format(ex))
+            return ""
+        else:
+            return "{} of {} items".format(type(tio).__name__, n_items)
     else:
         return ""
     

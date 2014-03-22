@@ -74,10 +74,14 @@ def call_viewer_test():
     x_plus_2 = lambda x: x+2
     
     Int = int
-    d = {'4': 44, 's': 11}
     a = 6
     b = 'seven'
+    c = 8j + 3 # complex number
+    d = {'4': 44, 's': 11}
+    ellip = Ellipsis
+    my_slice = slice(None, 3, -1)
     n = None
+    not_impl = NotImplemented
     tup = ('this', 'is', 'a tuple')
     lst = [4, '4', d, ['r', dir], main]
     my_set = set([3, 4, 4, 8])
