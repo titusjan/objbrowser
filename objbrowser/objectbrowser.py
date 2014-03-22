@@ -65,17 +65,17 @@ class ObjectBrowser(QtGui.QMainWindow):
     
     def __init__(self, obj,  
                  name = '',
-                 attr_columns = DEFAULT_ATTR_COLS,  
-                 attr_details = DEFAULT_ATTR_DETAILS,  
+                 attribute_columns = DEFAULT_ATTR_COLS,  
+                 attritbute_details = DEFAULT_ATTR_DETAILS,  
                  show_routine_attributes = None,
                  show_special_attributes = None):
         """ Constructor
         
             :param obj: any Python object or variable
             :param name: name of the object as it will appear in the root node
-            :param attr_columns: list of AttributeColumn objects that define which columns
+            :param attribute_columns: list of AttributeColumn objects that define which columns
                 are present in the table and their defaults
-            :param attr_details: list of AttributeDetails objects that define which attributes
+            :param attritbute_details: list of AttributeDetails objects that define which attributes
                 can be selected in the details pane.
             :param show_routine_attributes: if True rows where the 'is attribute' and 'is routine'
                 columns are both True, are displayed. Otherwise they are hidden. 
@@ -89,8 +89,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._instance_nr = self._n_instances        
         
         # Model
-        self._attr_cols = attr_columns
-        self._attr_details = attr_details
+        self._attr_cols = attribute_columns
+        self._attr_details = attritbute_details
         
         (show_routine_attributes, 
          show_special_attributes) = self._readModelSettings(show_routine_attributes = show_routine_attributes,
