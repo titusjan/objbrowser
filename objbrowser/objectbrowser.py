@@ -8,6 +8,8 @@
    # TODO: hide members?
    # TODO: allow obj_name to be a list
    # Rename obj_name to name
+   # Fix read/write settings
+   # Details checkbox within details group box?
    
    # Examples:
     - binary, octal, hex, hex_codec
@@ -198,11 +200,12 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.obj_tree.setModel(self._tree_model)
         self.obj_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
+        self.obj_tree.setAnimated(True)
         
         # Stretch last column? 
         # It doesn't play nice when columns are hidden and then shown again.
         obj_tree_header = self.obj_tree.header()
-        obj_tree_header.setStretchLastSection(True)
+        obj_tree_header.setStretchLastSection(False)
         #obj_tree_header.setResizeMode(0, QtGui.QHeaderView.Stretch) # doesn't work smoothly
         obj_tree_header.setContextMenuPolicy(Qt.ActionsContextMenu)
         for action in self.toggle_column_actions_group.actions():
@@ -211,16 +214,27 @@ class ObjectBrowser(QtGui.QMainWindow):
         central_layout.addWidget(self.obj_tree)
 
         # Bottom pane
-        pane_widget = QtGui.QWidget()
-        central_layout.addWidget(pane_widget)
-        pane_layout = QtGui.QHBoxLayout()
-        pane_widget.setLayout(pane_layout)
+        bottom_pane_widget = QtGui.QWidget()
+        bottom_layout = QtGui.QHBoxLayout()
+        bottom_layout.setSpacing(0)
+        bottom_layout.setContentsMargins(5, 5, 5, 5) # left top right bottom
+        bottom_pane_widget.setLayout(bottom_layout)
+        central_layout.addWidget(bottom_pane_widget)
+        
+        group_box = QtGui.QGroupBox("Details")
+        bottom_layout.addWidget(group_box)
+        
+        group_layout = QtGui.QHBoxLayout()
+        group_layout.setContentsMargins(2, 2, 2, 2) # left top right bottom
+        group_box.setLayout(group_layout)
         
         # Radio buttons
-        group_box = QtGui.QGroupBox("Details")
+        radio_widget = QtGui.QWidget()
         radio_layout = QtGui.QVBoxLayout()
-        self.button_group = QtGui.QButtonGroup(self) 
+        radio_layout.setContentsMargins(0, 0, 0, 0) # left top right bottom        
+        radio_widget.setLayout(radio_layout) 
 
+        self.button_group = QtGui.QButtonGroup(self)
         for button_id, attr_detail in enumerate(self._attr_details):
             radio_button = QtGui.QRadioButton(attr_detail.name)
             radio_layout.addWidget(radio_button)
@@ -230,8 +244,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.button_group.button(0).setChecked(True)
                 
         radio_layout.addStretch(1)
-        group_box.setLayout(radio_layout)
-        pane_layout.addWidget(group_box)
+        group_layout.addWidget(radio_widget)
 
         # Editor widget
         font = QtGui.QFont()
@@ -242,7 +255,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.editor = QtGui.QPlainTextEdit()
         self.editor.setReadOnly(True)
         self.editor.setFont(font)
-        pane_layout.addWidget(self.editor)
+        group_layout.addWidget(self.editor)
         
         # Splitter parameters
         self.central_splitter.setCollapsible(0, False)
