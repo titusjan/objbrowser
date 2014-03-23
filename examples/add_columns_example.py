@@ -31,9 +31,9 @@ def my_browse(*args, **kwargs):
     doc_str = "The sqrt of an object if it can be calculated"
     width = 120 # pixels
     
-    # 1: The data_fn should be a TreeItem to string function. If you have a function 
-    #    with one input and one output parameter (e.g. the sqrt function), you must wrap
-    #    it with a lambda expression like this.
+    # 1: The data_fn should be a TreeItem to string (or unicode) function. If you have 
+    #    a function with one input and one output parameter (e.g. the sqrt function), 
+    #    you must wrap it with a lambda expression like this.
     sqrt_attr_model_1 = AttributeModel('sqrt 1', 
         doc         = doc_str, 
         data_fn     = lambda(tree_item): str(sqrt(tree_item.obj)),

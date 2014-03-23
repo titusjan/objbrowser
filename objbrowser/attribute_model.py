@@ -10,6 +10,14 @@ from PySide.QtGui import QTextOption
 import logging, inspect, string, pprint, numbers
 from types import (NoneType, BooleanType, EllipsisType, SliceType)
 
+
+try:
+    import numpy as np
+except ImportError:
+    _NUMPY_INSTALLED = False
+else:
+    _NUMPY_INSTALLED = True
+
 logger = logging.getLogger(__name__)
 
 
@@ -106,7 +114,7 @@ def safe_data_fn(obj_fn, log_exceptions=False):
     """ Creates a function that returns an empty string in case of an exception.
         
         :param fnobj_fn: function that will be wrapped
-        :type obj_fn: object to string function
+        :type obj_fn: object to basestring function
         :returns: function that can be used as AttributeModel data_fn attribute
         :rtype: objbrowser.treeitem.TreeItem to string function 
     """
@@ -119,7 +127,6 @@ def safe_data_fn(obj_fn, log_exceptions=False):
     return data_fn
 
 
-
 def tio_predicates(tree_item):
     """ Returns the inspect module predicates that are true for this object
     """
@@ -129,34 +136,26 @@ def tio_predicates(tree_item):
 
 
 def tio_simple_value(tree_item):
-    """ Returns a the string representation of the tree_item.obj if it has a 'simple' type.
-        
-        That is: the type is a scalar or a string, not a compound such as a list.
+    """ Returns a small summary of regular objects. 
+        For callables and modules an empty string is returned.
     """
     tio = tree_item.obj
-    if isinstance(tio, numbers.Number):
-        return repr(tio)
-    elif isinstance(tio, (NoneType, BooleanType, EllipsisType, SliceType)):
-        return repr(tio)
-    elif isinstance(tio, basestring):
+    if isinstance(tio, basestring):
         return tio
-    elif hasattr(tio, '__len__'):  
-        try: 
-            n_items = len(tio)
-        except StandardError, ex:
-            # Can happen if the len method expects an argument, for instance the  
-            # types.DictType.iteritems method expects a dictionary.
-            logger.debug("Unable to construct value, objects len() call failed: {}".format(ex))
-            return ""
+    elif isinstance(tio, (list, tuple, set)):  
+        n_items = len(tio)
+        if n_items == 0:
+            return "empty {}".format(type(tio).__name__)
+        if n_items == 1:
+            return "{} of {} item".format(type(tio).__name__, n_items)
         else:
-            if n_items == 0:
-                return "empty {}".format(type(tio).__name__)
-            if n_items == 1:
-                return "{} of {} item".format(type(tio).__name__, n_items)
-            else:
-                return "{} of {} items".format(type(tio).__name__, n_items)
+            return "{} of {} items".format(type(tio).__name__, n_items)
+    elif _NUMPY_INSTALLED and isinstance(tio, np.ndarray):
+        return "array of {}, shape: {}".format(tio.dtype, tio.shape)
+    elif callable(tio) or inspect.ismodule(tio):
+        return "" 
     else:
-        return ""
+        return str(tio)
     
 
     

@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 import sys, logging
+import datetime as dt
 from objbrowser import (browse, create_object_browser, execute, logging_basic_config)
 from objbrowser.attribute_model import ALL_ATTR_MODELS
 
@@ -89,12 +90,27 @@ def call_viewer_test():
     my_set = set([3, 4, 4, 8])
     my_frozenset = frozenset([3, 4, 5, 6, 6])
     
+    dt_now = dt.datetime.now()
+    date_now = dt.date(2014, 3, 23) 
+    date_first = date_now.min
+    date_last = date_now.max
+    
+    t = dt.time(13, 33, 01)
+    
+    try:
+        import numpy as np
+        arr = np.arange(24, dtype=np.uint16).reshape(8, 3)
+        pi_16bit = np.float16(np.pi)
+    except ImportError, ex:
+        logger.warn(ex)
+        
+    
     # These will give error in the str() representation. 
     # I deliberately did not use string.encode('ascii', 'backslashreplace') to 
     # demonstrate the difference between str() and repr()
     u1 = unichr(40960) + u'ab\ncd' + unichr(1972)
     u2 = u"a\xac\u1234\u20ac\U00008000"
-    u3 = u'no strange chars'
+    u3 = u'all ASCII chars'
     multi_line_str = """hello\r\nworld
                         the\rend."""
     
