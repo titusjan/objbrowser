@@ -8,7 +8,8 @@ from math import sqrt
 from PySide.QtCore import Qt
 
 from objbrowser import browse, logging_basic_config
-from objbrowser.attribute_model import (AttributeModel, DEFAULT_ATTR_COLS, 
+from objbrowser.attribute_model import (AttributeModel, 
+                                        DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS,  
                                         safe_tio_call, safe_data_fn)
 
 logger = logging.getLogger(__name__)
@@ -75,9 +76,15 @@ def my_browse(*args, **kwargs):
     attribute_columns.insert(7, sqrt_attr_model_3)
     attribute_columns.insert(8, sqrt_attr_model_4)
     
-    return browse(*args, attribute_columns = attribute_columns, **kwargs)
+    # You can also add the attribute to the details pane
+    attribute_details = list(DEFAULT_ATTR_DETAILS)
+    attribute_details.insert(0, sqrt_attr_model_1)
     
-  
+    return browse(*args, 
+                  attribute_columns = attribute_columns,
+                  attribute_details = attribute_details,  
+                  **kwargs)
+    
   
 def main():
     """ Main program 
