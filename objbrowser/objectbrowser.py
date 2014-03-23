@@ -6,12 +6,15 @@
     # TODO: version 1.0 #
     #####################
     
+    # use safe_tio_call
+    # Numpy array shape in value column.
+    # Datetime objects in value column.
+    
     # Examples:
-     - binary, octal, hex, hex_codec
      - Qt
-     - Casting
     
     # Installing
+     - rename attribute_model.py to attributemodel.py
      - Pylint (google Pyside and Pylint)
      - Pip
      - Test under linux (table)
@@ -66,7 +69,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     def __init__(self, obj,  
                  name = '',
                  attribute_columns = DEFAULT_ATTR_COLS,  
-                 attritbute_details = DEFAULT_ATTR_DETAILS,  
+                 attribute_details = DEFAULT_ATTR_DETAILS,  
                  show_routine_attributes = None,
                  show_special_attributes = None):
         """ Constructor
@@ -75,7 +78,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             :param name: name of the object as it will appear in the root node
             :param attribute_columns: list of AttributeColumn objects that define which columns
                 are present in the table and their defaults
-            :param attritbute_details: list of AttributeDetails objects that define which attributes
+            :param attribute_details: list of AttributeDetails objects that define which attributes
                 can be selected in the details pane.
             :param show_routine_attributes: if True rows where the 'is attribute' and 'is routine'
                 columns are both True, are displayed. Otherwise they are hidden. 
@@ -90,7 +93,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Model
         self._attr_cols = attribute_columns
-        self._attr_details = attritbute_details
+        self._attr_details = attribute_details
         
         (show_routine_attributes, 
          show_special_attributes) = self._readModelSettings(show_routine_attributes = show_routine_attributes,

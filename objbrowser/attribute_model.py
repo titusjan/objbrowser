@@ -2,18 +2,28 @@
 """
 from __future__ import absolute_import
 
+__all__ = ['browse', 'execute', 'create_object_browser', 'logging_basic_config']
 
 from PySide.QtCore import Qt
 from PySide.QtGui import QTextOption
 
 import logging, inspect, string, pprint, numbers
-
 from types import (NoneType, BooleanType, EllipsisType, SliceType)
 
 logger = logging.getLogger(__name__)
 
+
 SMALL_COL_WIDTH = 120
 MEDIUM_COL_WIDTH = 200
+
+_PRETTY_PRINTER = pprint.PrettyPrinter(indent=4)
+
+_ALL_PREDICATES = (inspect.ismodule, inspect.isclass, inspect.ismethod,
+                   inspect.isfunction, inspect.isgeneratorfunction, inspect.isgenerator,
+                   inspect.istraceback, inspect.isframe, inspect.iscode,
+                   inspect.isbuiltin, inspect.isroutine, inspect.isabstract,
+                   inspect.ismethoddescriptor, inspect.isdatadescriptor, 
+                   inspect.isgetsetdescriptor, inspect.ismemberdescriptor) 
 
 class AttributeModel(object):
     """ Determines how an object attribute is rendered in a table column or details pane
@@ -22,7 +32,7 @@ class AttributeModel(object):
                  doc = "<no help available>",  
                  data_fn = None,  
                  col_visible = True, 
-                 width = MEDIUM_COL_WIDTH,
+                 width = SMALL_COL_WIDTH,
                  alignment = Qt.AlignLeft, 
                  line_wrap = QTextOption.WrapAtWordBoundaryOrAnywhere):
         """
@@ -73,20 +83,48 @@ class AttributeModel(object):
 ###################
 
 
-PRETTY_PRINTER = pprint.PrettyPrinter(indent=4)
+def tio_call(obj_fn, tree_item):
+    """ Calls obj_fn(tree_item.obj)
+    """
+    return obj_fn(tree_item.obj)
 
-ALL_PREDICATES = (inspect.ismodule, inspect.isclass, inspect.ismethod,
-                  inspect.isfunction, inspect.isgeneratorfunction, inspect.isgenerator,
-                  inspect.istraceback, inspect.isframe, inspect.iscode,
-                  inspect.isbuiltin, inspect.isroutine, inspect.isabstract,
-                  inspect.ismethoddescriptor, inspect.isdatadescriptor, inspect.isgetsetdescriptor,
-                  inspect.ismemberdescriptor) 
+
+def safe_tio_call(obj_fn, tree_item, log_exceptions=False):
+    """ Call the obj_fn(tree_item.obj). 
+        Returns empty string in case of an error.
+    """ 
+    tio = tree_item.obj
+    try:
+        return str(obj_fn(tio))
+    except StandardError, ex:
+        if log_exceptions:
+            logger.exception(ex)
+        return ""    
+
+
+def safe_data_fn(obj_fn, log_exceptions=False):
+    """ Creates a function that returns an empty string in case of an exception.
+        
+        :param fnobj_fn: function that will be wrapped
+        :type obj_fn: object to string function
+        :returns: function that can be used as AttributeModel data_fn attribute
+        :rtype: objbrowser.treeitem.TreeItem to string function 
+    """
+    def data_fn(tree_item):
+        """ Call the obj_fn(tree_item.obj). 
+            Returns empty string in case of an error
+        """ 
+        return safe_tio_call(obj_fn, tree_item, log_exceptions=log_exceptions)
+    
+    return data_fn
+
+
 
 def tio_predicates(tree_item):
     """ Returns the inspect module predicates that are true for this object
     """
     tio = tree_item.obj
-    predicates = [pred.__name__ for pred in ALL_PREDICATES if pred(tio)]
+    predicates = [pred.__name__ for pred in _ALL_PREDICATES if pred(tio)]
     return ", ".join(predicates)
 
 
@@ -116,23 +154,10 @@ def tio_simple_value(tree_item):
             if n_items == 1:
                 return "{} of {} item".format(type(tio).__name__, n_items)
             else:
-                return "{} of {} item(s)".format(type(tio).__name__, n_items)
+                return "{} of {} items".format(type(tio).__name__, n_items)
     else:
         return ""
     
-
-def tio_length(tree_item):
-    """ Returns the length the tree_item.obj if it has one
-    """
-    tio = tree_item.obj
-    if hasattr(tio, "__len__"):
-        try:
-            return str(len(tio))
-        except:
-            logger.error("No len() for: {}".format(tio)) # when does this happen?
-            return ""
-    else:
-        return ""
 
     
 def tio_is_attribute(tree_item):
@@ -236,7 +261,7 @@ ATTR_MODEL_VALUE = AttributeModel('value',
 
 ATTR_MODEL_STR = AttributeModel('str', 
     doc         = "The string representation of the object using the str() function.",
-    data_fn     = lambda(tree_item): str(tree_item.obj), 
+    data_fn     = lambda(tree_item): str(tree_item.obj),
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH, 
     line_wrap   = QTextOption.NoWrap) 
@@ -262,7 +287,8 @@ ATTR_MODEL_CLASS = AttributeModel('type name',
 
 ATTR_MODEL_LENGTH = AttributeModel('length', 
     doc         = "The length of the object using the len() function", 
-    data_fn     = tio_length, 
+    #data_fn     = tio_length,
+    data_fn      = safe_data_fn(len),  
     col_visible = False,  
     alignment   = Qt.AlignRight,
     width       = SMALL_COL_WIDTH) 
@@ -292,7 +318,7 @@ ATTR_MODEL_IS_ROUTINE = AttributeModel('is routine',
     col_visible = False,  
     width       = SMALL_COL_WIDTH) 
 
-ATTR_MODEL_PRED = AttributeModel('predicates', 
+ATTR_MODEL_PRED = AttributeModel('inspect predicates', 
     doc         = "Predicates from the inspect module" ,
     data_fn     = tio_predicates, 
     col_visible = False,  
@@ -300,7 +326,7 @@ ATTR_MODEL_PRED = AttributeModel('predicates',
 
 ATTR_MODEL_PRETTY_PRINT = AttributeModel('pretty print', 
     doc         = "Pretty printed representation of the object using the pprint module.", 
-    data_fn     = lambda(tree_item): PRETTY_PRINTER.pformat(tree_item.obj),         
+    data_fn     = lambda(tree_item): _PRETTY_PRINTER.pformat(tree_item.obj),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH) 
         
@@ -414,4 +440,6 @@ DEFAULT_ATTR_DETAILS = (
 assert len(ALL_ATTR_MODELS) == len(set(ALL_ATTR_MODELS))
 assert len(DEFAULT_ATTR_COLS) == len(set(DEFAULT_ATTR_COLS))
 assert len(DEFAULT_ATTR_DETAILS) == len(set(DEFAULT_ATTR_DETAILS))
+
+
 

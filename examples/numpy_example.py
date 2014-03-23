@@ -1,5 +1,5 @@
 """ 
-    Example that demonstrates inspecting a MatPlotLib Figure.
+    Example that demonstrates inspecting a numpy dtype
 """
 from __future__ import print_function
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def main():
     """ Main program to test stand alone 
     """
-    logging_basic_config('DEBUG')
+    logging_basic_config('WARN')
     logger.info('Started example')
 
     #x = np.arange(24).reshape(6, 4)

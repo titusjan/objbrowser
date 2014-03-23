@@ -4,8 +4,8 @@
 from __future__ import print_function
 
 import sys, logging
-from objbrowser import (browse, create_object_browser, execute, 
-                        logging_basic_config, ALL_ATTR_MODELS)
+from objbrowser import (browse, create_object_browser, execute, logging_basic_config)
+from objbrowser.attribute_model import ALL_ATTR_MODELS
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,6 @@ def call_viewer_test():
             @classmethod       
             def class_method(self):
                 pass
-            
         
         old_style_object = OldStyleClass('member_value', 44)    
         new_style_object = NewStyleClass('member_value', -66)    
@@ -78,6 +77,9 @@ def call_viewer_test():
     b = 'seven'
     c = 8j + 3 # complex number
     d = {'4': 44, 's': 11}
+    e = 2.718281828
+    f_large = 7.77e14 # different str and repr?
+    f_avogadro = 6.02214129e23
     ellip = Ellipsis
     my_slice = slice(None, 3, -1)
     n = None
@@ -104,8 +106,8 @@ def call_viewer_test():
                                                 show_routine_attributes = None)
     if 1: 
         _globals_obj_browser = create_object_browser(globals(), name = 'globals()',
-                                                     attr_columns = ALL_ATTR_MODELS, 
-                                                     attr_details = ALL_ATTR_MODELS[1:4])
+                                                     attribute_columns = ALL_ATTR_MODELS, 
+                                                     attribute_details = ALL_ATTR_MODELS[1:4])
     exit_code = execute()
     return exit_code
     

@@ -4,7 +4,7 @@
 # See: http://harmattan-dev.nokia.com/docs/library/html/qt4/itemviews-simpletreemodel.html
 
 from __future__ import absolute_import
-import logging, inspect, types
+import logging, inspect
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt
 from objbrowser.treeitem import TreeItem
