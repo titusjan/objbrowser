@@ -25,12 +25,9 @@ def safe_tio_sqrt(tree_item):
         return ""
     
         
-def main():
-    """ Main program 
+def my_browse(*args, **kwargs):
+    """ Creates and starts an ObjectBrowser with added sqrt columns.
     """
-    logging_basic_config('DEBUG')
-    logger.info('Started example')
-    
     doc_str = "The sqrt of an object if it can be calculated"
     width = 120 # pixels
     
@@ -65,7 +62,7 @@ def main():
 
     # 4) The simplest solution is to use the safe_data_fn function which creates the
     #    wrapped function.
-    sqrt_attr_model_4 = AttributeModel('sqrt 3', 
+    sqrt_attr_model_4 = AttributeModel('sqrt 4', 
         doc         = doc_str, 
         data_fn     = safe_data_fn(sqrt),
         col_visible = True,
@@ -78,22 +75,30 @@ def main():
     attribute_columns.insert(7, sqrt_attr_model_3)
     attribute_columns.insert(8, sqrt_attr_model_4)
     
-    objects = dict(
-        #attribute_columns = attribute_columns,
-        lst = range(-5, 5), 
-        b = True, 
-        i = 555, 
-        f = 6.2, 
-        c = 3.2j - 0.1,
-        m = -4, 
-        n = None,
-        s = '44',
-        z = 'zonk')
-        
-    exit_code = browse(objects,  
-                       attribute_columns = attribute_columns, 
-                       show_routine_attributes=False,
-                       show_special_attributes=False)
+    return browse(*args, attribute_columns = attribute_columns, **kwargs)
+    
+  
+  
+def main():
+    """ Main program 
+    """
+    logging_basic_config('DEBUG')
+    logger.info('Started example')
+
+    # define some local variables
+    lst = range(-5, 5) 
+    b = True
+    i = 555 
+    f = 6.2 
+    c = 3.2j - 0.1
+    m = -4
+    n = None
+    s = '44'
+    z = 'zonk'
+            
+    exit_code = my_browse(locals(),  
+                          show_routine_attributes=False,
+                          show_special_attributes=False)
 
     logging.info('Done example')
     sys.exit(exit_code)
