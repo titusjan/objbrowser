@@ -37,24 +37,15 @@
 """
 from __future__ import absolute_import
 from __future__ import print_function
-import os, logging, traceback
+import logging, traceback
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt
 
+from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, DEBUGGING
 from objbrowser.treemodel import TreeModel
 from objbrowser.attribute_model import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
- 
 
 logger = logging.getLogger(__name__)
-
-DEBUGGING = True
-
-PROGRAM_NAME = 'pyobjbrowser'
-PROGRAM_VERSION = '0.9.2'
-PROGRAM_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
-IMAGE_DIRECTORY = PROGRAM_DIRECTORY + '/images/'
-ABOUT_MESSAGE = u"""%(prog)s version %(version)s
-""" % {"prog": PROGRAM_NAME, "version": PROGRAM_VERSION}
 
         
 # The main window inherits from a Qt class, therefore it has many 
@@ -411,7 +402,6 @@ class ObjectBrowser(QtGui.QMainWindow):
     
     def toggle_callables(self, checked):
         """ Shows/hides the special callable objects.
-            
             Callable objects are functions, methods, etc. They have a __call__ attribute. 
         """
         logger.debug("toggle_callables: {}".format(checked))
@@ -421,8 +411,7 @@ class ObjectBrowser(QtGui.QMainWindow):
 
     def toggle_special_attributes(self, checked):
         """ Shows/hides the special attributes.
-            
-            special attributes are objects that have names that start and end with two underscores.
+            Special attributes are objects that have names that start and end with two underscores.
         """
         logger.debug("toggle_special_attributes: {}".format(checked))
         self._tree_model.setShowSpecialAttributes(checked)
@@ -436,7 +425,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         
     def about(self):
         """ Shows the about message window. """
-        QtGui.QMessageBox.about(self, "About %s" % PROGRAM_NAME, ABOUT_MESSAGE)
+        message = u"{} version {}""".format(PROGRAM_NAME, PROGRAM_VERSION)
+        QtGui.QMessageBox.about(self, "About %s" % PROGRAM_NAME, message)
 
     def close_window(self):
         """ Closes the window """

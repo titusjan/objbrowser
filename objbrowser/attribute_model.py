@@ -42,7 +42,7 @@ class AttributeModel(object):
                  col_visible = True, 
                  width = SMALL_COL_WIDTH,
                  alignment = Qt.AlignLeft, 
-                 line_wrap = QTextOption.WrapAtWordBoundaryOrAnywhere):
+                 line_wrap = QTextOption.NoWrap):
         """
             Constructor
             
@@ -157,7 +157,6 @@ def tio_summary(tree_item):
     else:
         return str(tio)
     
-
     
 def tio_is_attribute(tree_item):
     """ Returns 'True' if the tree item object is an attribute of the parent 
@@ -258,19 +257,26 @@ ATTR_MODEL_SUMMARY = AttributeModel('summary',
     alignment   = Qt.AlignLeft,
     width       = MEDIUM_COL_WIDTH) 
 
+ATTR_MODEL_UNICODE = AttributeModel('unicode', 
+    doc         = "The unicode representation of the object using the unicode() function.",
+    data_fn     = lambda(tree_item): unicode(tree_item.obj),
+    col_visible = True,  
+    width       = MEDIUM_COL_WIDTH, 
+    line_wrap   = QTextOption.WrapAtWordBoundaryOrAnywhere) 
+
 ATTR_MODEL_STR = AttributeModel('str', 
     doc         = "The string representation of the object using the str() function.",
     data_fn     = lambda(tree_item): str(tree_item.obj),
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH, 
-    line_wrap   = QTextOption.NoWrap) 
+    line_wrap   = QTextOption.WrapAtWordBoundaryOrAnywhere) 
  
 ATTR_MODEL_REPR = AttributeModel('repr', 
     doc         = "The string representation of the object using the repr() function.", 
     data_fn     = lambda(tree_item): repr(tree_item.obj),         
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
-    line_wrap   = QTextOption.NoWrap) 
+    line_wrap   = QTextOption.WrapAtWordBoundaryOrAnywhere) 
 
 ATTR_MODEL_TYPE = AttributeModel('type', 
     doc         = "Type of the object determined using the builtin type() function", 
@@ -382,6 +388,7 @@ ALL_ATTR_MODELS = (
     ATTR_MODEL_NAME,
     ATTR_MODEL_PATH, 
     ATTR_MODEL_SUMMARY,
+    ATTR_MODEL_UNICODE, 
     ATTR_MODEL_STR, 
     ATTR_MODEL_REPR,    
     ATTR_MODEL_TYPE, 
@@ -407,6 +414,7 @@ DEFAULT_ATTR_COLS = (
     ATTR_MODEL_NAME,
     ATTR_MODEL_PATH, 
     ATTR_MODEL_SUMMARY,
+    ATTR_MODEL_UNICODE, 
     ATTR_MODEL_STR, 
     ATTR_MODEL_REPR,    
     ATTR_MODEL_LENGTH, 
@@ -422,14 +430,16 @@ DEFAULT_ATTR_COLS = (
     ATTR_MODEL_GET_SOURCE_FILE)
 
 DEFAULT_ATTR_DETAILS = (
-    ATTR_MODEL_SUMMARY,
-    ATTR_MODEL_STR, 
+    ATTR_MODEL_PATH, # to allow for copy/paste  
+    #ATTR_MODEL_SUMMARY, # Too similar to unicode column
+    ATTR_MODEL_UNICODE, 
+    #ATTR_MODEL_STR, # Too similar to unicode column
     ATTR_MODEL_REPR,
     ATTR_MODEL_PRETTY_PRINT,
-    #ATTR_MODEL_DOC_STRING,  # not used, too similar to ATTR_MODEL_GET_DOC
+    #ATTR_MODEL_DOC_STRING, # not used, too similar to ATTR_MODEL_GET_DOC
     ATTR_MODEL_GET_DOC, 
     ATTR_MODEL_GET_COMMENTS, 
-    #ATTR_MODEL_GET_MODULE,       # not used, already in table 
+    #ATTR_MODEL_GET_MODULE, # not used, already in table 
     ATTR_MODEL_GET_FILE,         
     #ATTR_MODEL_GET_SOURCE_FILE,  # not used, already in table 
     #ATTR_MODEL_GET_SOURCE_LINES, # not used, ATTR_MODEL_GET_SOURCE is better

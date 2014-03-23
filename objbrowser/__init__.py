@@ -6,8 +6,8 @@ __all__ = ['browse', 'execute', 'create_object_browser', 'logging_basic_config']
 import sys, os, logging, pprint, inspect
 from PySide import QtCore, QtGui
 
-from objbrowser.objectbrowser import ObjectBrowser, PROGRAM_NAME, PROGRAM_VERSION
-#from objbrowser.attribute_model import ALL_ATTR_MODELS, DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
+from objbrowser.objectbrowser import ObjectBrowser
+from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION
 
 __version__ = PROGRAM_VERSION
 
