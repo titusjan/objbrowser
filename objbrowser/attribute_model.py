@@ -135,7 +135,7 @@ def tio_predicates(tree_item):
     return ", ".join(predicates)
 
 
-def tio_simple_value(tree_item):
+def tio_summary(tree_item):
     """ Returns a small summary of regular objects. 
         For callables and modules an empty string is returned.
     """
@@ -243,7 +243,7 @@ ATTR_MODEL_NAME = AttributeModel('name',
     doc         = "The name of the object.", 
     data_fn     = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
     col_visible = True,  
-    width       = MEDIUM_COL_WIDTH) 
+    width       = SMALL_COL_WIDTH) 
 
 ATTR_MODEL_PATH = AttributeModel('path', 
     doc         = "A path to the data: e.g. var[1]['a'].item", 
@@ -251,9 +251,9 @@ ATTR_MODEL_PATH = AttributeModel('path',
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH) 
 
-ATTR_MODEL_VALUE = AttributeModel('value', 
-    doc         = "The value of the object for atomic objects (int, str, etc)", 
-    data_fn     = tio_simple_value,
+ATTR_MODEL_SUMMARY = AttributeModel('summary', 
+    doc         = "A summary of the object for regular objects (not callables or modules)", 
+    data_fn     = tio_summary,
     col_visible = True,  
     alignment   = Qt.AlignLeft,
     width       = MEDIUM_COL_WIDTH) 
@@ -381,7 +381,7 @@ ATTR_MODEL_GET_SOURCE = AttributeModel('inspect.getsource',
 ALL_ATTR_MODELS = (
     ATTR_MODEL_NAME,
     ATTR_MODEL_PATH, 
-    ATTR_MODEL_VALUE,
+    ATTR_MODEL_SUMMARY,
     ATTR_MODEL_STR, 
     ATTR_MODEL_REPR,    
     ATTR_MODEL_TYPE, 
@@ -406,7 +406,7 @@ ALL_ATTR_MODELS = (
 DEFAULT_ATTR_COLS = (
     ATTR_MODEL_NAME,
     ATTR_MODEL_PATH, 
-    ATTR_MODEL_VALUE,
+    ATTR_MODEL_SUMMARY,
     ATTR_MODEL_STR, 
     ATTR_MODEL_REPR,    
     ATTR_MODEL_LENGTH, 
@@ -422,7 +422,7 @@ DEFAULT_ATTR_COLS = (
     ATTR_MODEL_GET_SOURCE_FILE)
 
 DEFAULT_ATTR_DETAILS = (
-    ATTR_MODEL_VALUE,
+    ATTR_MODEL_SUMMARY,
     ATTR_MODEL_STR, 
     ATTR_MODEL_REPR,
     ATTR_MODEL_PRETTY_PRINT,
