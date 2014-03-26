@@ -43,20 +43,19 @@ def my_browse(*args, **kwargs):
         alignment   = Qt.AlignRight) 
 
     # 2) Example 1 above displays an error message in the cell in case of an exception.
-    #    To prevent this you can wrap the function in another function that returns an 
-    #    empty string in case of an exception.
+    #    To prevent this, you can use the safe_tio_call that that returns an empty  
+    #    string in case of an exception.
     sqrt_attr_model_2 = AttributeModel('sqrt 2', 
         doc         = doc_str, 
-        data_fn     = safe_tio_sqrt,
+        data_fn     = lambda(tree_item): safe_tio_call(sqrt, tree_item),
         col_visible = True,
         width       = width,   
         alignment   = Qt.AlignRight) 
-
-    # 3) The save_tio_call function does the wrapping for you but you still need to use
-    #    a lambda expression.
+    
+    # 3) Of course you can also write a wrapper function yourself.
     sqrt_attr_model_3 = AttributeModel('sqrt 3', 
         doc         = doc_str, 
-        data_fn     = lambda(tree_item): safe_tio_call(sqrt, tree_item),
+        data_fn     = safe_tio_sqrt,
         col_visible = True,
         width       = width,   
         alignment   = Qt.AlignRight) 
