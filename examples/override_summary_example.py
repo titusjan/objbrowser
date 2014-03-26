@@ -3,7 +3,7 @@
 """
 from __future__ import print_function
 
-import sys, logging
+import sys, logging, copy
 from objbrowser import browse, logging_basic_config
 from objbrowser.attribute_model import DEFAULT_ATTR_COLS, tio_summary
 
@@ -21,7 +21,7 @@ class MyPoint(object):
     def __repr__(self):
         """ String representation
         """
-        return "<MyPoint: x = {:d}, y = {:d}>".format(self.x, self.y)
+        return "<MyPoint: x = {}, y = {}>".format(self.x, self.y)
 
 
 def my_summary(tree_item):
@@ -38,7 +38,7 @@ def my_summary(tree_item):
 def my_browse(*args, **kwargs):
     """ Creates and starts an ObjectBrowser with modified summary column.
     """
-    attribute_columns = list(DEFAULT_ATTR_COLS)
+    attribute_columns = copy.deepcopy(DEFAULT_ATTR_COLS)
     summary_column = [col for col in attribute_columns if col.name == 'summary'][0]
     summary_column.data_fn = my_summary
     return browse(*args, attribute_columns = attribute_columns, **kwargs)
