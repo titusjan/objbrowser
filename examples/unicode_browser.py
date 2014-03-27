@@ -29,8 +29,7 @@ bidirectional: {}
 combining: {}
 east_asian_width: {}
 mirrored: {}
-decomposition: {}
-"""
+decomposition: {}"""
 
 
 def overview(tree_item):
@@ -85,7 +84,6 @@ def my_browse(*args, **kwargs):
         col_visible = visible,
         width       = width)
     
-    # TODO: attribute details.
     return browse(*args, 
                   attribute_columns = attribute_columns,
                   attribute_details = [overview_model], 
@@ -101,7 +99,8 @@ def main():
 
     logger.debug('Generating unicode map')
     unicode_chars = {}
-    for i in xrange(2**16):
+    
+    for i in xrange(0x10000):
         unicode_chars[i] = unichr(i)
     
     logger.debug('Starting browser')
