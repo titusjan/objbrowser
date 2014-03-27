@@ -62,7 +62,8 @@ class ObjectBrowser(QtGui.QMainWindow):
                  attribute_columns = DEFAULT_ATTR_COLS,  
                  attribute_details = DEFAULT_ATTR_DETAILS,  
                  show_routine_attributes = None,
-                 show_special_attributes = None):
+                 show_special_attributes = None, 
+                 reset = False):
         """ Constructor
         
             :param obj: any Python object or variable
@@ -75,7 +76,8 @@ class ObjectBrowser(QtGui.QMainWindow):
                 columns are both True, are displayed. Otherwise they are hidden. 
             :param show_special_attributes: if True rows where the 'is attribute' is True and
                 the object name starts and ends with two underscores, are displayed. Otherwise 
-                they are hidden. 
+                they are hidden.
+            :param reset: If true the persistent settings, such as column widths, are reset. 
         """
         super(ObjectBrowser, self).__init__()
 
@@ -102,7 +104,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         app = QtGui.QApplication.instance()
         app.lastWindowClosed.connect(app.quit) 
 
-        self._readViewSettings()
+        self._readViewSettings(reset = reset)
         
         # Update views with model
         self.toggle_special_attribute_action.setChecked(show_special_attributes)
