@@ -10,7 +10,6 @@
 from __future__ import print_function
 
 import sys, logging, copy, unicodedata
-from codecs import encode
 from objbrowser import browse, logging_basic_config
 from objbrowser.attribute_model import (AttributeModel, safe_data_fn, 
                                         ATTR_MODEL_NAME, ATTR_MODEL_UNICODE, ATTR_MODEL_REPR)
@@ -19,6 +18,36 @@ logger = logging.getLogger(__name__)
 
 SMALL_COL_WIDTH = 80
 MEDIUM_COL_WIDTH = 200
+
+TEMPLATE = u"""{}
+
+glyph: {}
+digit: {}
+numeric: {}
+category: {}
+bidirectional: {}
+combining: {}
+east_asian_width: {}
+mirrored: {}
+decomposition: {}
+"""
+
+
+def overview(tree_item):
+    """ Returns an overview of the character
+    """
+    char = tree_item.obj
+    return TEMPLATE.format(unicodedata.name(char, '<NO NAME AVAILABLE>'), 
+                           char, 
+                           unicodedata.decimal(char, ''),
+                           unicodedata.digit(char, ''),
+                           unicodedata.numeric(char, ''),
+                           unicodedata.category(char),
+                           unicodedata.bidirectional(char),
+                           unicodedata.combining(char),
+                           unicodedata.east_asian_width(char),
+                           unicodedata.mirrored(char),
+                           unicodedata.decomposition(char))                          
 
         
 def my_browse(*args, **kwargs):
@@ -50,9 +79,16 @@ def my_browse(*args, **kwargs):
         
         attribute_columns.append(attr_model) 
     
+    overview_model = AttributeModel("Overview", 
+        doc         = "Character overview", 
+        data_fn     = overview,
+        col_visible = visible,
+        width       = width)
+    
     # TODO: attribute details.
     return browse(*args, 
                   attribute_columns = attribute_columns,
+                  attribute_details = [overview_model], 
                   **kwargs)
     
   
