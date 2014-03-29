@@ -120,7 +120,7 @@ def call_viewer_test():
     _locals_obj_browser = create_object_browser(locals(), # without obj_name
                                                 show_special_attributes = None, 
                                                 show_routine_attributes = None)
-    if 1: 
+    if 0: 
         _globals_obj_browser = create_object_browser(globals(), name = 'globals()',
                                                      attribute_columns = ALL_ATTR_MODELS, 
                                                      attribute_details = ALL_ATTR_MODELS[1:4])

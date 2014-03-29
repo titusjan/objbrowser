@@ -1,17 +1,11 @@
 """ 
-    Program that shows the local Python environment using the inspect module
-    
+    Object browser GUI in Qt
     
     #####################
     # TODO: version 1.0 #
     #####################
     
     # use safe_tio_call
-    # Numpy array shape in value column.
-    # Datetime objects in value column.
-    
-    # Examples:
-     - Qt
     
     # Installing
      - rename attribute_model.py to attributemodel.py
@@ -31,6 +25,8 @@
     # hide non-attributes' attributes? That is, list's and dict's attributes are hidden.
     # tool-tips
     # TODO: python 3
+    # Examples:
+     - Qt
    
     Changes:
        # removed show_root_node parameter. Is implicit by testing obj_name == None

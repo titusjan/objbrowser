@@ -65,7 +65,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.special_attribute_font.setItalic(True)
         
         self.regular_color = QtGui.QBrush(QtGui.QColor('black'))    
-        self.routine_color = QtGui.QBrush(QtGui.QColor('brown'))  # for functions, methods, etc.
+        #self.routine_color = QtGui.QBrush(QtGui.QColor('brown'))  # for functions, methods, etc.
+        self.routine_color = QtGui.QBrush(QtGui.QColor('mediumblue'))  # for functions, methods, etc.
 
 
     def columnCount(self, _parent):
