@@ -6,7 +6,7 @@ Python object browser implemented in Qt.
 Shows an object in a tree view so that you can examine its attributes
 recursively (e.g. browse through a list of dictionaries).
 
-From the _View_ menu you can select some extra columns, such as the 
+From the _View_ menu you can select some extra columns, for instance the 
 _object ID_ column.
 
 The details pane at the bottom shows object properties that do not fit
@@ -27,48 +27,58 @@ of the _inspect_ module from the Python standard library.
 	
 #### Usage examples:
 	
-To examine a dictionary (or any other Python object).
+To examine a dictionary (or any other Python object):
 
-	from objbrowser import browse
-	d = {'hello': 'hallo', 'world': 'wereld'} 
-	browse(d, obj_name='d')
+```Python
+from objbrowser import browse
+d = {'hello': 'hallo', 'world': 'wereld'} 
+browse(d, obj_name='d')
+```
 
 If you omit the `obj_name` parameter, the path column will not 
 start with the object name but with the item names. 
  
-To pause program execution and examine all local variables.
+To pause program execution and examine all local variables:
  
-	from objbrowser import browse
-	from datetime import datetime
-	
-	def my_fun():
-	    now = datetime.utcnow()
-	    browse(locals())
-	
-	my_fun()
-		
-To open two object browser windows simultaneously.
+```Python
+from objbrowser import browse
+from datetime import datetime
 
-	from objbrowser import create_object_browser, execute
-	loc_browser = create_object_browser(locals(), obj_name = 'locals()')
-	glb_browser = create_object_browser(globals(), obj_name = 'globals()')
-	execute()
+def my_fun():
+    now = datetime.utcnow()
+    browse(locals())
+
+my_fun()
+```
+
+To open two object browser windows simultaneously:
+
+```Python
+from objbrowser import create_object_browser, execute
+
+# Make sure to keep the (loc_browser and glb_browser) references until
+# execute() has finished. Otherwise the windows will be garbage-collected.
+loc_browser = create_object_browser(locals(), obj_name = 'locals()')
+glb_browser = create_object_browser(globals(), obj_name = 'globals()')
+execute()
+```
 
 If the `show_special_methods` parameter is False, the objects special methods, 
 i.e. methods with a name that starts and ends with two underscores, will be hidden.
 
-If the show_root_node parameter is False (the default), the attributes of the object
+If the `show_root_node` parameter is False (the default), the attributes of the object
 will be placed as top level items in the tree. Otherwise, the a single node with of
 the object will be the top level item.
 
 If the `width` and `height` parameters are given, the window will be resized. 
 
-	from objbrowser import browse
+```Python
+from objbrowser import browse
 
-	browse(range(0, 10), obj_name='list', 
-    	   show_special_methods = False,
-    	   show_root_node = True, 
-       	   width = 1000, height = 600) 
-       
+browse(range(0, 10), obj_name='list', 
+       show_special_methods = False,
+       show_root_node = True, 
+       width = 1000, height = 600) 
+```       
 
 		
