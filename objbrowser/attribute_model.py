@@ -7,9 +7,7 @@ __all__ = ['browse', 'execute', 'create_object_browser', 'logging_basic_config']
 from PySide.QtCore import Qt
 from PySide.QtGui import QTextOption
 
-import logging, inspect, string, pprint, numbers
-from types import (NoneType, BooleanType, EllipsisType, SliceType)
-
+import logging, inspect, string, pprint
 
 try:
     import numpy as np
@@ -183,56 +181,6 @@ def tio_doc_str(tree_item):
     except AttributeError:
         return '<no doc string found>'
           
-                    
-def tio_get_file_name(tree_item):
-    """ Returns the file name that defines an object
-    """
-    tio = tree_item.obj
-    try:
-        return inspect.getfile(tio)
-    except TypeError:
-        return ''
-               
-                    
-def tio_get_module_name(tree_item):
-    """ Returns the module name that defines an object
-    """
-    tio = tree_item.obj
-    module = inspect.getmodule(tio)
-    if module:
-        return module.__name__
-    else:
-        return ''
-
-        
-def tio_get_source_file_name(tree_item):
-    """ Returns the Python source file name that defines an object
-    """
-    tio = tree_item.obj
-    try:
-        return inspect.getsourcefile(tio)
-    except TypeError:
-        return ''                
-
-        
-def tio_get_source_lines(tree_item):
-    """ Returns the string representation of a list of source code lines of an object 
-    """
-    tio = tree_item.obj
-    try:
-        return repr(inspect.getsourcelines(tio))
-    except TypeError:
-        return ''        
-
-    
-def tio_get_source(tree_item):
-    """ Returns source code of an object 
-    """
-    tio = tree_item.obj
-    try:
-        return inspect.getsource(tio)
-    except TypeError:
-        return ''
 
 #######################
 # Column definitions ##
@@ -343,7 +291,7 @@ ATTR_MODEL_DOC_STRING = AttributeModel('doc string',
         
 ATTR_MODEL_GET_DOC = AttributeModel('inspect.getdoc', 
     doc         = "The object's doc string cleaned up by inspect.getdoc()", 
-    data_fn     = lambda(tree_item): inspect.getdoc(tree_item.obj),         
+    data_fn     = safe_data_fn(inspect.getdoc),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH)
         
@@ -355,31 +303,31 @@ ATTR_MODEL_GET_COMMENTS = AttributeModel('inspect.getcomments',
         
 ATTR_MODEL_GET_MODULE = AttributeModel('inspect.getmodule', 
     doc         = "The object's module retrieved using inspect.module", 
-    data_fn     = tio_get_module_name,         
+    data_fn     = safe_data_fn(inspect.getmodule),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH) 
         
 ATTR_MODEL_GET_FILE = AttributeModel('inspect.getfile', 
     doc         = "The object's file retrieved using inspect.getfile", 
-    data_fn     = tio_get_file_name,         
+    data_fn     = safe_data_fn(inspect.getfile),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH)
         
 ATTR_MODEL_GET_SOURCE_FILE = AttributeModel('inspect.getsourcefile', # calls inspect.getfile()
     doc         = "The object's file retrieved using inspect.getsourcefile", 
-    data_fn     = tio_get_source_file_name,         
+    data_fn     = safe_data_fn(inspect.getsourcefile),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH)
         
 ATTR_MODEL_GET_SOURCE_LINES = AttributeModel('inspect.getsourcelines', 
     doc         = "Uses inspect.getsourcelines() to get a list of source lines for the object", 
-    data_fn     = tio_get_source_lines,         
+    data_fn     = safe_data_fn(inspect.getsourcelines),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH)
         
 ATTR_MODEL_GET_SOURCE = AttributeModel('inspect.getsource', 
     doc         = "The source code of an object retrieved using inspect.getsource", 
-    data_fn     = tio_get_source,         
+    data_fn     = safe_data_fn(inspect.getsource),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH) 
         
