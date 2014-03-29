@@ -5,8 +5,6 @@
     # TODO: version 1.0 #
     #####################
     
-    # use safe_tio_call
-    
     # Installing
      - rename attribute_model.py to attributemodel.py
      - Pylint (google Pyside and Pylint)
@@ -20,11 +18,10 @@
     # TODO: version 1.x #
     #####################
     
-    # Test all possible python object (from reference book)
     # Ordered dict don't sort keys 
     # hide non-attributes' attributes? That is, list's and dict's attributes are hidden.
     # tool-tips
-    # TODO: python 3
+    # python 3
     # Examples:
      - Qt
    
