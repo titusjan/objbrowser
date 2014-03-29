@@ -80,9 +80,7 @@ def my_browse(*args, **kwargs):
     
     overview_model = AttributeModel("Overview", 
         doc         = "Character overview", 
-        data_fn     = overview,
-        col_visible = visible,
-        width       = width)
+        data_fn     = overview)
     
     return browse(*args, 
                   attribute_columns = attribute_columns,
