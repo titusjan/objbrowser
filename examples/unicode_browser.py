@@ -107,7 +107,7 @@ def main():
     exit_code = my_browse(unicode_chars,  
                           show_routine_attributes=False,
                           show_special_attributes=False, 
-                          reset = False) # use to reset persistent settings
+                          reset = False) # use True to reset persistent settings
 
     logging.info('Done example')
     sys.exit(exit_code)
