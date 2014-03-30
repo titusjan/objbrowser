@@ -22,5 +22,5 @@ setup(name = 'objbrowser',
         'Topic :: Software Development',
         'Topic :: Utilities'],    
     packages = ['objbrowser'],
-    install_requires = ['PySide (>=1.1.2)'])
+    install_requires = ['PySide >= 1.1.2'])
 
