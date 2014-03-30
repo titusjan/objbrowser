@@ -16,6 +16,9 @@ Version 1.0.0 - 2014-03-30
 
         (none)
     
+    License:
+    
+    *	Using GPL version 3 (was version 2)
 
 2013-08-11: version 0.9.0
 
