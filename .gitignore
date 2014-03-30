@@ -2,3 +2,5 @@
 .project
 .settings
 build
+MANIFEST
+dist/objbrowser-0.9.3.tar.gz
