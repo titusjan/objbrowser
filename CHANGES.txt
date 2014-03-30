@@ -10,7 +10,7 @@ Version 1.0.0 - 2014-03-30
     *   Routines displayed in blue.
     *   __special__ attributes are displayed in italics.
     *   Alternate colors in the table.
-    *   Persistent window setttings.
+    *   Persistent window settings.
      
     Bug fixes:
 
