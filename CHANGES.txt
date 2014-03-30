@@ -1,0 +1,22 @@
+Version 1.0.0 - 2014-03-30
+
+    User visible changes:
+    
+    *   More sensible parameters for the browse() function.
+    *   Made objbrowser extensible; it is possible to define your own columns.
+    *   Added examples that show how to extend objbrowser.
+    *   Added 'unicode' column. 
+    *   Replaced 'value' column by a 'summary' column.
+    *   Routines displayed in blue.
+    *   __special__ attributes are displayed in italics.
+    *   Alternate colors in the table.
+    *   Persistent window setttings.
+     
+    Bug fixes:
+
+        (none)
+    
+
+2013-08-11: version 0.9.0
+
+    First upload to Github.
