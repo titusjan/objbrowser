@@ -6,16 +6,6 @@ Python object browser implemented in Qt.
 Shows an object in a tree view so that you can examine its attributes
 recursively (e.g. browse through a list of dictionaries).
 
-From the _View_ menu you can select some extra columns, for instance the 
-objects' _id_ column.
-
-The details pane at the bottom shows object properties that do not fit
-on one line, such as the docstrings and the output of various functions 
-of the `inspect` module from the Python standard library.
-
-
-![objbrowser screen shot](screen_shot.png)
-
 #### Installation:
 
 1.	Install PySide:
@@ -24,10 +14,32 @@ of the `inspect` module from the Python standard library.
 2.	Run the installer:
 
 		%> pip install objbrowser
+		
+
+#### User interface:
+
+![objbrowser screen shot](screen_shot.png)
+
+
+From the _View_ menu you can select some extra columns, for instance the 
+objects' _id_ column. This can also be done by right-clicking on the table
+header.
+
+If the _Show routine attributes_ from the _View_ menu is checked, 
+functions and methods that are attributes of the object are shown, 
+otherwise they are hidden. Routines that are not an object attribute, for
+instance functions that are an element in a list, are always displayed.
+
+If the _Show special attributes_ from the _View_ menu is checked,
+attributes whos name start and end with two underscores are displayed.
+
+The details pane at the bottom shows object properties that do not fit
+on one line, such as the docstrings and the output of various functions 
+of the `inspect` module from the Python standard library.
+
+
 	
 #### Usage examples:
-
-Some complete examples can be found in the [examples directory](examples)
 
 The first parameter is the object to be inspected. For example you can 
 examine the dictionary with the local variables:
@@ -59,6 +71,8 @@ browse({'s1': s1, 's2': s2},
         reset = True)
 ```
 
+Some complete examples can be found in the [examples directory](examples). E.g.:
 
-
-		
+* [Define your own column](examples/simple_add_column.py)
+* [Override the summary column](examples/override_summary.py)
+* [Show two browser windows simultaneously](examples/modules.py)
