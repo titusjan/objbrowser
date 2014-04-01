@@ -7,11 +7,11 @@ Shows an object in a tree view so that you can examine its attributes
 recursively (e.g. browse through a list of dictionaries).
 
 From the _View_ menu you can select some extra columns, for instance the 
-_object ID_ column.
+objects' _id_ column.
 
 The details pane at the bottom shows object properties that do not fit
 on one line, such as the docstrings and the output of various functions 
-of the _inspect_ module from the Python standard library.
+of the `inspect` module from the Python standard library.
 
 
 ![objbrowser screen shot](screen_shot.png)
@@ -23,62 +23,42 @@ of the _inspect_ module from the Python standard library.
 	
 2.	Run the installer:
 
-		%> sudo python setup.py install
+		%> pip install objbrowser
 	
 #### Usage examples:
-	
-To examine a dictionary (or any other Python object):
+
+Some complete examples can be found in the [examples directory](examples)
+
+The first parameter is the object to be inspected. For example you can 
+examine the dictionary with the local variables:
 
 ```Python
 from objbrowser import browse
-d = {'hello': 'hallo', 'world': 'wereld'} 
-browse(d, obj_name='d')
+a = 67; pi = 3.1415 
+browse(locals())
 ```
 
-If you omit the `obj_name` parameter, the path column will not 
-start with the object name but with the item names. 
- 
-To pause program execution and examine all local variables:
- 
+The second parameter can be the name of the object. In that case the object
+itself will be displayed in the root node.
+
 ```Python
-from objbrowser import browse
-from datetime import datetime
-
-def my_fun():
-    now = datetime.utcnow()
-    browse(locals())
-
-my_fun()
+browse(locals(), 'locals()')
 ```
 
-To open two object browser windows simultaneously:
+By setting the `show_routine_attributes` and/or the `show_special_attributes` 
+parameters you can override the settings from the _View_ menu. The `reset`
+parameter resets the persistent window settings (e.g. size and position)
 
 ```Python
-from objbrowser import create_object_browser, execute
+s1 = 'Hello'
+s2 = 'World'
 
-# Make sure to keep the (loc_browser and glb_browser) references until
-# execute() has finished. Otherwise the windows will be garbage-collected.
-loc_browser = create_object_browser(locals(), obj_name = 'locals()')
-glb_browser = create_object_browser(globals(), obj_name = 'globals()')
-execute()
+browse({'s1': s1, 's2': s2}, 
+        show_routine_attributes = True,
+        show_special_attributes = False, 
+        reset = True)
 ```
 
-If the `show_special_methods` parameter is False, the objects special methods, 
-i.e. methods with a name that starts and ends with two underscores, will be hidden.
 
-If the `show_root_node` parameter is False (the default), the attributes of the object
-will be placed as top level items in the tree. Otherwise, the a single node with of
-the object will be the top level item.
-
-If the `width` and `height` parameters are given, the window will be resized. 
-
-```Python
-from objbrowser import browse
-
-browse(range(0, 10), obj_name='list', 
-       show_special_methods = False,
-       show_root_node = True, 
-       width = 1000, height = 600) 
-```       
 
 		
