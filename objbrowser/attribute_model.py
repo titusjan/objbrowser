@@ -140,7 +140,7 @@ def tio_summary(tree_item):
     tio = tree_item.obj
     if isinstance(tio, basestring):
         return tio
-    elif isinstance(tio, (list, tuple, set)):  
+    elif isinstance(tio, (list, tuple, set, frozenset, dict)):  
         n_items = len(tio)
         if n_items == 0:
             return "empty {}".format(type(tio).__name__)
