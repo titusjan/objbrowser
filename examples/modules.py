@@ -1,5 +1,7 @@
 """ 
    Example that demonstrates inspecting module contents.
+   
+   Also demonstrates starting two browser windows simultaneously.
 """
 from __future__ import print_function
 
@@ -12,6 +14,9 @@ def call_errno_test():
     """ Test procedure. 
     """
     import errno, __builtin__
+    
+    # Keep the _module_browser and _builtin_browser references, 
+    # otherwise the windows will be garbage collected.
     _module_browser = create_object_browser(errno, 'errno')
     _builtin_browser = create_object_browser(__builtin__, '__builtin__')
     exit_code = execute()

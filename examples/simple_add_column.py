@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
    
 def my_browse(*args, **kwargs):
-    """ Creates and starts an ObjectBrowser with added sqrt columns.
+    """ Creates and starts an ObjectBrowser with added sqrt column.
     """
     sqrt_attr_model = AttributeModel('sqrt', 
         doc         = "The sqrt of an object if it can be calculated", 

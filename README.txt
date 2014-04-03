@@ -4,7 +4,7 @@ objbrowser
 
 Python object browser implemented in Qt.
 
-Shows an object in a tree view so that you can examine its attributes
+Shows an object in a tree view so that you can inspect its attributes
 recursively (e.g. browse through a list of dictionaries).
 
 From the *View* menu you can select some extra columns, for instance the 
