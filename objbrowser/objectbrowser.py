@@ -17,16 +17,13 @@
     #####################
     # TODO: version 1.x #
     #####################
-    
-    # Ordered dict don't sort keys 
+    # Ordered dict should not sort keys 
     # hide non-attributes' attributes? That is, list's and dict's attributes are hidden.
     # tool-tips
     # python 3
     # Examples:
      - Qt
-   
-    Changes:
-       # removed show_root_node parameter. Is implicit by testing obj_name == None
+
 """
 from __future__ import absolute_import
 from __future__ import print_function
@@ -34,7 +31,7 @@ import logging, traceback
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt
 
-from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, DEBUGGING
+from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from objbrowser.treemodel import TreeModel
 from objbrowser.attribute_model import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
 
@@ -44,6 +41,10 @@ logger = logging.getLogger(__name__)
 # The main window inherits from a Qt class, therefore it has many 
 # ancestors public methods and attributes.
 # pylint: disable=R0901, R0902, R0904, W0201 
+
+# It's not possible to use locals() as default for obj by taking take the locals
+# from one stack frame higher; you can't know if the ObjectBrowser.__init__ was
+# called directly, via the browse() wrapper or via a descendants' constructor.
 
 class ObjectBrowser(QtGui.QMainWindow):
     """ Object browser main application window.
@@ -189,6 +190,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Stretch last column? 
         # It doesn't play nice when columns are hidden and then shown again.
         obj_tree_header = self.obj_tree.header()
+        obj_tree_header.setMovable(True)
         obj_tree_header.setStretchLastSection(False)
         #obj_tree_header.setResizeMode(0, QtGui.QHeaderView.Stretch) # doesn't work smoothly
         obj_tree_header.setContextMenuPolicy(Qt.ActionsContextMenu)
@@ -254,6 +256,18 @@ class ObjectBrowser(QtGui.QMainWindow):
 
     # End of setup_methods
     
+    
+    def _settings_group_name(self, prefix):
+        """ The persistent settings are stored per combination of column names
+            and windows instance number.
+        """
+        column_names = ",".join([col.name for col in self._attr_cols])
+        settings_str = column_names + str(self._instance_nr)
+        settings_grp = "{}_{}".format(prefix, hex(hash(settings_str)))
+        logger.debug("  settings group is: {!r}".format(settings_grp))
+        return settings_grp
+    
+                
     def _readModelSettings(self, 
                            show_routine_attributes = None,
                            show_special_attributes = None):
@@ -262,7 +276,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         logger.debug("Reading model settings for window: {:d}".format(self._instance_nr))
         
         settings = QtCore.QSettings()
-        settings.beginGroup("model_{:d}".format(self._instance_nr))
+        settings.beginGroup(self._settings_group_name('model'))
         if show_routine_attributes is None:
             show_routine_attributes = settings.value("show_routine_attributes", True)
         if show_special_attributes is None:
@@ -277,40 +291,48 @@ class ObjectBrowser(QtGui.QMainWindow):
         logger.debug("Writing model settings for window: {:d}".format(self._instance_nr))
         
         settings = QtCore.QSettings()
-        settings.beginGroup("model_{:d}".format(self._instance_nr))
+        settings.beginGroup(self._settings_group_name('model'))
         settings.setValue("show_routine_attributes", self._tree_model.getShowCallables())
         settings.setValue("show_special_attributes", self._tree_model.getShowSpecialAttributes())
         settings.endGroup()
-            
-            
+        
+    
     def _readViewSettings(self, reset=False):
         """ Reads the persistent program settings
         
             :param reset: If True, the program resets to its default settings
         """ 
-        logger.debug("Reading view settings for window: {:d}".format(self._instance_nr))
-        
         pos = QtCore.QPoint(20 * self._instance_nr, 20 * self._instance_nr)
         window_size = QtCore.QSize(1024, 700)
         details_button_idx = 0
-        column_sizes = [col.width for col in self._attr_cols]
-        column_visible = [col.col_visible for col in self._attr_cols]
         
-        if not reset:
+        header = self.obj_tree.header()
+        header_restored = False
+        
+        if reset:
+            logger.debug("Resetting persistent settings")
+        else:
+            logger.debug("Reading view settings for window: {:d}".format(self._instance_nr))
             settings = QtCore.QSettings()
-            settings.beginGroup("view_{:d}".format(self._instance_nr))
+            settings.beginGroup(self._settings_group_name('view'))
             pos = settings.value("main_window/pos", pos)
             window_size = settings.value("main_window/size", window_size)
             details_button_idx = settings.value("details_button_idx", details_button_idx)
             self.central_splitter.restoreState(settings.value("central_splitter/state"))
+            header_restored = header.restoreState(settings.value('table/header_state')) 
             
-            for idx, attr_col in enumerate(self._attr_cols):
-                key = "table_col/{}/width".format(attr_col.settings_name)
-                column_sizes[idx] = settings.value(key, column_sizes[idx])
-                key = "table_col/{}/col_visible".format(attr_col.settings_name)
-                column_visible[idx] = settings.value(key, column_visible[idx])
-                
             settings.endGroup()
+
+        if not header_restored:
+            column_sizes = [col.width for col in self._attr_cols]
+            column_visible = [col.col_visible for col in self._attr_cols]
+        
+            for idx, size in enumerate(column_sizes):
+                if size > 0: # Just in case 
+                    header.resizeSection(idx, size)
+    
+            for idx, visible in enumerate(column_visible):
+                self.toggle_column_actions_group.actions()[idx].setChecked(visible)  
             
         self.resize(window_size)
         self.move(pos)
@@ -318,13 +340,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         if button is not None:
             button.setChecked(True)
 
-        header = self.obj_tree.header()
-        for idx, size in enumerate(column_sizes):
-            if size > 0: # Just in case 
-                header.resizeSection(idx, size)
-
-        for idx, visible in enumerate(column_visible):
-            self.toggle_column_actions_group.actions()[idx].setChecked(visible)                
 
 
     def _writeViewSettings(self):
@@ -333,22 +348,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         logger.debug("Writing view settings for window: {:d}".format(self._instance_nr))
         
         settings = QtCore.QSettings()
-        settings.beginGroup("view_{:d}".format(self._instance_nr))
-        
-        # We cannot use QHeaderView.restoreState or QSettings.beginReadArray because the
-        # header does not always contain the same columns, so we store the by name.
-        header = self.obj_tree.header()
-        for idx in range(header.count()):
-            key = "table_col/{}/col_visible".format(self._attr_cols[idx].settings_name)
-            visible = not header.isSectionHidden(idx)
-            settings.setValue(key, visible)
-            if visible: # only save col_visible columns.
-                column_size = header.sectionSize(idx)
-                assert (column_size > 0), "Sanity check: column_size: {}".format(column_size) 
-                key = "table_col/{}/width".format(self._attr_cols[idx].settings_name)
-                settings.setValue(key, column_size)
-                
-            
+        settings.beginGroup(self._settings_group_name('view'))
+        settings.setValue("table/header_state", self.obj_tree.header().saveState())
         settings.setValue("central_splitter/state", self.central_splitter.saveState())
         settings.setValue("details_button_idx", self.button_group.checkedId())
         settings.setValue("main_window/pos", self.pos())
@@ -420,8 +421,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         
     def about(self):
         """ Shows the about message window. """
-        message = u"{} version {}""".format(PROGRAM_NAME, PROGRAM_VERSION)
-        QtGui.QMessageBox.about(self, "About %s" % PROGRAM_NAME, message)
+        message = u"{} version {}\n\n{}""".format(PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL)
+        QtGui.QMessageBox.about(self, "About {}".format(PROGRAM_NAME), message)
 
     def close_window(self):
         """ Closes the window """
