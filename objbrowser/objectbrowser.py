@@ -33,6 +33,7 @@ from PySide.QtCore import Qt
 
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from objbrowser.treemodel import TreeModel
+from objbrowser.toggle_column_mixin import ToggleColumnTreeView
 from objbrowser.attribute_model import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
 
 logger = logging.getLogger(__name__)
@@ -118,23 +119,6 @@ class ObjectBrowser(QtGui.QMainWindow):
     def _setup_actions(self):
         """ Creates the main window actions.
         """
-        # Show/hide table column actions
-        self.toggle_column_actions_group = QtGui.QActionGroup(self)
-        self.toggle_column_actions_group.setExclusive(False)
-        
-        self.__toggle_functions = []  # for keeping references
-        for col_idx, attr_col in enumerate(self._attr_cols):
-            action = QtGui.QAction("Show {} column".format(attr_col.name), 
-                                   self.toggle_column_actions_group, checkable=True, checked=True,
-                                   statusTip = "Shows or hides the {} column".format(attr_col.name))
-                
-            if col_idx >= 0 and col_idx <= 9:
-                action.setShortcut("Ctrl+{:d}".format(col_idx))
-                
-            func = self._make_show_column_function(col_idx) 
-            self.__toggle_functions.append(func) # keep reference
-            assert action.toggled.connect(func)
-            
         # Show/hide callable objects
         self.toggle_callable_action = \
             QtGui.QAction("Show routine attributes", self, checkable=True, 
@@ -159,9 +143,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             file_menu.addAction("&Test", self.my_test, "Ctrl+T")
         
         view_menu = self.menuBar().addMenu("&View")
-        show_cols_submenu = view_menu.addMenu("Table columns")
-        for action in self.toggle_column_actions_group.actions():
-            show_cols_submenu.addAction(action)
+        self.show_cols_submenu = view_menu.addMenu("Table columns")
         view_menu.addSeparator()
         view_menu.addAction(self.toggle_callable_action)
         view_menu.addAction(self.toggle_special_attribute_action)
@@ -180,22 +162,21 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.central_splitter.setLayout(central_layout)
         
         # Tree widget
-        self.obj_tree = QtGui.QTreeView()
+        self.obj_tree = ToggleColumnTreeView()
         self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._tree_model)
         self.obj_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
         self.obj_tree.setAnimated(True)
+        self.obj_tree.add_header_context_menu()
         
         # Stretch last column? 
         # It doesn't play nice when columns are hidden and then shown again.
         obj_tree_header = self.obj_tree.header()
         obj_tree_header.setMovable(True)
         obj_tree_header.setStretchLastSection(False)
-        #obj_tree_header.setResizeMode(0, QtGui.QHeaderView.Stretch) # doesn't work smoothly
-        obj_tree_header.setContextMenuPolicy(Qt.ActionsContextMenu)
-        for action in self.toggle_column_actions_group.actions():
-            obj_tree_header.addAction(action)
+        for action in self.obj_tree.toggle_column_actions_group.actions():
+            self.show_cols_submenu.addAction(action)
 
         central_layout.addWidget(self.obj_tree)
 
@@ -319,8 +300,9 @@ class ObjectBrowser(QtGui.QMainWindow):
             window_size = settings.value("main_window/size", window_size)
             details_button_idx = settings.value("details_button_idx", details_button_idx)
             self.central_splitter.restoreState(settings.value("central_splitter/state"))
-            header_restored = header.restoreState(settings.value('table/header_state')) 
-            
+            #header_restored = header.restoreState(settings.value('table/header_state')) 
+            header_restored = self.obj_tree.read_view_settings('table/header_state', 
+                                                               settings, reset) 
             settings.endGroup()
 
         if not header_restored:
@@ -332,7 +314,7 @@ class ObjectBrowser(QtGui.QMainWindow):
                     header.resizeSection(idx, size)
     
             for idx, visible in enumerate(column_visible):
-                self.toggle_column_actions_group.actions()[idx].setChecked(visible)  
+                self.obj_tree.toggle_column_actions_group.actions()[idx].setChecked(visible)  
             
         self.resize(window_size)
         self.move(pos)
@@ -349,7 +331,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         settings = QtCore.QSettings()
         settings.beginGroup(self._settings_group_name('view'))
-        settings.setValue("table/header_state", self.obj_tree.header().saveState())
+        #settings.setValue("table/header_state", self.obj_tree.header().saveState())
+        self.obj_tree.write_view_settings("table/header_state", settings)
         settings.setValue("central_splitter/state", self.central_splitter.saveState())
         settings.setValue("details_button_idx", self.button_group.checkedId())
         settings.setValue("main_window/pos", self.pos())
