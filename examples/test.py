@@ -1,5 +1,5 @@
 """ 
-   Program that shows the local Python environment using the inspect module
+   Test program that shows an object browser containing many types and variables.
 """
 from __future__ import print_function
 
