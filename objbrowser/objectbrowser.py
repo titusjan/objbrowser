@@ -32,6 +32,7 @@ from PySide import QtCore, QtGui
 from PySide.QtCore import Qt
 
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
+from objbrowser.utils import setting_str_to_bool
 from objbrowser.treemodel import TreeModel
 from objbrowser.toggle_column_mixin import ToggleColumnTreeView
 from objbrowser.attribute_model import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
@@ -84,7 +85,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._attr_details = attribute_details
         
         (show_routine_attributes, 
-         show_special_attributes) = self._readModelSettings(show_routine_attributes = show_routine_attributes,
+         show_special_attributes) = self._readModelSettings(reset = reset, 
+                                                            show_routine_attributes = show_routine_attributes,
                                                             show_special_attributes = show_special_attributes)
         self._tree_model = TreeModel(obj, 
                                      root_obj_name = name,
@@ -217,7 +219,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         font = QtGui.QFont()
         font.setFamily('Courier')
         font.setFixedPitch(True)
-        font.setPointSize(14)
+        #font.setPointSize(14)
 
         self.editor = QtGui.QPlainTextEdit()
         self.editor.setReadOnly(True)
@@ -247,22 +249,38 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings_grp = "{}_{}".format(prefix, hex(hash(settings_str)))
         logger.debug("  settings group is: {!r}".format(settings_grp))
         return settings_grp
-    
+
                 
     def _readModelSettings(self, 
+                           reset=False, 
                            show_routine_attributes = None,
                            show_special_attributes = None):
-        """ Reads the persistent model settings
+        """ Reads the persistent model settings .
+            The persistent settings (show_routine_attributes, show_special_attributes) can be \
+            overridden by giving it a True or False value.
+            If reset is True and the setting is None, True is used as default.
         """ 
-        logger.debug("Reading model settings for window: {:d}".format(self._instance_nr))
-        
-        settings = QtCore.QSettings()
-        settings.beginGroup(self._settings_group_name('model'))
-        if show_routine_attributes is None:
-            show_routine_attributes = settings.value("show_routine_attributes", True)
-        if show_special_attributes is None:
-            show_special_attributes = settings.value("show_special_attributes", True)
-        settings.endGroup()
+        default_sra = True
+        default_ssa = True
+        if reset:
+            logger.debug("Resetting persistent model settings")
+            if show_routine_attributes is None:
+                show_routine_attributes = default_sra
+            if show_special_attributes is None:
+                show_special_attributes = default_ssa
+        else:
+            logger.debug("Reading model settings for window: {:d}".format(self._instance_nr))
+            settings = QtCore.QSettings()
+            settings.beginGroup(self._settings_group_name('model'))
+            if show_routine_attributes is None:
+                show_routine_attributes = setting_str_to_bool(
+                    settings.value("show_routine_attributes", default_sra))
+            if show_special_attributes is None:
+                show_special_attributes = setting_str_to_bool(
+                    settings.value("show_special_attributes", default_ssa))
+            settings.endGroup()
+            logger.debug("read show_routine_attributes: {!r}".format(show_routine_attributes))
+            logger.debug("read show_special_attributes: {!r}".format(show_special_attributes))
         return (show_routine_attributes, show_special_attributes)
                     
     
@@ -273,6 +291,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         settings = QtCore.QSettings()
         settings.beginGroup(self._settings_group_name('model'))
+        logger.debug("writing show_routine_attributes: {!r}".format(self._tree_model.getShowCallables()))
+        logger.debug("wrting show_special_attributes: {!r}".format(self._tree_model.getShowSpecialAttributes()))
         settings.setValue("show_routine_attributes", self._tree_model.getShowCallables())
         settings.setValue("show_special_attributes", self._tree_model.getShowSpecialAttributes())
         settings.endGroup()
@@ -291,7 +311,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         header_restored = False
         
         if reset:
-            logger.debug("Resetting persistent settings")
+            logger.debug("Resetting persistent view settings")
         else:
             logger.debug("Reading view settings for window: {:d}".format(self._instance_nr))
             settings = QtCore.QSettings()
