@@ -50,9 +50,9 @@ def overview(tree_item):
 
         
 def my_browse(*args, **kwargs):
-    """ Creates and starts an ObjectBrowser with added sqrt columns.
+    """ Creates and starts an ObjectBrowser for showing unicode properties
     """
-    # Use some standard columns with adjusted with
+    # Use some standard columns with adjusted widths
     attribute_columns = copy.deepcopy([ATTR_MODEL_NAME, ATTR_MODEL_UNICODE, ATTR_MODEL_REPR])
     for attr_col in attribute_columns:
         attr_col.width = SMALL_COL_WIDTH
