@@ -2,10 +2,12 @@
 objbrowser
 ==========
 
-Extensible Python object browser implemented in Qt.
+Extensible Python object inspection tool implemented in Qt.
 
-Shows an object in a tree view so that you can inspect its attributes
-recursively (e.g. browse through a list of dictionaries).
+Displays objects as a tree and allows you can to inspect its attributes
+recursively (e.g. browse through a list of dictionaries). You can add 
+your own inspection methods as new columns to the tree view, or as radio buttons
+to the details pane. Altering existing inspection methods is possible as well.
 
 Requires: PySide (https://github.com/PySide/pyside-setup)
 
@@ -19,5 +21,5 @@ Example use:
     a = 16; b = 'hello'
     browse(locals())
 
-For more examples at: see: https://github.com/titusjan/objbrowser
+For more examples see: https://github.com/titusjan/objbrowser
 

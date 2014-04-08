@@ -4,13 +4,10 @@
     #####################
     # TODO: version 1.0 #
     #####################
-    
+
+    # What todo when getmembers fails
     # Installing
      - rename attribute_model.py to attributemodel.py
-     - Pylint (google Pyside and Pylint)
-     - Pip
-     - Test under linux (table)
-     - Python Package Index
      - sphynx
     
     
