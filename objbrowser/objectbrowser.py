@@ -315,9 +315,8 @@ class ObjectBrowser(QtGui.QMainWindow):
             settings.beginGroup(self._settings_group_name('view'))
             pos = settings.value("main_window/pos", pos)
             window_size = settings.value("main_window/size", window_size)
-            details_button_idx = settings.value("details_button_idx", details_button_idx)
+            details_button_idx = int(settings.value("details_button_idx", details_button_idx))
             self.central_splitter.restoreState(settings.value("central_splitter/state"))
-            #header_restored = header.restoreState(settings.value('table/header_state')) 
             header_restored = self.obj_tree.read_view_settings('table/header_state', 
                                                                settings, reset) 
             settings.endGroup()
@@ -348,7 +347,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         settings = QtCore.QSettings()
         settings.beginGroup(self._settings_group_name('view'))
-        #settings.setValue("table/header_state", self.obj_tree.header().saveState())
         self.obj_tree.write_view_settings("table/header_state", settings)
         settings.setValue("central_splitter/state", self.central_splitter.saveState())
         settings.setValue("details_button_idx", self.button_group.checkedId())
