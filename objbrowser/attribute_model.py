@@ -31,6 +31,11 @@ _ALL_PREDICATES = (inspect.ismodule, inspect.isclass, inspect.ismethod,
                    inspect.ismethoddescriptor, inspect.isdatadescriptor, 
                    inspect.isgetsetdescriptor, inspect.ismemberdescriptor) 
 
+# The cast to int is necessary to avoid a bug in PySide, See:
+# https://bugreports.qt-project.org/browse/PYSIDE-20
+ALIGN_LEFT  = int(Qt.AlignVCenter | Qt.AlignLeft)
+ALIGN_RIGHT = int(Qt.AlignVCenter | Qt.AlignRight)
+
 class AttributeModel(object):
     """ Determines how an object attribute is rendered in a table column or details pane
     """ 
@@ -39,7 +44,7 @@ class AttributeModel(object):
                  data_fn = None,  
                  col_visible = True, 
                  width = SMALL_COL_WIDTH,
-                 alignment = Qt.AlignLeft, 
+                 alignment = ALIGN_LEFT, 
                  line_wrap = QTextOption.NoWrap):
         """
             Constructor
@@ -55,7 +60,7 @@ class AttributeModel(object):
             :param width: default width in the attribute table
             :type with: int
             :param alignment: alignment of the value in the table
-            :type alighment: Qt.AlignmentFlag 
+            :type alignment: Qt.AlignmentFlag 
             :param line_wrap: Line wrap mode of the attribute in the details pane
             :type line_wrap: QtGui.QPlainTextEdit
         """
@@ -202,7 +207,7 @@ ATTR_MODEL_SUMMARY = AttributeModel('summary',
     doc         = "A summary of the object for regular objects (not callables or modules)", 
     data_fn     = tio_summary,
     col_visible = True,  
-    alignment   = Qt.AlignLeft,
+    alignment   = ALIGN_LEFT,
     width       = MEDIUM_COL_WIDTH) 
 
 ATTR_MODEL_UNICODE = AttributeModel('unicode', 
@@ -243,14 +248,14 @@ ATTR_MODEL_LENGTH = AttributeModel('length',
     #data_fn     = tio_length,
     data_fn      = safe_data_fn(len),  
     col_visible = False,  
-    alignment   = Qt.AlignRight,
+    alignment   = ALIGN_RIGHT,
     width       = SMALL_COL_WIDTH) 
 
 ATTR_MODEL_ID = AttributeModel('id', 
     doc         = "The identifier of the object with calculated using the id() function", 
     data_fn     = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
     col_visible = False, 
-    alignment   = Qt.AlignRight, 
+    alignment   = ALIGN_RIGHT, 
     width       = SMALL_COL_WIDTH) 
 
 ATTR_MODEL_IS_ATTRIBUTE = AttributeModel('is attribute', 
