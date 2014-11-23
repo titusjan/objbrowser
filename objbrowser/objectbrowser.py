@@ -231,7 +231,9 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.central_splitter.setStretchFactor(1, 0)
                
         # Connect signals
-        selection_model = self.obj_tree.selectionModel()
+        # Keep a temporary reference of the selection_model to prevent segfault in PySide.
+        # See http://permalink.gmane.org/gmane.comp.lib.qt.pyside.devel/222
+        selection_model = self.obj_tree.selectionModel() 
         assert selection_model.currentChanged.connect(self._update_details)
 
     # End of setup_methods
@@ -289,7 +291,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings = QtCore.QSettings()
         settings.beginGroup(self._settings_group_name('model'))
         logger.debug("writing show_routine_attributes: {!r}".format(self._tree_model.getShowCallables()))
-        logger.debug("wrting show_special_attributes: {!r}".format(self._tree_model.getShowSpecialAttributes()))
+        logger.debug("writing show_special_attributes: {!r}".format(self._tree_model.getShowSpecialAttributes()))
         settings.setValue("show_routine_attributes", self._tree_model.getShowCallables())
         settings.setValue("show_special_attributes", self._tree_model.getShowSpecialAttributes())
         settings.endGroup()
@@ -316,7 +318,9 @@ class ObjectBrowser(QtGui.QMainWindow):
             pos = settings.value("main_window/pos", pos)
             window_size = settings.value("main_window/size", window_size)
             details_button_idx = int(settings.value("details_button_idx", details_button_idx))
-            self.central_splitter.restoreState(settings.value("central_splitter/state"))
+            splitter_state = settings.value("central_splitter/state")
+            if splitter_state:
+                self.central_splitter.restoreState() 
             header_restored = self.obj_tree.read_view_settings('table/header_state', 
                                                                settings, reset) 
             settings.endGroup()
