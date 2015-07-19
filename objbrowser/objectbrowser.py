@@ -320,7 +320,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             details_button_idx = int(settings.value("details_button_idx", details_button_idx))
             splitter_state = settings.value("central_splitter/state")
             if splitter_state:
-                self.central_splitter.restoreState() 
+                self.central_splitter.restoreState(splitter_state) 
             header_restored = self.obj_tree.read_view_settings('table/header_state', 
                                                                settings, reset) 
             settings.endGroup()
