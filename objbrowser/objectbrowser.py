@@ -389,7 +389,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             self.editor.setPlainText(data)
             self.editor.setWordWrapMode(attr_details.line_wrap)
             
-        except StandardError, ex:
+        except Exception as ex:
             self.editor.setStyleSheet("color: red;")
             stack_trace = traceback.format_exc()
             self.editor.setPlainText("{}\n\n{}".format(ex, stack_trace))
@@ -423,7 +423,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
     def about(self):
         """ Shows the about message window. """
-        message = u"{} version {}\n\n{}""".format(PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL)
+        message = "{} version {}\n\n{}""".format(PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL)
         QtGui.QMessageBox.about(self, "About {}".format(PROGRAM_NAME), message)
 
     def close_window(self):

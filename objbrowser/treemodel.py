@@ -97,7 +97,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return (attr.replace('\r\n', unichr(0x21B5))
                             .replace('\n', unichr(0x21B5))
                             .replace('\r', unichr(0x21B5)))
-            except StandardError, ex:
+            except Exception as ex:
                 #logger.exception(ex)
                 return "**ERROR**: {}".format(ex) 
             
@@ -233,7 +233,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         elif hasattr(obj, 'iteritems'): # dictionaries and the likes. 
             try: 
                 obj_children = sorted(obj.iteritems())
-            except StandardError, ex:
+            except Exception as ex:
                 # Can happen if the iteritems method expects an argument, for instance the  
                 # types.DictType.iteritems method expects a dictionary.
                 logger.info("No items expanded. Objects iteritems() call failed: {}".format(ex))

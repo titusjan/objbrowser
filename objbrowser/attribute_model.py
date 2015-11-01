@@ -107,7 +107,7 @@ def safe_tio_call(obj_fn, tree_item, log_exceptions=False):
     tio = tree_item.obj
     try:
         return str(obj_fn(tio))
-    except StandardError, ex:
+    except Exception as ex:
         if log_exceptions:
             logger.exception(ex)
         return ""    
@@ -193,13 +193,13 @@ def tio_doc_str(tree_item):
 
 ATTR_MODEL_NAME = AttributeModel('name', 
     doc         = "The name of the object.", 
-    data_fn     = lambda(tree_item): tree_item.obj_name if tree_item.obj_name else '<root>',
+    data_fn     = lambda tree_item: tree_item.obj_name if tree_item.obj_name else '<root>',
     col_visible = True,  
     width       = SMALL_COL_WIDTH) 
 
 ATTR_MODEL_PATH = AttributeModel('path', 
     doc         = "A path to the data: e.g. var[1]['a'].item", 
-    data_fn     = lambda(tree_item): tree_item.obj_path if tree_item.obj_path else '<root>', 
+    data_fn     = lambda tree_item: tree_item.obj_path if tree_item.obj_path else '<root>', 
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH) 
 
@@ -212,34 +212,34 @@ ATTR_MODEL_SUMMARY = AttributeModel('summary',
 
 ATTR_MODEL_UNICODE = AttributeModel('unicode', 
     doc         = "The unicode representation of the object using the unicode() function.",
-    data_fn     = lambda(tree_item): unicode(tree_item.obj),
+    data_fn     = lambda tree_item: unicode(tree_item.obj),
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
     line_wrap   = QTextOption.WrapAtWordBoundaryOrAnywhere) 
 
 ATTR_MODEL_STR = AttributeModel('str', 
     doc         = "The string representation of the object using the str() function.",
-    data_fn     = lambda(tree_item): str(tree_item.obj),
+    data_fn     = lambda tree_item: str(tree_item.obj),
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH, 
     line_wrap   = QTextOption.WrapAtWordBoundaryOrAnywhere) 
  
 ATTR_MODEL_REPR = AttributeModel('repr', 
     doc         = "The string representation of the object using the repr() function.", 
-    data_fn     = lambda(tree_item): repr(tree_item.obj),         
+    data_fn     = lambda tree_item: repr(tree_item.obj),         
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
     line_wrap   = QTextOption.WrapAtWordBoundaryOrAnywhere) 
 
 ATTR_MODEL_TYPE = AttributeModel('type', 
     doc         = "Type of the object determined using the builtin type() function", 
-    data_fn     = lambda(tree_item): str(type(tree_item.obj)),
+    data_fn     = lambda tree_item: str(type(tree_item.obj)),
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH) 
 
 ATTR_MODEL_CLASS = AttributeModel('type name', 
     doc         = "The name of the class of the object via obj.__class__.__name__", 
-    data_fn     = lambda(tree_item): type(tree_item.obj).__name__,
+    data_fn     = lambda tree_item: type(tree_item.obj).__name__,
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH) 
 
@@ -253,7 +253,7 @@ ATTR_MODEL_LENGTH = AttributeModel('length',
 
 ATTR_MODEL_ID = AttributeModel('id', 
     doc         = "The identifier of the object with calculated using the id() function", 
-    data_fn     = lambda(tree_item): "0x{:X}".format(id(tree_item.obj)), 
+    data_fn     = lambda tree_item: "0x{:X}".format(id(tree_item.obj)), 
     col_visible = False, 
     alignment   = ALIGN_RIGHT, 
     width       = SMALL_COL_WIDTH) 
@@ -272,7 +272,7 @@ ATTR_MODEL_CALLABLE = AttributeModel('is callable',
 
 ATTR_MODEL_IS_ROUTINE = AttributeModel('is routine', 
     doc         = "True if the object is a routine (function, method, etc.)" ,
-    data_fn     = lambda(tree_item): str(inspect.isroutine(tree_item.obj)), 
+    data_fn     = lambda tree_item: str(inspect.isroutine(tree_item.obj)), 
     col_visible = False,  
     width       = SMALL_COL_WIDTH) 
 
@@ -284,7 +284,7 @@ ATTR_MODEL_PRED = AttributeModel('inspect predicates',
 
 ATTR_MODEL_PRETTY_PRINT = AttributeModel('pretty print', 
     doc         = "Pretty printed representation of the object using the pprint module.", 
-    data_fn     = lambda(tree_item): _PRETTY_PRINTER.pformat(tree_item.obj),         
+    data_fn     = lambda tree_item: _PRETTY_PRINTER.pformat(tree_item.obj),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH) 
         
@@ -302,7 +302,7 @@ ATTR_MODEL_GET_DOC = AttributeModel('inspect.getdoc',
         
 ATTR_MODEL_GET_COMMENTS = AttributeModel('inspect.getcomments', 
     doc         = "Comments above the object's definition is retrieved using inspect.getcomments()", 
-    data_fn     = lambda(tree_item): inspect.getcomments(tree_item.obj),         
+    data_fn     = lambda tree_item: inspect.getcomments(tree_item.obj),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH)
         

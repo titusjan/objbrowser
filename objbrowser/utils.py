@@ -1,5 +1,6 @@
 
 import logging
+import six
 
 
 def logging_basic_config(level = 'INFO'):
