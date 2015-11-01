@@ -5,8 +5,8 @@
 
 from __future__ import absolute_import
 import logging, inspect
-from PySide import QtCore, QtGui
-from PySide.QtCore import Qt
+from objbrowser.qtimp import QtCore, QtGui#, Qt
+from objbrowser.qtimp.QtCore import Qt
 from objbrowser.treeitem import TreeItem
 
 logger = logging.getLogger(__name__)

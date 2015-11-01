@@ -25,8 +25,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import logging, traceback
-from PySide import QtCore, QtGui
-from PySide.QtCore import Qt
+from objbrowser.qtimp import QtCore, QtGui, QtSlot
+
 
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from objbrowser.utils import setting_str_to_bool
@@ -122,13 +122,13 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.toggle_callable_action = \
             QtGui.QAction("Show routine attributes", self, checkable=True, 
                           statusTip = "Shows/hides attributes that are routings (functions, methods, etc)")
-        assert self.toggle_callable_action.toggled.connect(self.toggle_callables)
+        self.toggle_callable_action.toggled.connect(self.toggle_callables)
                               
         # Show/hide special attributes
         self.toggle_special_attribute_action = \
             QtGui.QAction("Show __special__ attributes", self, checkable=True, 
                           statusTip = "Shows or hides __special__ attributes")
-        assert self.toggle_special_attribute_action.toggled.connect(self.toggle_special_attributes)
+        self.toggle_special_attribute_action.toggled.connect(self.toggle_special_attributes)
                               
                               
     def _setup_menu(self):
@@ -234,7 +234,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Keep a temporary reference of the selection_model to prevent segfault in PySide.
         # See http://permalink.gmane.org/gmane.comp.lib.qt.pyside.devel/222
         selection_model = self.obj_tree.selectionModel() 
-        assert selection_model.currentChanged.connect(self._update_details)
+        selection_model.currentChanged.connect(self._update_details)
 
     # End of setup_methods
     
@@ -359,7 +359,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings.endGroup()
             
 
-    @QtCore.Slot(QtCore.QModelIndex, QtCore.QModelIndex)
+    @QtSlot(QtCore.QModelIndex, QtCore.QModelIndex)
     def _update_details(self, current_index, _previous_index):
         """ Shows the object details in the editor given an index.
         """

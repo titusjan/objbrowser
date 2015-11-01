@@ -1,10 +1,9 @@
 """ objbrowser package
 """
+__all__ = ['browse', 'execute', 'create_object_browser', 'logging_basic_config', '__version__']
 
-__all__ = ['browse', 'execute', 'create_object_browser', 'logging_basic_config']
-
-import sys, os, logging, pprint, inspect
-from PySide import QtCore, QtGui
+import sys, os, logging #, pprint, inspect
+from objbrowser.qtimp import QtCore, QtGui, get_qapp
 
 from objbrowser.objectbrowser import ObjectBrowser
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION
@@ -29,29 +28,25 @@ def check_class(obj, target_class, allow_none = False):
                             .format(target_class, type(obj)))    
 
 
-def get_qapplication_instance():
-    """ Returns the QApplication instance. Creates one if it doesn't exist.
+def init_qapplication_instance(app):
+    """ Sets application name, version and organization properties.
     """
-    app = QtGui.QApplication.instance()
-
-    if app is None:
-        app = QtGui.QApplication(sys.argv)
-    check_class(app, QtGui.QApplication)
-    
     app.setApplicationName(PROGRAM_NAME)
     app.setApplicationVersion(PROGRAM_VERSION)
     app.setOrganizationName("titusjan")
     app.setOrganizationDomain("titusjan.nl")    
-    
     return app
 
 
 def create_object_browser(*args, **kwargs):
-    """ Opens an OjbectBrowser window
+    """ Opens an ObjectBrowser window
     """
-    _app = get_qapplication_instance()
+    app = get_qapp(sys.argv)
+    init_qapplication_instance(app)
+    
     object_browser = ObjectBrowser(*args, **kwargs)
     object_browser.show()
+    object_browser.raise_()
     return object_browser
         
         
@@ -59,7 +54,8 @@ def execute():
     """ Executes all created object browser by starting the Qt main application
     """  
     logger.info("Starting the Object browser(s)...")
-    app = get_qapplication_instance()
+    app = get_qapp(sys.argv)
+    init_qapplication_instance(app)
     exit_code = app.exec_()
     logger.info("Object browser(s) done...")
     return exit_code
