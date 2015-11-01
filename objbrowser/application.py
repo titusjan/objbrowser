@@ -5,7 +5,7 @@ import sys, logging
 
 logger = logging.getLogger(__name__)
 
-from objbrowser.qtimp import get_qapp
+from objbrowser.qtimp import get_qapp, start_qt_event_loop
 
 from objbrowser.objectbrowser import ObjectBrowser
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION
@@ -41,7 +41,9 @@ class Application(object):
     
     
     def execute(self):
-        exit_code = self.q_app.exec_()
+        """ Starts the Qt event loop.
+        """
+        exit_code = start_qt_event_loop(self.q_app)
         return exit_code
         
 
