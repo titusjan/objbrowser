@@ -1,40 +1,15 @@
 """ Loads PyQT or PySide. 
+
+    Uses determineQtBindings() for autodetection (see its docstring for details)
+    If determineQtBindings returns None, it first tries to import PySide, then PyQt.
     If an IPython session is running that already has QT imported, that is used.
     
-    TBD: how to force IPython2 to use the QT sip 2 API?
-    Test cases:
-        python2
-        python3
-        ipython2
-        ipython3
-        ipython2 gui=qt
-        ipython3 qui=qt
-        ipython3 qui=gtk
-        ipython (interactive)
-        
-    1) detect running QT
-    2) If not yet running: start QT
-    3) If IPython check if event loop is running.
-
+    The ACTIVE_BINDINGS variable will be set with 'pyqt' or 'pyside' after import. 
 """
-#IPython.external.qt_for_kernel # has side effect of importing the QT
-#IPython.lib.guisupport.get_app_qt4 # has side effect of importing the QT (import qt_for_kernel)
-#from IPython.external.qt_for_kernel import QtGui
-#from IPython.external.qt_for_kernel import get_options  
-#from IPython.external.qt_loaders import loadQt, loaded_api
 
 import os, sys
 import logging
 logger = logging.getLogger(__name__)
-
-#from interactive import *
-
-# Available APIs taken from IPython.external.qt_loaders
-#QT_API_PYQT = 'pyqt'
-#QT_API_PYQT5 = 'pyqt5'
-#QT_API_PYQTv1 = 'pyqtv1'
-#QT_API_PYQT_DEFAULT = 'pyqtdefault' # don't set SIP explicitly
-#QT_API_PYSIDE = 'pyside'
 
 ACTIVE_BINDINGS = None
 BINDINGS_PYQT = 'pyqt'
@@ -124,7 +99,7 @@ elif detect_bindings == BINDINGS_PYSIDE:
     ACTIVE_BINDINGS = BINDINGS_PYSIDE
     
 elif detect_bindings is None:
-    logger.debug("No Qt bindings running or selected. Will try to use PyQt4 first, then PySide.")
+    logger.debug("No Qt bindings running or selected. Will try to use PySidefirst, then PyQt4.")
     try:
         from PySide import QtCore, QtGui
         ACTIVE_BINDINGS = BINDINGS_PYSIDE    
