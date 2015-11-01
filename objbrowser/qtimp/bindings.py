@@ -112,7 +112,7 @@ def determineQtBindings(bindings=None):
     return None
     
     
-detect_bindings = determineQtBindings(BINDINGS_PYSIDE) # TODO: remove
+detect_bindings = determineQtBindings()
 logger.debug("Importing Qt (selected bindings = {!r})".format(detect_bindings))
 if detect_bindings == BINDINGS_PYQT:
     use_v2_api()        
