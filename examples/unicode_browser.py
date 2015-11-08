@@ -10,6 +10,7 @@
 from __future__ import print_function
 
 import sys, logging, copy, unicodedata
+from six import unichr
 from objbrowser import browse, logging_basic_config
 from objbrowser.attribute_model import (AttributeModel, safe_data_fn, 
                                         ATTR_MODEL_NAME, ATTR_MODEL_UNICODE, ATTR_MODEL_REPR)

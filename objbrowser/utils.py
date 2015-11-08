@@ -2,6 +2,7 @@
 import logging
 import six
 
+logger = logging.getLogger(__name__)
 
 def logging_basic_config(level = 'INFO'):
     """ Setup basic config logging. Useful for debugging to quickly setup a useful logger"""
@@ -25,7 +26,7 @@ def check_class(obj, target_class, allow_none = False):
 def setting_str_to_bool(s):
     """ Converts 'true' to True and 'false' to False if s is a string
     """
-    if isinstance(s, basestring):
+    if isinstance(s, six.string_types):
         s = s.lower()
         if s == 'true':
             return True

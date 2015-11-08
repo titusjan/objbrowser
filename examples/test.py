@@ -3,9 +3,10 @@
 """
 from __future__ import print_function
 
-import sys, logging
+import sys, logging, six
 import datetime as dt
-from objbrowser import (browse, create_object_browser, execute, logging_basic_config)
+from objbrowser import browse
+from objbrowser.utils import logging_basic_config
 from objbrowser.attribute_model import ALL_ATTR_MODELS
 
 logger = logging.getLogger(__name__)
@@ -95,37 +96,33 @@ def call_viewer_test():
     date_first = date_now.min
     date_last = date_now.max
     
-    t = dt.time(13, 33, 01)
+    t = dt.time(13, 33, 1)
     
     try:
         import numpy as np
         arr = np.arange(24, dtype=np.uint16).reshape(8, 3)
         pi_16bit = np.float16(np.pi)
-    except ImportError, ex:
+    except ImportError as ex:
         logger.warn(ex)
         
     
     # These will give error in the str() representation. 
     # I deliberately did not use string.encode('ascii', 'backslashreplace') to 
     # demonstrate the difference between str() and repr()
-    u1 = unichr(40960) + u'ab\ncd' + unichr(1972)
+    u1 = six.unichr(40960) + u'ab\ncd' + six.unichr(1972)
     u2 = u"a\xac\u1234\u20ac\U00008000"
     u3 = u'all ASCII chars'
     multi_line_str = """hello\r\nworld
                         the\rend."""
     
-    # When creating multiple object browsers, make sure to keep a
-    # reference to each of them. Otherwise windows will be garbabe-
-    # collected and will disappear.
-    _locals_obj_browser = create_object_browser(locals(), reset = False, # without obj_name
-                                                show_special_attributes = None, 
-                                                show_routine_attributes = None)
+    browse(locals(), reset = False, # without obj_name
+           show_special_attributes = None,
+           show_routine_attributes = None)
     if 0: 
-        _globals_obj_browser = create_object_browser(globals(), name = 'globals()',
-                                                     attribute_columns = ALL_ATTR_MODELS, 
-                                                     attribute_details = ALL_ATTR_MODELS[1:4])
-    exit_code = execute()
-    return exit_code
+        browse(globals(), name = 'globals()',
+               attribute_columns = ALL_ATTR_MODELS, 
+               attribute_details = ALL_ATTR_MODELS[1:4])
+        
     
 
 def call_viewer_small_test():
@@ -133,7 +130,7 @@ def call_viewer_small_test():
     """
     try:
         raise ValueError("my value error")
-    except ValueError, ex:
+    except ValueError as ex:
         my_value_error = ex
 
     a = 6

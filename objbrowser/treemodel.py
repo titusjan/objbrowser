@@ -5,6 +5,7 @@
 
 from __future__ import absolute_import
 import logging, inspect
+from six import unichr
 from objbrowser.qtimp import QtCore, QtGui#, Qt
 from objbrowser.qtimp.QtCore import Qt
 from objbrowser.treeitem import TreeItem
@@ -234,6 +235,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             try: 
                 obj_children = sorted(obj.iteritems())
             except Exception as ex:
+                
                 # Can happen if the iteritems method expects an argument, for instance the  
                 # types.DictType.iteritems method expects a dictionary.
                 logger.info("No items expanded. Objects iteritems() call failed: {}".format(ex))

@@ -7,7 +7,7 @@ __all__ = ['browse', 'execute', 'create_object_browser', 'logging_basic_config']
 from objbrowser.qtimp.QtCore import Qt
 from objbrowser.qtimp.QtGui import QTextOption
 
-import logging, inspect, string, pprint
+import logging, inspect, string, pprint, six
 
 try:
     import numpy as np
@@ -143,7 +143,7 @@ def tio_summary(tree_item):
         For callables and modules an empty string is returned.
     """
     tio = tree_item.obj
-    if isinstance(tio, basestring):
+    if isinstance(tio, six.string_types):
         return tio
     elif isinstance(tio, (list, tuple, set, frozenset, dict)):  
         n_items = len(tio)
@@ -211,14 +211,19 @@ ATTR_MODEL_SUMMARY = AttributeModel('summary',
     width       = MEDIUM_COL_WIDTH) 
 
 ATTR_MODEL_UNICODE = AttributeModel('unicode', 
-    doc         = "The unicode representation of the object using the unicode() function.",
-    data_fn     = lambda tree_item: unicode(tree_item.obj),
+    doc         = """The unicode representation of the object. In Python 2 it uses unicode()
+                     In Python 3 the str() function is used.
+                  """, 
+    data_fn     = lambda tree_item: six.text_type(tree_item.obj),
     col_visible = True,  
     width       = MEDIUM_COL_WIDTH, 
     line_wrap   = QTextOption.WrapAtWordBoundaryOrAnywhere) 
 
+
 ATTR_MODEL_STR = AttributeModel('str', 
-    doc         = "The string representation of the object using the str() function.",
+    doc         = """The string representation of the object using the str() function.
+                     In Python 3 there is no difference with the 'unicode' column.
+                  """,
     data_fn     = lambda tree_item: str(tree_item.obj),
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH, 

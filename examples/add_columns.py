@@ -23,7 +23,7 @@ def safe_tio_sqrt(tree_item):
     tio = tree_item.obj
     try:
         return str(sqrt(tio))
-    except StandardError:
+    except Exception:
         return ""
     
         
