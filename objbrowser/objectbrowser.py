@@ -24,7 +24,7 @@
 """
 from __future__ import absolute_import
 from __future__ import print_function
-import logging, traceback
+import logging, traceback, hashlib
 from objbrowser.qtimp import QtCore, QtGui, QtSlot
 
 
@@ -239,14 +239,19 @@ class ObjectBrowser(QtGui.QMainWindow):
     # End of setup_methods
     
     
-    def _settings_group_name(self, prefix):
-        """ The persistent settings are stored per combination of column names
-            and windows instance number.
+    def _settings_group_name(self, postfix):
+        """ Constructs a group name for the persistent settings.
+            
+            Because the columns in the main table are extendible, we must store the settings
+            in a different group if a different combination of columsn is used. Therfore the
+            settings group name contains a hash that is calculated from the used column names.
+            Furthermore the window number is included in the settings group name. Finally a
+            postfix string is appended. 
         """
         column_names = ",".join([col.name for col in self._attr_cols])
-        settings_str = column_names + str(self._instance_nr)
-        settings_grp = "{}_{}".format(prefix, hex(hash(settings_str)))
-        logger.debug("  settings group is: {!r}".format(settings_grp))
+        settings_str = column_names
+        columns_hash = hashlib.md5(settings_str.encode('utf-8')).hexdigest()
+        settings_grp = "{}_win{}_{}".format(columns_hash, self._instance_nr, postfix)
         return settings_grp
 
                 

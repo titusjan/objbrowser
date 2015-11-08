@@ -89,14 +89,17 @@ class ToggleColumnMixIn(object):
             if settings is None:
                 settings = QtCore.QSettings()
             horizontal_header = self._horizontal_header()
-            header_restored = horizontal_header.restoreState(settings.value(key))
+            header_data = settings.value(key)
+            if header_data:
+                header_restored = horizontal_header.restoreState(header_data)
             
             # update actions
             for col, action in enumerate(horizontal_header.actions()):
                 is_checked = not horizontal_header.isSectionHidden(col)
                 action.setChecked(is_checked)
-                
+        
         return header_restored
+
 
     def write_view_settings(self, key, settings=None):
         """ Writes the view settings to the persistent store
