@@ -22,6 +22,8 @@ def call_viewer_test():
     from os.path import join
     
     if 1:
+        # In Python 3 there is no OldStyleClass anymore. The definition below will result in a 
+        # new style class as well.
         class OldStyleClass: 
             """ An old style class (pre Python 2.2)
                 See: http://docs.python.org/2/reference/datamodel.html#new-style-and-classic-classes
