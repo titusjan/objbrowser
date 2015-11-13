@@ -215,8 +215,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent_item.children_fetched:
             return
         
-        logger.debug("fetchMore: {}".format(parent))
-        
+        logger.debug("fetchMore: parent = {}".format(parent))
+
         obj = parent_item.obj
         obj_path = parent_item.obj_path
 
@@ -231,14 +231,14 @@ class TreeModel(QtCore.QAbstractItemModel):
             obj_children = [('pop()', elem) for elem in sorted(obj)]
             path_strings = ['{0}.pop()'.format(obj_path, item[0]) if obj_path else item[0] 
                             for item in obj_children]
-        elif hasattr(obj, 'iteritems'): # dictionaries and the likes. 
+        elif hasattr(obj, 'items'): # dictionaries and the likes. 
             try: 
-                obj_children = sorted(obj.iteritems())
+                obj_children = sorted(obj.items())
             except Exception as ex:
                 
-                # Can happen if the iteritems method expects an argument, for instance the  
-                # types.DictType.iteritems method expects a dictionary.
-                logger.info("No items expanded. Objects iteritems() call failed: {}".format(ex))
+                # Can happen if the items method expects an argument, for instance the  
+                # types.DictType.items method expects a dictionary.
+                logger.info("No items expanded. Objects items() call failed: {}".format(ex))
             else:
                 path_strings = ['{}[{!r}]'.format(obj_path, item[0]) if obj_path else item[0] 
                                 for item in obj_children]
