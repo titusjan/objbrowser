@@ -25,7 +25,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import logging, traceback, hashlib
-from objbrowser.qtimp import QtCore, QtGui, QtSlot
+from objbrowser.qtimp import QtCore, QtGui, QtSlot, get_qapp, get_qsettings
 
 
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
@@ -95,7 +95,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._setup_menu()
         self._setup_views()
         self.setWindowTitle("{} - {}".format(PROGRAM_NAME, name))
-        app = QtGui.QApplication.instance()
+        app = get_qapp()
         app.lastWindowClosed.connect(app.quit) 
 
         self._readViewSettings(reset = reset)
@@ -274,7 +274,7 @@ class ObjectBrowser(QtGui.QMainWindow):
                 show_special_attributes = default_ssa
         else:
             logger.debug("Reading model settings for window: {:d}".format(self._instance_nr))
-            settings = QtCore.QSettings()
+            settings = get_qsettings()
             settings.beginGroup(self._settings_group_name('model'))
             if show_routine_attributes is None:
                 show_routine_attributes = setting_str_to_bool(
@@ -293,7 +293,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         """         
         logger.debug("Writing model settings for window: {:d}".format(self._instance_nr))
         
-        settings = QtCore.QSettings()
+        settings = get_qsettings()
         settings.beginGroup(self._settings_group_name('model'))
         logger.debug("writing show_routine_attributes: {!r}".format(self._tree_model.getShowCallables()))
         logger.debug("writing show_special_attributes: {!r}".format(self._tree_model.getShowSpecialAttributes()))
@@ -318,7 +318,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             logger.debug("Resetting persistent view settings")
         else:
             logger.debug("Reading view settings for window: {:d}".format(self._instance_nr))
-            settings = QtCore.QSettings()
+            settings = get_qsettings()
             settings.beginGroup(self._settings_group_name('view'))
             pos = settings.value("main_window/pos", pos)
             window_size = settings.value("main_window/size", window_size)
@@ -354,7 +354,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         """         
         logger.debug("Writing view settings for window: {:d}".format(self._instance_nr))
         
-        settings = QtCore.QSettings()
+        settings = get_qsettings()
         settings.beginGroup(self._settings_group_name('view'))
         self.obj_tree.write_view_settings("table/header_state", settings)
         settings.setValue("central_splitter/state", self.central_splitter.saveState())
@@ -434,15 +434,16 @@ class ObjectBrowser(QtGui.QMainWindow):
 
     def close_window(self):
         """ Closes the window """
+        logger.debug("close_window called")
         self.close()
         
     def quit_application(self):
         """ Closes all windows """
-        app = QtGui.QApplication.instance()
-        app.closeAllWindows()
+        logger.debug("Closing all windows")
+        get_qapp().closeAllWindows()
 
     def closeEvent(self, event):
-        """ Close all windows (e.g. the L0 window).
+        """ Called when the window is closed
         """
         logger.debug("closeEvent")
         self._writeModelSettings()                

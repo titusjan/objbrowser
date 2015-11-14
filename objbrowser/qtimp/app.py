@@ -4,8 +4,8 @@
 import sys, logging, traceback
 logger = logging.getLogger(__name__)
 
-from .bindings import QtGui
-from ..version import DEBUGGING
+from .bindings import QtCore, QtGui
+from ..version import DEBUGGING, PROGRAM_NAME
 
 
 def in_ipython():
@@ -37,6 +37,14 @@ def get_qapp(*args, **kwargs):
         else:
             logger.debug("Creating new QApplication")
             return QtGui.QApplication(*args, **kwargs)
+        
+        
+def get_qsettings():
+    """ Creates a QSettings object for this application.    
+        We do not set the application and organization in the QApplication object to 
+        prevent side-effects.
+    """
+    return QtCore.QSettings("titusjan.nl", PROGRAM_NAME)
             
     
 def start_qt_event_loop(qApp):

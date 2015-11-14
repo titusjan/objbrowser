@@ -28,10 +28,6 @@ class Application(object):
         """
         self.browsers = []
         self.q_app = get_qapp(sys.argv)
-        self.q_app.setApplicationName(PROGRAM_NAME)
-        self.q_app.setApplicationVersion(PROGRAM_VERSION)
-        self.q_app.setOrganizationName("titusjan")
-        self.q_app.setOrganizationDomain("titusjan.nl")    
 
         if DEBUGGING or setExceptHook:
             logger.debug("Overriding Python excepthook.")

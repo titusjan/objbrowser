@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import logging
 
-from objbrowser.qtimp import QtCore, QtGui
+from objbrowser.qtimp import QtCore, QtGui, get_qsettings
 from objbrowser.qtimp.QtCore import Qt
 
 
@@ -87,7 +87,7 @@ class ToggleColumnMixIn(object):
         header_restored = False
         if not reset:
             if settings is None:
-                settings = QtCore.QSettings()
+                settings = get_qsettings()
             horizontal_header = self._horizontal_header()
             header_data = settings.value(key)
             if header_data:
@@ -107,7 +107,7 @@ class ToggleColumnMixIn(object):
         logger.debug("Writing view settings for: {}".format(key))
         
         if settings is None:
-            settings = QtCore.QSettings()
+            settings = get_qsettings()
         settings.setValue(key, self._horizontal_header().saveState())
 
 
