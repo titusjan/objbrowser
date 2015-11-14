@@ -1,8 +1,11 @@
+""" Qt Application related functions.
+"""
 
-import logging
+import sys, logging, traceback
 logger = logging.getLogger(__name__)
 
 from .bindings import QtGui
+from ..version import DEBUGGING
 
 
 def in_ipython():
@@ -35,7 +38,6 @@ def get_qapp(*args, **kwargs):
             logger.debug("Creating new QApplication")
             return QtGui.QApplication(*args, **kwargs)
             
-        
     
 def start_qt_event_loop(qApp):
     """ If IPython is running, the event loop is started
@@ -57,3 +59,30 @@ def start_qt_event_loop(qApp):
 
     logger.info("Starting (non-interactive) event loop")
     return qApp.exec_()
+
+
+def handleException(exc_type, exc_value, exc_traceback):
+    """ Causes the application to quit in case of an unhandled exception (as God intended)
+        Shows an error dialog before quitting when not in debugging mode.
+    """
+
+    traceback.format_exception(exc_type, exc_value, exc_traceback)
+    
+    logger.critical("Bug: uncaught {}".format(exc_type.__name__), 
+                    exc_info=(exc_type, exc_value, exc_traceback))
+    if DEBUGGING:
+        sys.exit(1)
+    else:
+        # Constructing a QApplication in case this hasn't been done yet.
+        if not QtGui.qApp:
+            _app = QtGui.QApplication()
+         
+        msgBox = QtGui.QMessageBox()
+        msgBox.setText("Bug: uncaught {}".format(exc_type.__name__))
+        msgBox.setInformativeText(str(exc_value))
+        lst = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        msgBox.setDetailedText("".join(lst))
+        msgBox.setIcon(QtGui.QMessageBox.Warning)
+        msgBox.exec_()
+        sys.exit(1)
+        

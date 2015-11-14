@@ -26,7 +26,7 @@ def use_v2_api():
         raise ValueError("Unable to load PyQt4 ({}). ".format(ex) + 
             "Try setting the QT_API environment variable to 'pyqt'")
         
-    # The following APIs are set to 1 by IPython2 regardles of the QT_API environment var.
+    # The following APIs are set to 1 by IPython2 regardless of the QT_API environment var.
     # Version 2 therefore cannot be used when using IPython2 GUI integration.
     #sip.setapi('QDate', 2)  
     #sip.setapi('QDateTime', 2)
@@ -116,16 +116,17 @@ logger.debug("Imported Qt: (bindings = {!r})".format(ACTIVE_BINDINGS))
 assert ACTIVE_BINDINGS, "ACTIVE_BINDINGS"
 
 
-def main():
-
-    fmt = '%(filename)25s:%(lineno)-4d : %(levelname)-7s: %(message)s'
-    logging.basicConfig(level='DEBUG', format=fmt)
-    
-    logger.info("QT_API: {}".format(ACTIVE_BINDINGS))
-
-    #api_version = qtapi_version()
-    #logger.debug("PyQt API version: {!r}".format(api_version))
 
 if __name__ == "__main__":
+    def main():
+    
+        fmt = '%(filename)25s:%(lineno)-4d : %(levelname)-7s: %(message)s'
+        logging.basicConfig(level='DEBUG', format=fmt)
+        
+        logger.info("QT_API: {}".format(ACTIVE_BINDINGS))
+    
+        #api_version = qtapi_version()
+        #logger.debug("PyQt API version: {!r}".format(api_version))
+
     main()
     

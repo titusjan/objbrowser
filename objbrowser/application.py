@@ -6,9 +6,10 @@ import sys, logging
 logger = logging.getLogger(__name__)
 
 from objbrowser.qtimp import get_qapp, start_qt_event_loop
+from objbrowser.qtimp.app import handleException
 
 from objbrowser.objectbrowser import ObjectBrowser
-from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION
+from objbrowser.version import DEBUGGING, PROGRAM_NAME, PROGRAM_VERSION
 
 _APP_SINGLETON = None
         
@@ -18,8 +19,12 @@ class Application(object):
         keeps a reference to the Qt application
     """
     
-    def __init__(self):
-        """ Initializes the Qt application
+    def __init__(self, setExceptHook=False):
+        """ Initializes the Qt application.
+        
+            if setExceptHook is True (or the program is indebugging mode), the Python
+            exception hook is overridden so that an unhandled exception causes the application
+            to terminate.
         """
         self.browsers = []
         self.q_app = get_qapp(sys.argv)
@@ -28,6 +33,10 @@ class Application(object):
         self.q_app.setOrganizationName("titusjan")
         self.q_app.setOrganizationDomain("titusjan.nl")    
 
+        if DEBUGGING or setExceptHook:
+            logger.debug("Overriding Python excepthook.")
+            sys.excepthook = handleException
+            
         
     def create_browser(self, *args, **kwargs):
         """ Creates an ObjectBrowser window

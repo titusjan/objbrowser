@@ -1,5 +1,7 @@
 from distutils.core import setup
-from objbrowser.objectbrowser import PROGRAM_VERSION
+from objbrowser.version import DEBUGGING, PROGRAM_VERSION
+
+assert not DEBUGGING, "DEBUGGING must be False"
 
 setup(name = 'objbrowser',
     version = PROGRAM_VERSION, 

@@ -425,6 +425,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     def my_test(self):
         """ Function for testing """
         logger.debug("my_test")
+        raise Exception("An exceptional exception occured")
         
     def about(self):
         """ Shows the about message window. """
