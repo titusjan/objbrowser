@@ -9,16 +9,8 @@ Three things are handled by this package.
     There is no difference here between IPython and the regular Python.
     
 2)  Creating the QApplication instance (or getting the singleton if it already
-    exists).
-    
-    If IPython is not running, the regular QtGui.QApplication().instance() is 
-    created or retrieved.
-
-    If IPython is running, the IPython.lib.guisupport.get_app_qt4 function is used 
-    as there may already be an event loop running (and it may be in a separate 
-    kernel process). See:
-    http://ipython.readthedocs.org/en/stable/api/generated/IPython.lib.guisupport.html
-    
+    exists). Also no difference between IPython and the regular Python.
+        
 3)  Starting the event loop. 
     
     If IPython is not running, qApp.exec_() is called, which is blocking.
@@ -33,6 +25,8 @@ Three things are handled by this package.
     by starting IPython with the --qui=qt command line option, or by setting
     c.TerminalIPythonApp.gui = 'qt' in ~/.ipython/<profile>/ipython_config.py 
     
+See also:
+    http://ipython.readthedocs.org/en/stable/api/generated/IPython.lib.guisupport.html
 
 Known issues:
     

@@ -19,24 +19,22 @@ def in_ipython():
         return get_ipython() is not None
 
 
+def qapp_exists():
+    """ Returns true if a QApplicaiotn is already running
+    """
+    return QtGui.QApplication.instance() is not None
+
+
 def get_qapp(*args, **kwargs):
     """ Gets the global Qt application object. Creates one if it doesn't exist.
-        If IPython is running, it uses the IPython functions so that user
-        interaction is possible. See:
-        http://ipython.readthedocs.org/en/stable/api/generated/IPython.lib.guisupport.html
     """
-    if in_ipython():
-        logger.debug("IPython detected. Using IPython QApplication")
-        from IPython.lib.guisupport import get_app_qt4
-        return get_app_qt4(*args, **kwargs)
+    qApp = QtGui.QApplication.instance()
+    if qApp:
+        logger.debug("Returning existing QApplication")
+        return qApp
     else:
-        qApp = QtGui.QApplication.instance()
-        if qApp:
-            logger.debug("Returning existing QApplication")
-            return qApp
-        else:
-            logger.debug("Creating new QApplication")
-            return QtGui.QApplication(*args, **kwargs)
+        logger.debug("Creating new QApplication")
+        return QtGui.QApplication(*args, **kwargs)
         
         
 def get_qsettings():
@@ -48,7 +46,10 @@ def get_qsettings():
             
     
 def start_qt_event_loop(qApp):
-    """ If IPython is running, the event loop is started
+    """ Starts the eventloop if it's not yet running.
+        If the IPython event loop is active (and set to Qt) this function does nothing. The IPython 
+        event loop will process Qt events as well so the user can continue to use the command 
+        prompt together with the ObjectBrower. 
     """
     if in_ipython():
         try:
