@@ -24,9 +24,8 @@
 """
 from __future__ import absolute_import
 from __future__ import print_function
-import logging, traceback, hashlib
-from objbrowser.qtimp import QtCore, QtGui, QtSlot, get_qapp, get_qsettings
-
+import logging, traceback, hashlib, sys
+from objbrowser.qtimp import QtCore, QtGui, QtSlot, get_qapp, get_qsettings, start_qt_event_loop
 
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from objbrowser.utils import setting_str_to_bool
@@ -49,6 +48,8 @@ class ObjectBrowser(QtGui.QMainWindow):
     """ Object browser main application window.
     """
     _n_instances = 0
+    _q_app = None   # Reference to the global application.
+    _browsers = []  # Keep lists of browser windows.
     
     def __init__(self, obj,  
                  name = '',
@@ -75,7 +76,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         super(ObjectBrowser, self).__init__()
 
         ObjectBrowser._n_instances += 1
-        self._instance_nr = self._n_instances        
+        self._instance_nr = self._n_instances
+        self._browsers.append(self)
         
         # Model
         self._attr_cols = attribute_columns
@@ -95,8 +97,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._setup_menu()
         self._setup_views()
         self.setWindowTitle("{} - {}".format(PROGRAM_NAME, name))
-        app = get_qapp()
-        app.lastWindowClosed.connect(app.quit) 
 
         self._readViewSettings(reset = reset)
         
@@ -107,7 +107,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Select first row so that a hidden root node will not be selected.
         first_row = self._tree_model.first_item_index()
         self.obj_tree.setCurrentIndex(first_row)
-            
+
             
     def _make_show_column_function(self, column_idx):
         """ Creates a function that shows or hides a column."""
@@ -426,22 +426,20 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Function for testing """
         logger.debug("my_test")
         raise Exception("An exceptional exception occured")
+
         
     def about(self):
         """ Shows the about message window. """
         message = "{} version {}\n\n{}""".format(PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL)
         QtGui.QMessageBox.about(self, "About {}".format(PROGRAM_NAME), message)
 
-    def close_window(self):
+
+    def close_window(self): # TODO: can be removed
         """ Closes the window """
         logger.debug("close_window called")
         self.close()
-        
-    def quit_application(self):
-        """ Closes all windows """
-        logger.debug("Closing all windows")
-        get_qapp().closeAllWindows()
 
+        
     def closeEvent(self, event):
         """ Called when the window is closed
         """
@@ -450,5 +448,62 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._writeViewSettings()                
         self.close()
         event.accept()
-            
+        self._browsers.remove(self)
+        logger.debug("Closed {} window {}".format(PROGRAM_NAME, self._instance_nr))
 
+
+    def quit_application(self):
+        """ Closes all windows """
+        logger.debug("Closing all windows")
+        get_qapp().closeAllWindows()
+
+
+            
+    @classmethod
+    def create_browser(cls, *args, **kwargs):
+        """ Creates and shows and ObjectBrowser window.
+            A (class attribute) reference to the browser window is kept to prevent it from being
+            garbage-collected.
+            The *args and **kwargs will be passed to the ObjectBrowser constructor.
+            Pre condition: a QApplication object must have been created.
+        """
+        object_browser = cls(*args, **kwargs)
+        object_browser.show()
+        object_browser.raise_()
+        return object_browser
+    
+    
+    @classmethod
+    def browse(cls, *args, **kwargs):
+        """ Create and run object browser.
+            For this, the following three steps are done:
+            1) Create QApplication object if it doesn't yet exist
+            2) Create and show an ObjectBrowser window
+            3) Start the Qt event loop.
+        
+            The *args and **kwargs will be passed to the ObjectBrowser constructor.
+        """
+        q_app = QtGui.QApplication.instance()
+        if q_app is None:
+            logger.debug("Creating QApplication instance")
+            q_app = QtGui.QApplication(sys.argv)
+            q_app.aboutToQuit.connect(cls.about_to_quit)
+            q_app.lastWindowClosed.connect(q_app.quit)
+        else:
+            logger.debug("Reusing existing QApplication instance")
+            
+        cls._q_app = q_app # keeping reference to prevent garbage collection. 
+                    
+        cls.create_browser(*args, **kwargs)
+        exit_code = start_qt_event_loop(cls._q_app)
+        return exit_code
+
+
+    @classmethod
+    def about_to_quit(cls):
+        """ Called when application is about to quit
+        """
+        assert len(cls._browsers) == 0, "Browser references left == {}".format(len(cls._browsers))
+        logger.debug("Quitting {}".format(PROGRAM_NAME))
+        
+        
