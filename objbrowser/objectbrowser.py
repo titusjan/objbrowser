@@ -399,8 +399,6 @@ class ObjectBrowser(QtGui.QMainWindow):
             stack_trace = traceback.format_exc()
             self.editor.setPlainText("{}\n\n{}".format(ex, stack_trace))
             self.editor.setWordWrapMode(QtGui.QTextOption.WrapAtWordBoundaryOrAnywhere)
-            if DEBUGGING is True:
-                raise
 
     
     def toggle_callables(self, checked):
@@ -458,19 +456,49 @@ class ObjectBrowser(QtGui.QMainWindow):
         get_qapp().closeAllWindows()
 
 
+    @classmethod
+    def about_to_quit(cls):
+        """ Called when application is about to quit
+        """
+        assert len(cls._browsers) == 0, "Browser references left == {}".format(len(cls._browsers))
+        logger.debug("Quitting {}".format(PROGRAM_NAME))
+        
             
     @classmethod
     def create_browser(cls, *args, **kwargs):
         """ Creates and shows and ObjectBrowser window.
+        
+            Creates the Qt Application object if it doesn't yet exist.
+            
+            The *args and **kwargs will be passed to the ObjectBrowser constructor.
+            
             A (class attribute) reference to the browser window is kept to prevent it from being
             garbage-collected.
-            The *args and **kwargs will be passed to the ObjectBrowser constructor.
-            Pre condition: a QApplication object must have been created.
         """
+        q_app = QtGui.QApplication.instance()
+        if q_app is None:
+            logger.debug("Creating QApplication instance")
+            q_app = QtGui.QApplication(sys.argv)
+            q_app.aboutToQuit.connect(cls.about_to_quit)
+            q_app.lastWindowClosed.connect(q_app.quit)
+        else:
+            logger.debug("Reusing existing QApplication instance")
+            
+        cls._q_app = q_app # keeping reference to prevent garbage collection. 
+        
         object_browser = cls(*args, **kwargs)
         object_browser.show()
         object_browser.raise_()
         return object_browser
+
+    
+    @classmethod
+    def execute(cls):
+        """ Start the Qt event loop.
+        """
+        assert cls._q_app is not None, "QApplication object doesn't exist yet."
+        exit_code = start_qt_event_loop(cls._q_app)
+        return exit_code
     
     
     @classmethod
@@ -483,27 +511,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
             The *args and **kwargs will be passed to the ObjectBrowser constructor.
         """
-        q_app = QtGui.QApplication.instance()
-        if q_app is None:
-            logger.debug("Creating QApplication instance")
-            q_app = QtGui.QApplication(sys.argv)
-            q_app.aboutToQuit.connect(cls.about_to_quit)
-            q_app.lastWindowClosed.connect(q_app.quit)
-        else:
-            logger.debug("Reusing existing QApplication instance")
-            
-        cls._q_app = q_app # keeping reference to prevent garbage collection. 
-                    
         cls.create_browser(*args, **kwargs)
-        exit_code = start_qt_event_loop(cls._q_app)
+        exit_code = cls.execute()
         return exit_code
-
-
-    @classmethod
-    def about_to_quit(cls):
-        """ Called when application is about to quit
-        """
-        assert len(cls._browsers) == 0, "Browser references left == {}".format(len(cls._browsers))
-        logger.debug("Quitting {}".format(PROGRAM_NAME))
-        
         
