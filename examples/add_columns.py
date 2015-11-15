@@ -6,9 +6,10 @@ from __future__ import print_function
 import sys, logging
 from math import sqrt
 
-from objbrowser.qt import Qt
 
-from objbrowser import browse, logging_basic_config
+from objbrowser import browse
+from objbrowser.qtimp import Qt
+from objbrowser.utils import logging_basic_config
 from objbrowser.attribute_model import (AttributeModel, 
                                         DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS,  
                                         safe_tio_call, safe_data_fn)
@@ -38,7 +39,7 @@ def my_browse(*args, **kwargs):
     #    you must wrap it with a lambda expression like this.
     sqrt_attr_model_1 = AttributeModel('sqrt 1', 
         doc         = doc_str, 
-        data_fn     = lambda(tree_item): str(sqrt(tree_item.obj)),
+        data_fn     = lambda tree_item: str(sqrt(tree_item.obj)),
         col_visible = True,
         width       = width,   
         alignment   = Qt.AlignRight) 
@@ -48,7 +49,7 @@ def my_browse(*args, **kwargs):
     #    string in case of an exception.
     sqrt_attr_model_2 = AttributeModel('sqrt 2', 
         doc         = doc_str, 
-        data_fn     = lambda(tree_item): safe_tio_call(sqrt, tree_item),
+        data_fn     = lambda tree_item: safe_tio_call(sqrt, tree_item),
         col_visible = True,
         width       = width,   
         alignment   = Qt.AlignRight) 

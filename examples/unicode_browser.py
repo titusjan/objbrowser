@@ -5,7 +5,7 @@
     
     Note that the object browser replaces the carriage-return (#13) and line-feed (#10) 
     characters in the unicode column with an arrow (#8629) to prevent multiline rows 
-    in the table. Their displayed glyphs are thus not correct.
+    in the table. Their displayed glyphs are therefore not correct.
 """
 from __future__ import print_function
 
@@ -99,7 +99,7 @@ def main():
     logger.debug('Generating unicode map')
     unicode_chars = {}
     
-    for i in xrange(0x10000):
+    for i in range(0x10000):
         unicode_chars[i] = unichr(i)
     
     logger.debug('Starting browser')

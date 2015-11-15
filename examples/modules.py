@@ -6,20 +6,21 @@
 from __future__ import print_function
 
 import sys, logging
-from objbrowser import create_object_browser, execute, logging_basic_config
+
+from objbrowser import logging_basic_config
+from objbrowser.objectbrowser import ObjectBrowser
 
 logger = logging.getLogger(__name__)
 
 def call_errno_test():
     """ Test procedure. 
     """
-    import errno, __builtin__
+    import errno
+    from six.moves import builtins
     
-    # Keep the _module_browser and _builtin_browser references, 
-    # otherwise the windows will be garbage collected.
-    _module_browser = create_object_browser(errno, 'errno')
-    _builtin_browser = create_object_browser(__builtin__, '__builtin__')
-    exit_code = execute()
+    ObjectBrowser.create_browser(errno, 'errno')
+    ObjectBrowser.create_browser(builtins, 'builtins')
+    exit_code = ObjectBrowser.execute()
     return exit_code
     
         
