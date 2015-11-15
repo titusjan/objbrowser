@@ -12,6 +12,7 @@ from objbrowser.version import DEBUGGING
 from objbrowser.utils import logging_basic_config
 
 if DEBUGGING:
+    logger.warn("DEBUGGING flag is on")
     logger.debug("Overriding Python excepthook.")
     sys.excepthook = handleException
 

@@ -47,7 +47,6 @@ logger = logging.getLogger(__name__)
 class ObjectBrowser(QtGui.QMainWindow):
     """ Object browser main application window.
     """
-    _n_instances = 0
     _q_app = None   # Reference to the global application.
     _browsers = []  # Keep lists of browser windows.
     
@@ -75,9 +74,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         super(ObjectBrowser, self).__init__()
 
-        ObjectBrowser._n_instances += 1
-        self._instance_nr = self._n_instances
-        self._browsers.append(self)
+        self._instance_nr = self._add_instance()        
         
         # Model
         self._attr_cols = attribute_columns
@@ -107,7 +104,33 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Select first row so that a hidden root node will not be selected.
         first_row = self._tree_model.first_item_index()
         self.obj_tree.setCurrentIndex(first_row)
+        
+        
+    def _add_instance(self):
+        """ Adds the browser window to the list of browser references.
+            If a None is present in the list it is inserted at that position, otherwise
+            it is appended to the list. The index number is returned.
+            
+            This mechanism is used so that repeatedly creating and closing windows does not
+            increase the instance number, which is used in writing the persistent settings.
+        """
+        try:
+            idx = self._browsers.index(None)
+        except ValueError:
+            self._browsers.append(self)
+            idx = len(self._browsers) - 1
+        else:
+            self._browsers[idx] = self
 
+        return idx
+
+
+    def _remove_instance(self):
+        """ Sets the reference in the browser list to None. 
+        """
+        idx = self._browsers.index(self)
+        self._browsers[idx] = None
+        
             
     def _make_show_column_function(self, column_idx):
         """ Creates a function that shows or hides a column."""
@@ -446,7 +469,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._writeViewSettings()                
         self.close()
         event.accept()
-        self._browsers.remove(self)
+        self._remove_instance()
         logger.debug("Closed {} window {}".format(PROGRAM_NAME, self._instance_nr))
 
 
@@ -460,7 +483,11 @@ class ObjectBrowser(QtGui.QMainWindow):
     def about_to_quit(cls):
         """ Called when application is about to quit
         """
-        assert len(cls._browsers) == 0, "Browser references left == {}".format(len(cls._browsers))
+        # Sanity check
+        for idx, bw in enumerate(cls._browsers):
+            if bw is not None:
+                raise AssertionError("Reference not cleaned up: {}".format(idx))
+
         logger.debug("Quitting {}".format(PROGRAM_NAME))
         
             
