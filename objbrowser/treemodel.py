@@ -305,7 +305,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self.root_item
     
         
-    def _resetTree(self):
+    def resetTree(self):
         """ Empties and re-populates the tree.
         """
         self.beginResetModel()
@@ -313,7 +313,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.root_item = self.populateTree(self._root_obj, self._root_name,
                                            self.show_root_node)
         self.endResetModel()
-    
+
     
     def getShowCallables(self):
         return self._show_callables
@@ -324,7 +324,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         """
         logger.debug("setShowCallables: {}".format(show_callables))
         self._show_callables = show_callables
-        self._resetTree()
+        self.resetTree()
     
 
     def getShowSpecialAttributes(self):
@@ -336,7 +336,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         """
         logger.debug("setShowSpecialAttributes: {}".format(show_special_attributes))
         self._show_special_attributes = show_special_attributes
-        self._resetTree()
+        self.resetTree()
         
 
 

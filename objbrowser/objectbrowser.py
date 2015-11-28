@@ -55,7 +55,7 @@ class ObjectBrowser(QtGui.QMainWindow):
                  attribute_columns = DEFAULT_ATTR_COLS,  
                  attribute_details = DEFAULT_ATTR_DETAILS,  
                  show_routine_attributes = None,
-                 show_special_attributes = None, 
+                 show_special_attributes = None,
                  reset = False):
         """ Constructor
         
@@ -104,6 +104,13 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Select first row so that a hidden root node will not be selected.
         first_row = self._tree_model.first_item_index()
         self.obj_tree.setCurrentIndex(first_row)
+        
+        
+    def refresh(self):
+        """ Refreshes object brawser contents
+        """
+        logger.debug("Refreshing")
+        self._tree_model.resetTree()
         
         
     def _add_instance(self):
@@ -165,6 +172,9 @@ class ObjectBrowser(QtGui.QMainWindow):
             file_menu.addAction("&Test", self.my_test, "Ctrl+T")
         
         view_menu = self.menuBar().addMenu("&View")
+        #view_menu.addAction("&Refresh", self.refresh, "Ctrl+R")
+        view_menu.addAction("&Refresh", self.refresh, "F5")
+        view_menu.addSeparator()
         self.show_cols_submenu = view_menu.addMenu("Table columns")
         view_menu.addSeparator()
         view_menu.addAction(self.toggle_callable_action)
@@ -266,7 +276,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Constructs a group name for the persistent settings.
             
             Because the columns in the main table are extendible, we must store the settings
-            in a different group if a different combination of columsn is used. Therfore the
+            in a different group if a different combination of columns is used. Therefore the
             settings group name contains a hash that is calculated from the used column names.
             Furthermore the window number is included in the settings group name. Finally a
             postfix string is appended. 
