@@ -8,14 +8,8 @@ logging.basicConfig(level='DEBUG', format=fmt)
 from datetime import datetime
 from objbrowser import browse
     
-
-def main():
     
-    utc_now = datetime.utcnow()
-    lst = [5, 6, 7]
-    browse(locals())
-
-
-if __name__ == '__main__':
-    main()
-    
+utc_now = datetime.utcnow()
+lst = [5, 6, 7]
+browse(locals())
+refreh_test = 777  # Will be visible after refresh.
