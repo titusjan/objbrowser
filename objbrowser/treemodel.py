@@ -215,11 +215,29 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent_item.children_fetched:
             return
         
-        logger.debug("fetchMore: parent = {}".format(parent))
-
         obj = parent_item.obj
         obj_path = parent_item.obj_path
+                
+        obj_children, path_strings, is_attr_list = self._fetchObjectChildren(obj, obj_path)
+    
+        # Append children to tree
+        self.beginInsertRows(parent, 0, len(obj_children))
+        for item, path_str, is_attr in zip(obj_children, path_strings, is_attr_list):
+            name, child_obj = item
+            parent_item.append_child(self._addTreeItem(parent_item, child_obj, 
+                                                       name, path_str, is_attr))
+        parent_item.children_fetched = True                
+        self.endInsertRows()                       
+        
 
+    def _fetchObjectChildren(self, obj, obj_path):
+        """ Fetches the children of a Python object. 
+            Appends the object name to the path of the object.
+            For each child a boolean is returned indicating if it's an attribute (like obj.child), 
+            or not (i.e. list or dictionary items)
+            
+            Returns: (obj_children, path_strings, is_attr_list)
+        """
         obj_children = []
         path_strings = []
         
@@ -255,16 +273,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 is_attr_list.append(True)
 
         assert len(obj_children) == len(path_strings), "sanity check"
-    
-        # Append children to tree
-        self.beginInsertRows(parent, 0, len(obj_children))
-        for item, path_str, is_attr in zip(obj_children, path_strings, is_attr_list):
-            name, child_obj = item
-            parent_item.append_child(self._addTreeItem(parent_item, child_obj, 
-                                                       name, path_str, is_attr))
-        parent_item.children_fetched = True                
-        self.endInsertRows()                       
-        
+        return obj_children, path_strings, is_attr_list
 
     
     def _addTreeItem(self, parent_item, obj, obj_name, obj_path, is_attribute):
