@@ -8,7 +8,7 @@
 class TreeItem(object):
     """ Tree node class that can be used to build trees of objects.
     """
-    def __init__(self, parent, obj, name, obj_path, is_attribute):
+    def __init__(self, obj, name, obj_path, is_attribute, parent=None):
         self.parent_item = parent
         self.obj = obj
         self.obj_name = str(name)
@@ -27,6 +27,7 @@ class TreeItem(object):
             .format(self.obj_path, id(self.obj), len(self.child_items))
     
     def append_child(self, item):
+        item.parent_item = self
         self.child_items.append(item)
 
     def child(self, row):

@@ -14,7 +14,8 @@
     #####################
     # TODO: version 1.x #
     #####################
-    # Ordered dict should not sort keys 
+    # Ordered dict should not sort keys
+    # call get_set descriptors (getters) in summary column.  
     # hide non-attributes' attributes? That is, list's and dict's attributes are hidden.
     # tool-tips
     # python 3
