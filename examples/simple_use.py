@@ -12,4 +12,4 @@ from objbrowser import browse
 utc_now = datetime.utcnow()
 lst = [5, 6, 7]
 browse(locals())
-refreh_test = 777  # Will be visible after refresh.
+

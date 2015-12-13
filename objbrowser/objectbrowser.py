@@ -15,12 +15,11 @@
     # TODO: version 1.x #
     #####################
     # Ordered dict should not sort keys
-    # call get_set descriptors (getters) in summary column.  
-    # hide non-attributes' attributes? That is, list's and dict's attributes are hidden.
+    # call get_set descriptors (getters) in summary column.
+    # ufuncs?
     # tool-tips
-    # python 3
-    # Examples:
-     - Qt
+    
+
 
 """
 from __future__ import absolute_import
@@ -111,7 +110,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         """ Refreshes object brawser contents
         """
         logger.debug("Refreshing")
-        self._tree_model.resetTree()
+        self._tree_model.refreshTree()
         
         
     def _add_instance(self):

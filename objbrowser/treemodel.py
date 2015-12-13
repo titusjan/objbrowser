@@ -76,8 +76,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.routine_color = QtGui.QBrush(QtGui.QColor('mediumblue'))  # for functions, methods, etc.
 
 
-        self.refresh_count = 0 # TODO: remove
-
     def columnCount(self, _parent=None):
         """ Returns the number of columns in the tree """
         return len(self._attr_cols)
@@ -310,27 +308,26 @@ class TreeModel(QtCore.QAbstractItemModel):
             self.fetchMore(root_index) 
             
         return self.root_item
-    
-    
-#    def _auxResetTree(self, tree_index):
-#        
-#        tree_item = self.treeItem(tree_index)
-#        print("_auxResetTree: {}{}".format(tree_item.obj_path, 
-#                                           "*" if tree_item.children_fetched else ""))
-#        if tree_item.children_fetched:
-#            n_children = self.rowCount(tree_index)
-#            for row in range(n_children):
-#                child_index = self.index(row, 0, parent=tree_index)
-#                self._auxResetTree(child_index)
                 
                 
-    def _auxResetTree(self, tree_index):
+    def _auxRefreshTree(self, tree_index):
+        """ Auxiliary function for refreshTree that recursively refreshes the tree nodes.
+            
+            If the underlying Python object has been changed, we don't want to delete the old
+            tree model and create a new one from scratch because this loses all information about
+            which nodes are fetched and expanded. Instead the old tree model is updated. Using the
+            difflib from the standard library it is determined for a parent node which child nodes
+            should be added or removed. This is done based on the node names only, not on the node 
+            contents (the underlying Python objects). Testing the underlying nodes for equality
+            is potentially slow. It is faster to let the refreshNode function emit the dataChanged
+            signal for all cells.
+        """
         
         if not tree_index.isValid():
             logger.warn("index not valid {}".format(tree_index))
         
         tree_item = self.treeItem(tree_index)
-        logger.debug("_auxResetTree({}): {}{}".format(tree_index, tree_item.obj_path, 
+        logger.debug("_auxRefreshTree({}): {}{}".format(tree_index, tree_item.obj_path, 
                                            "*" if tree_item.children_fetched else ""))
         
         if tree_item.children_fetched:
@@ -348,18 +345,19 @@ class TreeModel(QtCore.QAbstractItemModel):
             
             for tag, i1, i2, j1, j2 in reversed(opcodes):
                 
-                if tag != 'equal' or tag == 'equal':
+                if 1 or tag != 'equal':
                     logger.debug("  {:7s}, a[{}:{}] ({}), b[{}:{}] ({})"
                                  .format(tag, i1, i2, old_item_names[i1:i2], j1, j2, new_item_names[j1:j2]))
                 
                 if tag == 'equal':
+                    # Only when node names are equal is _auxRefreshTree called recursively.
                     assert i2-i1 == j2-j1, "equal sanity check failed {} != {}".format(i2-i1, j2-j1)
                     for old_row, new_row in zip(range(i1, i2), range(j1, j2)):
                         old_items[old_row].obj = new_items[new_row].obj
                         logger.debug("     old_row {} name is equal to {}. Updated object: {}"
                                      .format(old_row, new_row, old_items[old_row].obj))
                         child_index = self.index(old_row, 0, parent=tree_index)
-                        self._auxResetTree(child_index) 
+                        self._auxRefreshTree(child_index) 
 
                 elif tag == 'replace':
                     # Explicitly remove the old item and insert the new. The old item may have
@@ -402,41 +400,20 @@ class TreeModel(QtCore.QAbstractItemModel):
                     raise ValueError("Invalid tag: {}".format(tag))
             
         
-    def resetTree(self): # TODO: rename refreshTree.
-        """ .....
-        
-            "Note: If you inherit QAbstractItemView and intend to update the contents of the 
-            viewport, you should use viewport->update() instead of update() as all painting 
-            operations take place on the viewport.
-            See: http://doc.qt.io/qt-4.8/qabstractitemview.html
+    def refreshTree(self):
+        """ Refreshes the tree model from the underlying root object (which may have been changed).
         """
         logger.info("")
-        logger.info("resetTree: {}".format(self.root_item))
+        logger.info("refreshTree: {}".format(self.root_item))
+
         root_obj = self.root_item.obj
-        if 'count' in root_obj:
-            root_obj['count'] += 1
-            
-        if 'anarf' in root_obj:
-            del root_obj['anarf']
-        else:
-            root_obj['anarf'] = 55
-
-        root_obj['xxx'] = 'xxx-je'
-
-        if self.refresh_count >= 1:
-            key = 'yyy{}'.format(self.refresh_count)
-            del root_obj[key]
-        self.refresh_count += 1
-        key = 'yyy{}'.format(self.refresh_count)
-        root_obj[key] = self.refresh_count
+        self._auxRefreshTree(QtCore.QModelIndex())
         
-        root_obj['zzz'] = 'zzzzooo de laatste'
-        
-        self._auxResetTree(QtCore.QModelIndex())
-        
-        logger.debug("After _auxResetTree, root_obj: {}".format(root_obj))
+        logger.debug("After _auxRefreshTree, root_obj: {}".format(root_obj))
         self.root_item.pretty_print()
         
+        # Emit the dataChanged signal for all cells. This is faster than checking which nodes
+        # have changed, which may be slow for some underlying Python objects.
         n_rows = self.rowCount()
         n_cols = self.columnCount()
         top_left = self.index(0, 0)
@@ -456,7 +433,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         """
         logger.debug("setShowCallables: {}".format(show_callables))
         self._show_callables = show_callables
-        self.resetTree()
+        self.refreshTree()
     
 
     def getShowSpecialAttributes(self):
@@ -468,7 +445,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         """
         logger.debug("setShowSpecialAttributes: {}".format(show_special_attributes))
         self._show_special_attributes = show_special_attributes
-        self.resetTree()
+        self.refreshTree()
         
 
 
