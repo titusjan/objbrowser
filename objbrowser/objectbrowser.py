@@ -160,6 +160,13 @@ class ObjectBrowser(QtGui.QMainWindow):
                           statusTip = "Shows or hides __special__ attributes")
         self.toggle_special_attribute_action.toggled.connect(self.toggle_special_attributes)
                               
+        # Add another refresh action with a different short cut. An action must be added to
+        # a visible widget for it to receive events. It is added to the main windows to prevent it
+        # from being displayed again in the menu
+        refresh_action_f5 = QtGui.QAction(self, text="&Refresh2", shortcut="F5")
+        refresh_action_f5.triggered.connect(self.refresh)
+        self.addAction(refresh_action_f5) 
+        
                               
     def _setup_menu(self):
         """ Sets up the main menu.
@@ -172,8 +179,8 @@ class ObjectBrowser(QtGui.QMainWindow):
             file_menu.addAction("&Test", self.my_test, "Ctrl+T")
         
         view_menu = self.menuBar().addMenu("&View")
-        #view_menu.addAction("&Refresh", self.refresh, "Ctrl+R")
-        view_menu.addAction("&Refresh", self.refresh, "F5")
+        view_menu.addAction("&Refresh", self.refresh, "Ctrl+R")
+        
         view_menu.addSeparator()
         self.show_cols_submenu = view_menu.addMenu("Table columns")
         view_menu.addSeparator()
