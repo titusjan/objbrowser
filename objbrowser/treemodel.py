@@ -1,11 +1,17 @@
 """ Module that defines the TreeModel
 """
 # Based on: PySide examples/itemviews/simpletreemodel
-# See: http://harmattan-dev.nokia.com/docs/library/html/qt4/itemviews-simpletreemodel.html
+# See: https://github.com/PySide/Examples/blob/master/examples/itemviews/simpletreemodel/simpletreemodel.py
+
+# TODO: a lot of methods (e.g. rowCount) test if parent.column() > 0. This should probably 
+# be replaced with an assert.
+
 
 from __future__ import absolute_import
 import logging, inspect
+from difflib import SequenceMatcher
 from six import unichr
+
 from objbrowser.qtimp import QtCore, QtGui#, Qt
 from objbrowser.qtimp.QtCore import Qt
 from objbrowser.treeitem import TreeItem
@@ -70,7 +76,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.routine_color = QtGui.QBrush(QtGui.QColor('mediumblue'))  # for functions, methods, etc.
 
 
-    def columnCount(self, _parent):
+        self.refresh_count = 0 # TODO: remove
+
+    def columnCount(self, _parent=None):
         """ Returns the number of columns in the tree """
         return len(self._attr_cols)
     
@@ -143,16 +151,20 @@ class TreeModel(QtCore.QAbstractItemModel):
     def index(self, row, column, parent=None):
         
         if parent is None:
+            logger.warn("parent is None")
             parent = QtCore.QModelIndex()
             
         if not self.hasIndex(row, column, parent):
+            logger.warn("hasIndex is False")
             return QtCore.QModelIndex()
 
         parentItem = self.treeItem(parent)
         childItem = parentItem.child(row)
+        #logger.debug("  {}".format(childItem.obj_path))
         if childItem:
             return self.createIndex(row, column, childItem)
         else:
+            logger.warn("no childItem")
             return QtCore.QModelIndex()
 
 
@@ -182,22 +194,26 @@ class TreeModel(QtCore.QAbstractItemModel):
             return first_item_index
             
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=None):
+        parent = QtCore.QModelIndex() if parent is None else parent
         
         if parent.column() > 0:
+            # This is taken from the PyQt simpletreemodel example.
             return 0
         else:
             return self.treeItem(parent).child_count()
 
 
-    def hasChildren(self, parent):
+    def hasChildren(self, parent=None):
+        parent = QtCore.QModelIndex() if parent is None else parent
         if parent.column() > 0:
             return 0
         else:
             return self.treeItem(parent).has_children
     
 
-    def canFetchMore(self, parent):
+    def canFetchMore(self, parent=None):
+        parent = QtCore.QModelIndex() if parent is None else parent
         if parent.column() > 0:
             return 0
         else:
@@ -206,8 +222,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             return result  
 
 
-    def fetchMore(self, parent):
-
+    def fetchMore(self, parent=None):
+        """ Fetches the children given the model index of a parent node.
+            Adds the children to the parent.
+        """
+        parent = QtCore.QModelIndex() if parent is None else parent
         if parent.column() > 0:
             return
         
@@ -227,11 +246,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def _fetchObjectChildren(self, obj, obj_path):
         """ Fetches the children of a Python object. 
-            Appends the object name to the path of the object.
-            For each child a boolean is returned indicating if it's an attribute (like obj.child), 
-            or not (i.e. list or dictionary items)
-            
-            Returns: (obj_children, path_strings, is_attr_list)
+            Returns: list of TreeItems
         """
         obj_children = []
         path_strings = []
@@ -296,15 +311,140 @@ class TreeModel(QtCore.QAbstractItemModel):
             
         return self.root_item
     
+    
+#    def _auxResetTree(self, tree_index):
+#        
+#        tree_item = self.treeItem(tree_index)
+#        print("_auxResetTree: {}{}".format(tree_item.obj_path, 
+#                                           "*" if tree_item.children_fetched else ""))
+#        if tree_item.children_fetched:
+#            n_children = self.rowCount(tree_index)
+#            for row in range(n_children):
+#                child_index = self.index(row, 0, parent=tree_index)
+#                self._auxResetTree(child_index)
+                
+                
+    def _auxResetTree(self, tree_index):
         
-    def resetTree(self):
-        """ Empties and re-populates the tree.
+        if not tree_index.isValid():
+            logger.warn("index not valid {}".format(tree_index))
+        
+        tree_item = self.treeItem(tree_index)
+        logger.debug("_auxResetTree({}): {}{}".format(tree_index, tree_item.obj_path, 
+                                           "*" if tree_item.children_fetched else ""))
+        
+        if tree_item.children_fetched:
+            
+            old_items = tree_item.child_items
+            new_items = self._fetchObjectChildren(tree_item.obj, tree_item.obj_path)
+            
+            old_item_names = [(item.obj_name, item.is_attribute) for item in old_items]
+            new_item_names = [(item.obj_name, item.is_attribute) for item in new_items]
+            seqMatcher = SequenceMatcher(isjunk=None, a=old_item_names, b=new_item_names, 
+                                         autojunk=False)
+            opcodes = seqMatcher.get_opcodes()
+            
+            logger.debug("(reversed) opcodes: {}".format(list(reversed(opcodes))))
+            
+            for tag, i1, i2, j1, j2 in reversed(opcodes):
+                
+                if tag != 'equal' or tag == 'equal':
+                    logger.debug("  {:7s}, a[{}:{}] ({}), b[{}:{}] ({})"
+                                 .format(tag, i1, i2, old_item_names[i1:i2], j1, j2, new_item_names[j1:j2]))
+                
+                if tag == 'equal':
+                    assert i2-i1 == j2-j1, "equal sanity check failed {} != {}".format(i2-i1, j2-j1)
+                    for old_row, new_row in zip(range(i1, i2), range(j1, j2)):
+                        old_items[old_row].obj = new_items[new_row].obj
+                        logger.debug("     old_row {} name is equal to {}. Updated object: {}"
+                                     .format(old_row, new_row, old_items[old_row].obj))
+                        child_index = self.index(old_row, 0, parent=tree_index)
+                        self._auxResetTree(child_index) 
+
+                elif tag == 'replace':
+                    # Explicitly remove the old item and insert the new. The old item may have
+                    # child nodes which indices must be removed by Qt, otherwise it crashes.
+                    assert i2-i1 == j2-j1, "replace sanity check failed {} != {}".format(i2-i1, j2-j1)
+                    
+                    first = i1          # row number of first that will be removed
+                    last  = i1 + i2 - 1 # row number of last element after insertion
+                    logger.debug("     calling beginRemoveRows({}, {}, {})".format(tree_index, first, last)) 
+                    self.beginRemoveRows(tree_index, first, last)
+                    del tree_item.child_items[i1:i2] 
+                    self.endRemoveRows()                    
+
+                    first = i1               # row number of first element after insertion 
+                    last  = i1 + j2 - j1 - 1 # row number of last element after insertion
+                    logger.debug("     calling beginInsertRows({}, {}, {})".format(tree_index, first, last)) 
+                    self.beginInsertRows(tree_index, first, last)
+                    tree_item.insert_children(i1, new_items[j1:j2])
+                    self.endInsertRows()
+                    
+                elif tag == 'delete':
+                    assert j1 == j2, "delete sanity check failed. {} != {}".format(j1, j2)
+                    first = i1          # row number of first that will be removed
+                    last  = i1 + i2 - 1 # row number of last element after insertion
+                    logger.debug("     calling beginRemoveRows({}, {}, {})".format(tree_index, first, last)) 
+                    self.beginRemoveRows(tree_index, first, last)
+                    del tree_item.child_items[i1:i2] 
+                    self.endRemoveRows()
+                                            
+                elif tag == 'insert':
+                    assert i1 == i2, "insert sanity check failed. {} != {}".format(i1, i2)
+                    first = i1               # row number of first element after insertion 
+                    last  = i1 + j2 - j1 - 1 # row number of last element after insertion
+                    logger.debug("     calling beginInsertRows({}, {}, {})".format(tree_index, first, last)) 
+                    self.beginInsertRows(tree_index, first, last)
+                    tree_item.insert_children(i1, new_items[j1:j2])
+                    self.endInsertRows()
+
+                else:
+                    raise ValueError("Invalid tag: {}".format(tag))
+            
+        
+    def resetTree(self): # TODO: rename refreshTree.
+        """ .....
+        
+            "Note: If you inherit QAbstractItemView and intend to update the contents of the 
+            viewport, you should use viewport->update() instead of update() as all painting 
+            operations take place on the viewport.
+            See: http://doc.qt.io/qt-4.8/qabstractitemview.html
         """
-        self.beginResetModel()
-        self.reset()
-        self.root_item = self.populateTree(self._root_obj, self._root_name,
-                                           self.show_root_node)
-        self.endResetModel()
+        logger.info("")
+        logger.info("resetTree: {}".format(self.root_item))
+        root_obj = self.root_item.obj
+        if 'count' in root_obj:
+            root_obj['count'] += 1
+            
+        if 'anarf' in root_obj:
+            del root_obj['anarf']
+        else:
+            root_obj['anarf'] = 55
+
+        root_obj['xxx'] = 'xxx-je'
+
+        if self.refresh_count >= 1:
+            key = 'yyy{}'.format(self.refresh_count)
+            del root_obj[key]
+        self.refresh_count += 1
+        key = 'yyy{}'.format(self.refresh_count)
+        root_obj[key] = self.refresh_count
+        
+        root_obj['zzz'] = 'zzzzooo de laatste'
+        
+        self._auxResetTree(QtCore.QModelIndex())
+        
+        logger.debug("After _auxResetTree, root_obj: {}".format(root_obj))
+        self.root_item.pretty_print()
+        
+        n_rows = self.rowCount()
+        n_cols = self.columnCount()
+        top_left = self.index(0, 0)
+        bottom_right = self.index(n_rows-1, n_cols-1)
+        
+        logger.debug("bottom_right: ({}, {})".format(bottom_right.row(), bottom_right.column()))
+        self.dataChanged.emit(top_left, bottom_right)
+        
 
     
     def getShowCallables(self):

@@ -5,6 +5,9 @@
 # Disabling the need for docstrings, all methods are tiny.
 # pylint: disable=C0111
 
+import logging
+logger = logging.getLogger(__name__)
+
 class TreeItem(object):
     """ Tree node class that can be used to build trees of objects.
     """
@@ -18,17 +21,23 @@ class TreeItem(object):
         self.has_children = True
         self.children_fetched = False
 
-    def __str__(self):
-        return "<TreeItem: {} (0x{:x}) ({:d} children)>" \
-            .format(self.obj_path, id(self.obj), len(self.child_items))
-
     def __repr__(self):
-        return "<TreeItem: {} (0x{:x}) ({:d} children)>" \
-            .format(self.obj_path, id(self.obj), len(self.child_items))
+        n_children = len(self.child_items)
+        if n_children == 0:
+            return "<TreeItem(0x{:x}): {} = {!r}>" \
+                .format(id(self.obj), self.obj_path, self.obj)
+        else:
+            return "<TreeItem(0x{:x}): {} ({:d} children)>" \
+                .format(id(self.obj), self.obj_path, len(self.child_items))
     
     def append_child(self, item):
         item.parent_item = self
         self.child_items.append(item)
+
+    def insert_children(self, idx, items):
+        self.child_items[idx:idx] = items
+        for item in items:
+            item.parent_item = self
 
     def child(self, row):
         return self.child_items[row]
@@ -45,3 +54,13 @@ class TreeItem(object):
         else:
             return 0
 
+    def pretty_print(self, indent=0):
+        if 0:
+            print(indent * "    " + repr(self))
+        else:
+            logger.debug(indent * "    " + repr(self))
+        for child_item in self.child_items:
+            child_item.pretty_print(indent + 1)
+            
+        
+        
