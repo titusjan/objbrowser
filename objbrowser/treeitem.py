@@ -8,6 +8,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Maximum number of characters used in the __str__ method to represent the underlying object
+MAX_OBJ_STR_LEN = 50
+
 class TreeItem(object):
     """ Tree node class that can be used to build trees of objects.
     """
@@ -21,14 +24,26 @@ class TreeItem(object):
         self.has_children = True
         self.children_fetched = False
 
-    def __repr__(self):
+
+    def __str__(self):
         n_children = len(self.child_items)
         if n_children == 0:
-            return "<TreeItem(0x{:x}): {} = {!r}>" \
-                .format(id(self.obj), self.obj_path, self.obj)
+            s = repr(self.obj)
+            if len(s) > MAX_OBJ_STR_LEN:
+                s = s[:MAX_OBJ_STR_LEN] + '...'
+            
+            return "<TreeItem(0x{:x}): {} = {}>" \
+                .format(id(self.obj), self.obj_path, s)
         else:
             return "<TreeItem(0x{:x}): {} ({:d} children)>" \
                 .format(id(self.obj), self.obj_path, len(self.child_items))
+
+
+    def __repr__(self):
+        n_children = len(self.child_items)
+        return "<TreeItem(0x{:x}): {} ({:d} children)>" \
+            .format(id(self.obj), self.obj_path, n_children)
+            
     
     def append_child(self, item):
         item.parent_item = self
@@ -56,9 +71,9 @@ class TreeItem(object):
 
     def pretty_print(self, indent=0):
         if 0:
-            print(indent * "    " + repr(self))
+            print(indent * "    " + str(self))
         else:
-            logger.debug(indent * "    " + repr(self))
+            logger.debug(indent * "    " + str(self))
         for child_item in self.child_items:
             child_item.pretty_print(indent + 1)
             
