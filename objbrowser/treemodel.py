@@ -322,10 +322,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             is potentially slow. It is faster to let the refreshNode function emit the dataChanged
             signal for all cells.
         """
-        
-        if not tree_index.isValid():
-            logger.warn("index not valid {}".format(tree_index))
-        
         tree_item = self.treeItem(tree_index)
         logger.debug("_auxRefreshTree({}): {}{}".format(tree_index, tree_item.obj_path, 
                                            "*" if tree_item.children_fetched else ""))
@@ -354,8 +350,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                     assert i2-i1 == j2-j1, "equal sanity check failed {} != {}".format(i2-i1, j2-j1)
                     for old_row, new_row in zip(range(i1, i2), range(j1, j2)):
                         old_items[old_row].obj = new_items[new_row].obj
-                        logger.debug("     old_row {} name is equal to {}. Updated object: {}"
-                                     .format(old_row, new_row, old_items[old_row].obj))
                         child_index = self.index(old_row, 0, parent=tree_index)
                         self._auxRefreshTree(child_index) 
 

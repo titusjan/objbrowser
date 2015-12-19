@@ -54,8 +54,10 @@ class ObjectBrowser(QtGui.QMainWindow):
                  name = '',
                  attribute_columns = DEFAULT_ATTR_COLS,  
                  attribute_details = DEFAULT_ATTR_DETAILS,  
-                 show_routine_attributes = None,
-                 show_special_attributes = None,
+                 show_routine_attributes = None, # None uses value from QSettings
+                 show_special_attributes = None, # None uses value from QSettings
+                 auto_refresh=None, # None uses value from QSettings
+                 refresh_rate=None, # None uses value from QSettings
                  reset = False):
         """ Constructor
         
@@ -70,20 +72,25 @@ class ObjectBrowser(QtGui.QMainWindow):
             :param show_special_attributes: if True rows where the 'is attribute' is True and
                 the object name starts and ends with two underscores, are displayed. Otherwise 
                 they are hidden.
+            :param auto_refresh: If True, the contents refershes itsef every <refresh_rate> seconds.
+            :param refresh_rate: number of seconds between automatic refreshes. Default = 2 .
             :param reset: If true the persistent settings, such as column widths, are reset. 
         """
         super(ObjectBrowser, self).__init__()
 
-        self._instance_nr = self._add_instance()        
+        self._instance_nr = self._add_instance()
         
         # Model
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
         
-        (show_routine_attributes, 
-         show_special_attributes) = self._readModelSettings(reset = reset, 
-                                                            show_routine_attributes = show_routine_attributes,
-                                                            show_special_attributes = show_special_attributes)
+        (self._auto_refresh, self._refresh_rate, show_routine_attributes, show_special_attributes) = \
+            self._readModelSettings(reset = reset,
+                                    auto_refresh = auto_refresh, 
+                                    refresh_rate = refresh_rate,  
+                                    show_routine_attributes = show_routine_attributes,
+                                    show_special_attributes = show_special_attributes)
+            
         self._tree_model = TreeModel(obj, 
                                      root_obj_name = name,
                                      attr_cols = self._attr_cols,  
@@ -96,16 +103,22 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.setWindowTitle("{} - {}".format(PROGRAM_NAME, name))
 
         self._readViewSettings(reset = reset)
+
+        assert self._refresh_rate > 0, "refresh_rate must be > 0. Got: {}".format(self._refresh_rate)
+        self._refresh_timer = QtCore.QTimer(self)
+        self._refresh_timer.setInterval(self._refresh_rate * 1000)
+        self._refresh_timer.timeout.connect(self.refresh)
         
         # Update views with model
         self.toggle_special_attribute_action.setChecked(show_special_attributes)
         self.toggle_callable_action.setChecked(show_routine_attributes)
+        self.toggle_auto_refresh_action.setChecked(self._auto_refresh)
      
         # Select first row so that a hidden root node will not be selected.
         first_row = self._tree_model.first_item_index()
         self.obj_tree.setCurrentIndex(first_row)
         
-        
+
     def refresh(self):
         """ Refreshes object brawser contents
         """
@@ -159,6 +172,12 @@ class ObjectBrowser(QtGui.QMainWindow):
             QtGui.QAction("Show __special__ attributes", self, checkable=True, 
                           statusTip = "Shows or hides __special__ attributes")
         self.toggle_special_attribute_action.toggled.connect(self.toggle_special_attributes)
+
+        # Toggle auto-refresh on/off
+        self.toggle_auto_refresh_action = \
+            QtGui.QAction("Auto-refresh", self, checkable=True, 
+                          statusTip = "Auto refresh every {} seconds".format(self._refresh_rate))
+        self.toggle_auto_refresh_action.toggled.connect(self.toggle_auto_refresh)
                               
         # Add another refresh action with a different short cut. An action must be added to
         # a visible widget for it to receive events. It is added to the main windows to prevent it
@@ -180,6 +199,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         view_menu = self.menuBar().addMenu("&View")
         view_menu.addAction("&Refresh", self.refresh, "Ctrl+R")
+        view_menu.addAction(self.toggle_auto_refresh_action)
         
         view_menu.addSeparator()
         self.show_cols_submenu = view_menu.addMenu("Table columns")
@@ -296,7 +316,9 @@ class ObjectBrowser(QtGui.QMainWindow):
 
                 
     def _readModelSettings(self, 
-                           reset=False, 
+                           reset=False,
+                           auto_refresh = None, 
+                           refresh_rate = None,  
                            show_routine_attributes = None,
                            show_special_attributes = None):
         """ Reads the persistent model settings .
@@ -304,10 +326,16 @@ class ObjectBrowser(QtGui.QMainWindow):
             overridden by giving it a True or False value.
             If reset is True and the setting is None, True is used as default.
         """ 
+        default_auto_refresh = False
+        default_refresh_rate = 2
         default_sra = True
         default_ssa = True
         if reset:
             logger.debug("Resetting persistent model settings")
+            if refresh_rate is None:
+                refresh_rate = default_refresh_rate
+            if auto_refresh is None:
+                auto_refresh = default_auto_refresh
             if show_routine_attributes is None:
                 show_routine_attributes = default_sra
             if show_special_attributes is None:
@@ -316,16 +344,29 @@ class ObjectBrowser(QtGui.QMainWindow):
             logger.debug("Reading model settings for window: {:d}".format(self._instance_nr))
             settings = get_qsettings()
             settings.beginGroup(self._settings_group_name('model'))
+
+            if auto_refresh is None:
+                auto_refresh = setting_str_to_bool(
+                    settings.value("auto_refresh", default_auto_refresh))
+            logger.debug("read auto_refresh: {!r}".format(auto_refresh))
+
+            if refresh_rate is None:
+                refresh_rate = float(settings.value("refresh_rate", default_refresh_rate))
+            logger.debug("read refresh_rate: {!r}".format(refresh_rate))
+
             if show_routine_attributes is None:
                 show_routine_attributes = setting_str_to_bool(
                     settings.value("show_routine_attributes", default_sra))
+            logger.debug("read show_routine_attributes: {!r}".format(show_routine_attributes))
+                
             if show_special_attributes is None:
                 show_special_attributes = setting_str_to_bool(
                     settings.value("show_special_attributes", default_ssa))
-            settings.endGroup()
-            logger.debug("read show_routine_attributes: {!r}".format(show_routine_attributes))
             logger.debug("read show_special_attributes: {!r}".format(show_special_attributes))
-        return (show_routine_attributes, show_special_attributes)
+            
+            settings.endGroup()
+                        
+        return (auto_refresh, refresh_rate, show_routine_attributes, show_special_attributes)
                     
     
     def _writeModelSettings(self):
@@ -335,10 +376,19 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         settings = get_qsettings()
         settings.beginGroup(self._settings_group_name('model'))
+
+        logger.debug("writing auto_refresh: {!r}".format(self._auto_refresh))
+        settings.setValue("auto_refresh", self._auto_refresh)
+        
+        logger.debug("writing refresh_rate: {!r}".format(self._refresh_rate))
+        settings.setValue("refresh_rate", self._refresh_rate)
+
         logger.debug("writing show_routine_attributes: {!r}".format(self._tree_model.getShowCallables()))
-        logger.debug("writing show_special_attributes: {!r}".format(self._tree_model.getShowSpecialAttributes()))
         settings.setValue("show_routine_attributes", self._tree_model.getShowCallables())
+
+        logger.debug("writing show_special_attributes: {!r}".format(self._tree_model.getShowSpecialAttributes()))
         settings.setValue("show_special_attributes", self._tree_model.getShowSpecialAttributes())
+        
         settings.endGroup()
         
     
@@ -440,6 +490,16 @@ class ObjectBrowser(QtGui.QMainWindow):
             self.editor.setPlainText("{}\n\n{}".format(ex, stack_trace))
             self.editor.setWordWrapMode(QtGui.QTextOption.WrapAtWordBoundaryOrAnywhere)
 
+    def toggle_auto_refresh(self, checked):
+        """ Toggles auto-refresh on/off.
+        """
+        if checked:
+            logger.info("Auto-refresh on. Rate {:g} seconds".format(self._refresh_rate))
+            self._refresh_timer.start()
+        else:
+            logger.info("Auto-refresh off")
+            self._refresh_timer.stop()
+        self._auto_refresh = checked        
     
     def toggle_callables(self, checked):
         """ Shows/hides the special callable objects.
