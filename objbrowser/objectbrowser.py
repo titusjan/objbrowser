@@ -182,16 +182,16 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Add another refresh action with a different short cut. An action must be added to
         # a visible widget for it to receive events. It is added to the main windows to prevent it
         # from being displayed again in the menu
-        refresh_action_f5 = QtGui.QAction(self, text="&Refresh2", shortcut="F5")
-        refresh_action_f5.triggered.connect(self.refresh)
-        self.addAction(refresh_action_f5) 
+        self.refresh_action_f5 = QtGui.QAction(self, text="&Refresh2", shortcut="F5")
+        self.refresh_action_f5.triggered.connect(self.refresh)
+        self.addAction(self.refresh_action_f5) 
         
                               
     def _setup_menu(self):
         """ Sets up the main menu.
         """
         file_menu = self.menuBar().addMenu("&File")
-        file_menu.addAction("C&lose", self.close_window, "Ctrl+W")
+        file_menu.addAction("C&lose", self.close, "Ctrl+W")
         file_menu.addAction("E&xit", self.quit_application, "Ctrl+Q")
         if DEBUGGING is True:
             file_menu.addSeparator()
@@ -532,18 +532,28 @@ class ObjectBrowser(QtGui.QMainWindow):
         QtGui.QMessageBox.about(self, "About {}".format(PROGRAM_NAME), message)
 
 
-    def close_window(self): # TODO: can be removed
-        """ Closes the window """
-        logger.debug("close_window called")
-        self.close()
-
+    def _finalize(self):
+        """ Cleans up resources when this window is closed.
+            Disconnects all signals for this window.
+        """
+        self._refresh_timer.stop()
+        self._refresh_timer.timeout.disconnect(self.refresh)
+        self.toggle_callable_action.toggled.disconnect(self.toggle_callables)
+        self.toggle_special_attribute_action.toggled.disconnect(self.toggle_special_attributes)
+        self.toggle_auto_refresh_action.toggled.disconnect(self.toggle_auto_refresh)
+        self.refresh_action_f5.triggered.disconnect(self.refresh)
+        self.button_group.buttonClicked[int].disconnect(self._change_details_field)
+        selection_model = self.obj_tree.selectionModel() 
+        selection_model.currentChanged.disconnect(self._update_details)
+        
         
     def closeEvent(self, event):
         """ Called when the window is closed
         """
         logger.debug("closeEvent")
         self._writeModelSettings()                
-        self._writeViewSettings()                
+        self._writeViewSettings()
+        self._finalize()                
         self.close()
         event.accept()
         self._remove_instance()
