@@ -15,6 +15,7 @@ from six import unichr
 from objbrowser.qtimp import QtCore, QtGui#, Qt
 from objbrowser.qtimp.QtCore import Qt
 from objbrowser.treeitem import TreeItem
+from objbrowser.utils import cut_off_str
 
 logger = logging.getLogger(__name__)
 
@@ -403,7 +404,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         root_obj = self.root_item.obj
         self._auxRefreshTree(QtCore.QModelIndex())
         
-        logger.debug("After _auxRefreshTree, root_obj: {}".format(root_obj))
+        logger.debug("After _auxRefreshTree, root_obj: {}".format(cut_off_str(root_obj, 80)))
         self.root_item.pretty_print()
         
         # Emit the dataChanged signal for all cells. This is faster than checking which nodes

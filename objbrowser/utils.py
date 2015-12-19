@@ -37,3 +37,15 @@ def setting_str_to_bool(s):
     else:
         return s
 
+
+def cut_off_str(obj, max_len):
+    """ Creates a string representation of an object, no longer than max_len characters
+        
+        Uses repr(obj) to create the string representation. If this is longer than max_len -3 
+        characters, the last three will be replaced with elipsis.
+    """
+    s = repr(obj)
+    if len(s) > max_len - 3:
+        s = s[:max_len - 3] + '...'
+    return s
+    

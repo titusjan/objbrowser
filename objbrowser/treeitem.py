@@ -8,8 +8,12 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from objbrowser.utils import cut_off_str
+
 # Maximum number of characters used in the __str__ method to represent the underlying object
 MAX_OBJ_STR_LEN = 50
+
+
 
 class TreeItem(object):
     """ Tree node class that can be used to build trees of objects.
@@ -28,12 +32,8 @@ class TreeItem(object):
     def __str__(self):
         n_children = len(self.child_items)
         if n_children == 0:
-            s = repr(self.obj)
-            if len(s) > MAX_OBJ_STR_LEN:
-                s = s[:MAX_OBJ_STR_LEN] + '...'
-            
             return "<TreeItem(0x{:x}): {} = {}>" \
-                .format(id(self.obj), self.obj_path, s)
+                .format(id(self.obj), self.obj_path, cut_off_str(self.obj, MAX_OBJ_STR_LEN))
         else:
             return "<TreeItem(0x{:x}): {} ({:d} children)>" \
                 .format(id(self.obj), self.obj_path, len(self.child_items))
