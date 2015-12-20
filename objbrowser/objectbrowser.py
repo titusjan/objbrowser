@@ -29,7 +29,7 @@ from objbrowser.qtimp import QtCore, QtGui, QtSlot, get_qapp, get_qsettings, sta
 
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from objbrowser.utils import setting_str_to_bool
-from objbrowser.treemodel import TreeModel
+from objbrowser.treemodel import TreeProxyModel, TreeModel
 from objbrowser.toggle_column_mixin import ToggleColumnTreeView
 from objbrowser.attribute_model import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
 
@@ -90,12 +90,18 @@ class ObjectBrowser(QtGui.QMainWindow):
                                     refresh_rate = refresh_rate,  
                                     show_routine_attributes = show_routine_attributes,
                                     show_special_attributes = show_special_attributes)
+
+        self._tree_model = TreeModel(obj, root_obj_name = name, attr_cols = self._attr_cols)
             
-        self._tree_model = TreeModel(obj, 
-                                     root_obj_name = name,
-                                     attr_cols = self._attr_cols,  
-                                     show_routine_attributes = show_routine_attributes, 
-                                     show_special_attributes = show_special_attributes)
+        self._proxy_tree_model = TreeProxyModel(
+            show_routine_attributes = show_routine_attributes, 
+            show_special_attributes = show_special_attributes)
+        
+        self._proxy_tree_model.setSourceModel(self._tree_model)
+        #self._proxy_tree_model.setSortRole(RegistryTableModel.SORT_ROLE)
+        self._proxy_tree_model.setDynamicSortFilter(True) 
+        #self._proxy_tree_model.setSortCaseSensitivity(Qt.CaseInsensitive)
+                
         # Views
         self._setup_actions()
         self._setup_menu()
@@ -115,8 +121,10 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.toggle_auto_refresh_action.setChecked(self._auto_refresh)
      
         # Select first row so that a hidden root node will not be selected.
-        first_row = self._tree_model.first_item_index()
-        self.obj_tree.setCurrentIndex(first_row)
+        first_row_index = self._proxy_tree_model.first_item_index()
+        self.obj_tree.setCurrentIndex(first_row_index)
+        if self._tree_model.show_root_node:
+            self.obj_tree.expand(first_row_index)
         
 
     def refresh(self):
@@ -165,13 +173,13 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.toggle_callable_action = \
             QtGui.QAction("Show routine attributes", self, checkable=True, 
                           statusTip = "Shows/hides attributes that are routings (functions, methods, etc)")
-        self.toggle_callable_action.toggled.connect(self.toggle_callables)
+        self.toggle_callable_action.toggled.connect(self._proxy_tree_model.setShowCallables)
                               
         # Show/hide special attributes
         self.toggle_special_attribute_action = \
             QtGui.QAction("Show __special__ attributes", self, checkable=True, 
                           statusTip = "Shows or hides __special__ attributes")
-        self.toggle_special_attribute_action.toggled.connect(self.toggle_special_attributes)
+        self.toggle_special_attribute_action.toggled.connect(self._proxy_tree_model.setShowSpecialAttributes)
 
         # Toggle auto-refresh on/off
         self.toggle_auto_refresh_action = \
@@ -223,7 +231,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Tree widget
         self.obj_tree = ToggleColumnTreeView()
         self.obj_tree.setAlternatingRowColors(True)
-        self.obj_tree.setModel(self._tree_model)
+        self.obj_tree.setModel(self._proxy_tree_model)
         self.obj_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
         self.obj_tree.setAnimated(True)
@@ -383,11 +391,13 @@ class ObjectBrowser(QtGui.QMainWindow):
         logger.debug("writing refresh_rate: {!r}".format(self._refresh_rate))
         settings.setValue("refresh_rate", self._refresh_rate)
 
-        logger.debug("writing show_routine_attributes: {!r}".format(self._tree_model.getShowCallables()))
-        settings.setValue("show_routine_attributes", self._tree_model.getShowCallables())
+        logger.debug("writing show_routine_attributes: {!r}"
+                     .format(self._proxy_tree_model.getShowCallables()))
+        settings.setValue("show_routine_attributes", self._proxy_tree_model.getShowCallables())
 
-        logger.debug("writing show_special_attributes: {!r}".format(self._tree_model.getShowSpecialAttributes()))
-        settings.setValue("show_special_attributes", self._tree_model.getShowSpecialAttributes())
+        logger.debug("writing show_special_attributes: {!r}"
+                     .format(self._proxy_tree_model.getShowSpecialAttributes()))
+        settings.setValue("show_special_attributes", self._proxy_tree_model.getShowSpecialAttributes())
         
         settings.endGroup()
         
@@ -458,7 +468,7 @@ class ObjectBrowser(QtGui.QMainWindow):
     def _update_details(self, current_index, _previous_index):
         """ Shows the object details in the editor given an index.
         """
-        tree_item = self._tree_model.treeItem(current_index)
+        tree_item = self._proxy_tree_model.treeItem(current_index)
         self._update_details_for_item(tree_item)
 
         
@@ -467,7 +477,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         #logger.debug("_change_details_field: {}".format(_button_id))
         current_index = self.obj_tree.selectionModel().currentIndex()
-        tree_item = self._tree_model.treeItem(current_index)
+        tree_item = self._proxy_tree_model.treeItem(current_index)
         self._update_details_for_item(tree_item)
         
             
@@ -500,24 +510,6 @@ class ObjectBrowser(QtGui.QMainWindow):
             logger.info("Auto-refresh off")
             self._refresh_timer.stop()
         self._auto_refresh = checked        
-    
-    def toggle_callables(self, checked):
-        """ Shows/hides the special callable objects.
-            Callable objects are functions, methods, etc. They have a __call__ attribute. 
-        """
-        logger.debug("toggle_callables: {}".format(checked))
-        self._tree_model.setShowCallables(checked)
-        if self._tree_model.show_root_node:
-            self.obj_tree.expandToDepth(0)        
-
-    def toggle_special_attributes(self, checked):
-        """ Shows/hides the special attributes.
-            Special attributes are objects that have names that start and end with two underscores.
-        """
-        logger.debug("toggle_special_attributes: {}".format(checked))
-        self._tree_model.setShowSpecialAttributes(checked)
-        if self._tree_model.show_root_node:
-            self.obj_tree.expandToDepth(0)
 
 
     def my_test(self):
@@ -538,8 +530,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         self._refresh_timer.stop()
         self._refresh_timer.timeout.disconnect(self.refresh)
-        self.toggle_callable_action.toggled.disconnect(self.toggle_callables)
-        self.toggle_special_attribute_action.toggled.disconnect(self.toggle_special_attributes)
+        self.toggle_callable_action.toggled.disconnect(self._proxy_tree_model.setShowCallables)
+        self.toggle_special_attribute_action.toggled.disconnect(self._proxy_tree_model.setShowSpecialAttributes)        
         self.toggle_auto_refresh_action.toggled.disconnect(self.toggle_auto_refresh)
         self.refresh_action_f5.triggered.disconnect(self.refresh)
         self.button_group.buttonClicked[int].disconnect(self._change_details_field)

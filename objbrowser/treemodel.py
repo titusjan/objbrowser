@@ -14,15 +14,11 @@ from six import unichr
 
 from objbrowser.qtimp import QtCore, QtGui#, Qt
 from objbrowser.qtimp.QtCore import Qt
-from objbrowser.treeitem import TreeItem
+from objbrowser.treeitem import TreeItem, name_is_special
 from objbrowser.utils import cut_off_str
 
 logger = logging.getLogger(__name__)
 
-
-def is_special_attribute(method_name):
-    "Returns true if the method name starts and ends with two underscores"
-    return method_name.startswith('__') and method_name.endswith('__') 
 
 
     
@@ -42,8 +38,6 @@ class TreeModel(QtCore.QAbstractItemModel):
     def __init__(self, root_obj, 
                  root_obj_name = '',
                  attr_cols = None, 
-                 show_routine_attributes = True,
-                 show_special_attributes = True,
                  parent = None):
         """ Constructor
         
@@ -51,12 +45,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             :param name: name of the object as it will appear in the root node
                              If empty, no root node drawn. 
             :param attr_cols: list of AttributeColumn definitions
-            :param show_routine_attributes: if True the callables objects, 
-                i.e. objects (such as function) that  a __call__ method, 
-                will be displayed (in brown). If False they are hidden.
-            :param show_special_attributes: if True the objects special attributes, 
-                i.e. methods with a name that starts and ends with two underscores, 
-                will be displayed (in italics). If False they are hidden.
             :param parent: the parent widget
         """
         super(TreeModel, self).__init__(parent)
@@ -64,9 +52,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._root_obj = root_obj
         self._root_name = root_obj_name 
         self._attr_cols = attr_cols
-        self._show_callables = show_routine_attributes
-        self._show_special_attributes = show_special_attributes
-        self.root_item = self.populateTree(root_obj, root_obj_name, )
+        self.root_item = self.populateTree(root_obj, root_obj_name)
         
         self.regular_font = QtGui.QFont()  # Font for members (non-functions)
         self.special_attribute_font = QtGui.QFont()  # Font for __special_attributes__
@@ -119,7 +105,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return self.regular_color
             
         elif role == Qt.FontRole:
-            if is_special_attribute(tree_item.obj_name):
+            if name_is_special(tree_item.obj_name):
                 return self.special_attribute_font
             else:
                 return self.regular_font
@@ -152,12 +138,15 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent is None:
             logger.warn("parent is None")
             parent = QtCore.QModelIndex()
-            
-        if not self.hasIndex(row, column, parent):
-            logger.warn("hasIndex is False")
-            return QtCore.QModelIndex()
 
         parentItem = self.treeItem(parent)
+            
+        if not self.hasIndex(row, column, parent):
+            logger.warn("hasIndex is False: ({}, {}) {!r}".format(row, column, parentItem))
+            #logger.warn("Parent index model: {!r} != {!r}".format(parent.model(), self))
+
+            return QtCore.QModelIndex()
+
         childItem = parentItem.child(row)
         #logger.debug("  {}".format(childItem.obj_path))
         if childItem:
@@ -235,7 +224,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 
         tree_items = self._fetchObjectChildren(parent_item.obj, parent_item.obj_path)
         
-        self.beginInsertRows(parent, 0, len(tree_items))
+        self.beginInsertRows(parent, 0, len(tree_items) - 1)
         for tree_item in tree_items:
             parent_item.append_child(tree_item)
             
@@ -275,11 +264,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         # Object attributes
         for attr_name, attr_value in sorted(inspect.getmembers(obj)):
-            if ((self._show_callables or not callable(attr_value)) and
-                (self._show_special_attributes or not is_special_attribute(attr_name))):
-                obj_children.append( (attr_name, attr_value) )
-                path_strings.append('{}.{}'.format(obj_path, attr_name) if obj_path else attr_name)
-                is_attr_list.append(True)
+            obj_children.append( (attr_name, attr_value) )
+            path_strings.append('{}.{}'.format(obj_path, attr_name) if obj_path else attr_name)
+            is_attr_list.append(True)
 
         assert len(obj_children) == len(path_strings), "sanity check"
         tree_items = []
@@ -290,12 +277,15 @@ class TreeModel(QtCore.QAbstractItemModel):
         return tree_items
 
    
-    def populateTree(self, root_obj, root_name='', single_root_node=False):
+    def populateTree(self, root_obj, root_name='', single_root_node=None):
         """ Fills the tree using a python object. Sets the root_item.
         """
         logger.debug("populateTree with object id = 0x{:x}".format(id(root_obj)))
         
-        if single_root_node is True:
+        if single_root_node is None:
+            single_root_node = (root_name != '')
+        
+        if single_root_node:
             root_parent_item = TreeItem(None, '<root_parent>', '<root_parent>', None) 
             root_parent_item.children_fetched = True
             root_item = TreeItem(root_obj, root_name, root_name, is_attribute = None)
@@ -418,9 +408,75 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.dataChanged.emit(top_left, bottom_right)
         
 
+        
+        
+    
+class TreeProxyModel(QtGui.QSortFilterProxyModel):
+    """ Proxy model that overrides the sorting and can filter out items
+    """
+    def __init__(self, 
+                 show_routine_attributes = True,
+                 show_special_attributes = True,
+                 parent = None):
+        """ Constructor
+        
+            :param show_routine_attributes: if True the callables objects, 
+                i.e. objects (such as function) that  a __call__ method, 
+                will be displayed (in brown). If False they are hidden.
+            :param show_special_attributes: if True the objects special attributes, 
+                i.e. methods with a name that starts and ends with two underscores, 
+                will be displayed (in italics). If False they are hidden.
+            :param parent: the parent widget
+        """
+        super(TreeProxyModel, self).__init__(parent)
+
+        self._show_callables = show_routine_attributes
+        self._show_special_attributes = show_special_attributes
+
+
+    def treeItem(self, proxy_index):
+        index = self.mapToSource(proxy_index)
+        return self.sourceModel().treeItem(index)
+    
+    
+    def first_item_index(self):
+        """ Returns the root item index or, if the single_root_node property is False, 
+            the index(0, 0, root_item)
+        """
+        # We cannot just call the same function of the source model because the first node
+        # there may be hidden.
+        source_model = self.sourceModel()
+        first_item_index = source_model.createIndex(0, 0, source_model.root_item)
+        return self.mapFromSource(first_item_index)
+
+        
+#    def lessThan(self, leftIndex, rightIndex):
+#        """ Returns true if the value of the item referred to by the given index left is less than 
+#            the value of the item referred to by the given index right, otherwise returns false.
+#        """
+#        leftData  = self.sourceModel().data(leftIndex,  RegistryTableModel.SORT_ROLE)
+#        rightData = self.sourceModel().data(rightIndex, RegistryTableModel.SORT_ROLE)
+#        
+#        return leftData < rightData
+            
+
+    def filterAcceptsRow(self, sourceRow, sourceParentIndex):
+        """ Returns true if the item in the row indicated by the given source_row and 
+            source_parent should be included in the model.
+        """
+        parent_item = self.sourceModel().treeItem(sourceParentIndex)
+        tree_item = parent_item.child(sourceRow)
+        
+        accept = ((self._show_special_attributes or not tree_item.is_special_attribute) and
+                  (self._show_callables or not tree_item.is_callable))
+
+        #logger.debug("filterAcceptsRow = {}: {}".format(accept, tree_item))
+        return accept
+    
     
     def getShowCallables(self):
         return self._show_callables
+
         
     def setShowCallables(self, show_callables):
         """ Shows/hides show_callables, which have a __call__ attribute.
@@ -428,11 +484,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         """
         logger.debug("setShowCallables: {}".format(show_callables))
         self._show_callables = show_callables
-        self.refreshTree()
-    
+        self.invalidateFilter()
+
 
     def getShowSpecialAttributes(self):
         return self._show_special_attributes
+        
         
     def setShowSpecialAttributes(self, show_special_attributes):
         """ Shows/hides special attributes, which begin with an underscore.
@@ -440,8 +497,5 @@ class TreeModel(QtCore.QAbstractItemModel):
         """
         logger.debug("setShowSpecialAttributes: {}".format(show_special_attributes))
         self._show_special_attributes = show_special_attributes
-        self.refreshTree()
-        
-
-
+        self.invalidateFilter()
         

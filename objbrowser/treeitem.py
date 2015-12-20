@@ -14,6 +14,11 @@ from objbrowser.utils import cut_off_str
 MAX_OBJ_STR_LEN = 50
 
 
+def name_is_special(method_name):
+    "Returns true if the method name starts and ends with two underscores"
+    return method_name.startswith('__') and method_name.endswith('__') 
+
+
 
 class TreeItem(object):
     """ Tree node class that can be used to build trees of objects.
@@ -44,6 +49,15 @@ class TreeItem(object):
         return "<TreeItem(0x{:x}): {} ({:d} children)>" \
             .format(id(self.obj), self.obj_path, n_children)
             
+    @property
+    def is_special_attribute(self):
+        " Return true if the items is an attribute and its name begins and end with 2 underscores" 
+        return self.is_attribute and name_is_special(self.obj_name)
+    
+    @property
+    def is_callable(self):
+        " Return true if the underlying object is callable "
+        return callable(self.obj)
     
     def append_child(self, item):
         item.parent_item = self
