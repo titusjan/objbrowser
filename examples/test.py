@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import sys, logging, six
 import datetime as dt
+from collections import OrderedDict
 from objbrowser import browse
 from objbrowser.utils import logging_basic_config
 from objbrowser.attribute_model import ALL_ATTR_MODELS
@@ -80,7 +81,7 @@ def call_viewer_test():
     a = 6
     b = 'seven'
     c = 8j + 3 # complex number
-    d = {'4': 44, 's': 11}
+    d = {'4': 44, 's': 11, c: None}
     e = 2.718281828
     f_large = 7.77e14 # different str and repr?
     f_avogadro = 6.02214129e23
@@ -92,6 +93,10 @@ def call_viewer_test():
     lst = [4, '4', d, ['r', dir], main]
     my_set = set([3, 4, 4, 8])
     my_frozenset = frozenset([3, 4, 5, 6, 6])
+    
+    dict_regular = {'banana': 3, 'apple':4, 'pear': 1, 'orange': 2}
+    dict_ordered = OrderedDict(sorted(dict_regular.items(), key=lambda t: t[1])) # sorted by value
+    
     
     dt_now = dt.datetime.now()
     date_now = dt.date(2014, 3, 23) 

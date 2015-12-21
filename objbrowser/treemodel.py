@@ -10,6 +10,7 @@
 from __future__ import absolute_import
 import logging, inspect
 from difflib import SequenceMatcher
+from collections import OrderedDict
 from six import unichr
 
 from objbrowser.qtimp import QtCore, QtGui#, Qt
@@ -275,15 +276,22 @@ class TreeModel(QtCore.QAbstractItemModel):
                             for item in obj_children]
         elif hasattr(obj, 'items'): # dictionaries and the likes. 
             try: 
-                obj_children = sorted(obj.items())
+                obj_children = list(obj.items())
             except Exception as ex:
-                
                 # Can happen if the items method expects an argument, for instance the  
                 # types.DictType.items method expects a dictionary.
-                logger.info("No items expanded. Objects items() call failed: {}".format(ex))
-            else:
-                path_strings = ['{}[{!r}]'.format(obj_path, item[0]) if obj_path else item[0] 
-                                for item in obj_children]
+                logger.warn("No items expanded. Objects items() call failed: {}".format(ex))
+                obj_children = []
+
+            # Sort keys, except when the object is an OrderedDict.
+            if not isinstance(obj, OrderedDict):
+                try:
+                    obj_children = sorted(obj.items())
+                except Exception as ex:
+                    logger.debug("Unable to sort dictionary keys: {}".format(ex))
+                    
+            path_strings = ['{}[{!r}]'.format(obj_path, item[0]) if obj_path else item[0] 
+                            for item in obj_children]
         
         assert len(obj_children) == len(path_strings), "sanity check"    
         is_attr_list = [False] * len(obj_children)
