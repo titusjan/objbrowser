@@ -145,7 +145,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return self.regular_color
             
         elif role == Qt.FontRole:
-            if name_is_special(tree_item.obj_name):
+            if tree_item.is_special_attribute:
                 return self.special_attribute_font
             else:
                 return self.regular_font
@@ -490,16 +490,6 @@ class TreeProxyModel(QtGui.QSortFilterProxyModel):
         proxy_root_index = self.mapFromSource(source_root_index)
         first_item_index = self.index(0, 0, proxy_root_index)
         return first_item_index
-
-        
-#    def lessThan(self, leftIndex, rightIndex):
-#        """ Returns true if the value of the item referred to by the given index left is less than 
-#            the value of the item referred to by the given index right, otherwise returns false.
-#        """
-#        leftData  = self.sourceModel().data(leftIndex,  RegistryTableModel.SORT_ROLE)
-#        rightData = self.sourceModel().data(rightIndex, RegistryTableModel.SORT_ROLE)
-#        
-#        return leftData < rightData
             
 
     def filterAcceptsRow(self, sourceRow, sourceParentIndex):
