@@ -91,7 +91,7 @@ class ObjectBrowser(QtGui.QMainWindow):
                                     show_routine_attributes = show_routine_attributes,
                                     show_special_attributes = show_special_attributes)
 
-        self._tree_model = TreeModel(obj, root_obj_name = name, attr_cols = self._attr_cols)
+        self._tree_model = TreeModel(obj, name, attr_cols = self._attr_cols)
             
         self._proxy_tree_model = TreeProxyModel(
             show_routine_attributes = show_routine_attributes, 
@@ -121,9 +121,9 @@ class ObjectBrowser(QtGui.QMainWindow):
         self.toggle_auto_refresh_action.setChecked(self._auto_refresh)
      
         # Select first row so that a hidden root node will not be selected.
-        first_row_index = self._proxy_tree_model.first_item_index()
+        first_row_index = self._proxy_tree_model.firstItemIndex()
         self.obj_tree.setCurrentIndex(first_row_index)
-        if self._tree_model.show_root_node:
+        if self._tree_model.inspectedNodeIsVisible:
             self.obj_tree.expand(first_row_index)
         
 

@@ -35,25 +35,21 @@ logger = logging.getLogger(__name__)
 class TreeModel(QtCore.QAbstractItemModel):
     """ Model that provides an interface to an objectree that is build of TreeItems. 
     """
-    def __init__(self, root_obj, 
-                 root_obj_name = '',
+    def __init__(self, obj, 
+                 obj_name = '',
                  attr_cols = None, 
                  parent = None):
         """ Constructor
         
             :param obj: any Python object or variable
-            :param name: name of the object as it will appear in the root node
-                             If empty, no root node drawn. 
+            :param obj_name: name of the object as it will appear in the root node
+                             If empty, no root node will be drawn. 
             :param attr_cols: list of AttributeColumn definitions
             :param parent: the parent widget
         """
         super(TreeModel, self).__init__(parent)
-        
-        self._root_obj = root_obj
-        self._root_name = root_obj_name 
         self._attr_cols = attr_cols
-        self.root_item = self.populateTree(root_obj, root_obj_name)
-        
+
         self.regular_font = QtGui.QFont()  # Font for members (non-functions)
         self.special_attribute_font = QtGui.QFont()  # Font for __special_attributes__
         self.special_attribute_font.setItalic(True)
@@ -62,15 +58,58 @@ class TreeModel(QtCore.QAbstractItemModel):
         #self.routine_color = QtGui.QBrush(QtGui.QColor('brown'))  # for functions, methods, etc.
         self.routine_color = QtGui.QBrush(QtGui.QColor('mediumblue'))  # for functions, methods, etc.
 
+        # The following members will be initialized by populateTree
+        # The rootItem is always invisible. If the obj_name is the empty string, the inspectedItem 
+        # will be the rootItem (and therefore be invisible). If the obj_name is given, an 
+        # invisible root item will be added and the inspectedItem will be its only child. 
+        # In that case the inspected item will be visible. 
+        self._inspected_node_is_visible = None 
+        self._inspected_item = None
+        self._root_item = None
+        self.populateTree(obj, obj_name)
+
+    
+    @property
+    def inspectedNodeIsVisible(self):
+        """ Returns True if the inspected node is visible. 
+            In that case an invisible root node has been added.
+        """
+        return self._inspected_node_is_visible
+    
+    
+    @property
+    def rootItem(self):
+        """ The root TreeItem.
+        """
+        return self._root_item
+    
+    
+    @property
+    def inspectedItem(self): # TODO: needed?
+        """ The TreeItem that contains the item under inspection.
+        """
+        return self._inspected_item
+    
+
+    def rootIndex(self): # TODO: needed?
+        """ The index that returns the root element (same as an invalid index).
+        """
+        return QtCore.QModelIndex()
+
+    
+    def inspectedIndex(self):
+        """ The model index that point to the inspectedItem
+        """
+        if self.inspectedNodeIsVisible:
+            return self.createIndex(0, 0, self._inspected_item)
+        else:
+            return self.rootIndex()
+        
 
     def columnCount(self, _parent=None):
         """ Returns the number of columns in the tree """
         return len(self._attr_cols)
-    
-    @property
-    def show_root_node(self):
-        """ If True, a root node is present"""
-        return (self._root_name != '')
+
 
     def data(self, index, role):
         """ Returns the tree item at the given index and role
@@ -128,7 +167,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def treeItem(self, index):
         if not index.isValid():
-            return self.root_item
+            return self.rootItem
         else:
             return index.internalPointer() 
             
@@ -163,24 +202,11 @@ class TreeModel(QtCore.QAbstractItemModel):
         child_item = index.internalPointer()
         parent_item = child_item.parent()
 
-        if parent_item is None or parent_item == self.root_item:
+        if parent_item is None or parent_item == self.rootItem:
             return QtCore.QModelIndex()
 
         return self.createIndex(parent_item.row(), 0, parent_item)
     
-    
-    def first_item_index(self):
-        """ Returns the root item index or, if the single_root_node property is False, 
-            the index(0, 0, root_item)
-        """
-        if self.show_root_node is True:
-            root_parent_index = self.createIndex(0, 0, self.root_item)
-            return self.index(0, 0, root_parent_index)
-        else:
-            root_index = self.createIndex(0, 0, self.root_item)
-            first_item_index = self.index(0, 0, root_index)
-            return first_item_index
-            
 
     def rowCount(self, parent=None):
         parent = QtCore.QModelIndex() if parent is None else parent
@@ -277,28 +303,29 @@ class TreeModel(QtCore.QAbstractItemModel):
         return tree_items
 
    
-    def populateTree(self, root_obj, root_name='', single_root_node=None):
-        """ Fills the tree using a python object. Sets the root_item.
+    def populateTree(self, obj, obj_name='', inspected_node_is_visible=None):
+        """ Fills the tree using a python object. Sets the rootItem.
         """
-        logger.debug("populateTree with object id = 0x{:x}".format(id(root_obj)))
+        logger.debug("populateTree with object id = 0x{:x}".format(id(obj)))
         
-        if single_root_node is None:
-            single_root_node = (root_name != '')
+        if inspected_node_is_visible is None:
+            inspected_node_is_visible = (obj_name != '')
+        self._inspected_node_is_visible = inspected_node_is_visible
         
-        if single_root_node:
-            root_parent_item = TreeItem(None, '<root_parent>', '<root_parent>', None) 
-            root_parent_item.children_fetched = True
-            root_item = TreeItem(root_obj, root_name, root_name, is_attribute = None)
-            root_parent_item.append_child(root_item)
-            self.root_item = root_parent_item
+        if self._inspected_node_is_visible:
+            self._root_item = TreeItem(None, '<invisible_root>', '<invisible_root>', None) 
+            self._root_item.children_fetched = True
+            self._inspected_item = TreeItem(obj, obj_name, obj_name, is_attribute = None)
+            self._root_item.append_child(self._inspected_item)
         else:
-            self.root_item = TreeItem(root_obj, root_name, root_name, is_attribute = None)
+            # The root itself will be invisible
+            self._root_item = TreeItem(obj, obj_name, obj_name, is_attribute = None)
+            self._inspected_item = self._root_item
             
             # Fetch all items of the root so we can select the first row in the constructor.
             root_index = self.index(0, 0)
             self.fetchMore(root_index) 
             
-        return self.root_item
                 
                 
     def _auxRefreshTree(self, tree_index):
@@ -389,13 +416,20 @@ class TreeModel(QtCore.QAbstractItemModel):
         """ Refreshes the tree model from the underlying root object (which may have been changed).
         """
         logger.info("")
-        logger.info("refreshTree: {}".format(self.root_item))
-
-        root_obj = self.root_item.obj
-        self._auxRefreshTree(QtCore.QModelIndex())
+        logger.info("refreshTree: {}".format(self.rootItem))
         
+        root_item = self.treeItem(self.rootIndex())
+        logger.info("  root_item:      {} (idx={})".format(root_item, self.rootIndex()))
+        inspected_item = self.treeItem(self.inspectedIndex())
+        logger.info("  inspected_item: {} (idx={})".format(inspected_item, self.inspectedIndex()))
+        
+        assert (root_item is inspected_item) != self.inspectedNodeIsVisible, "sanity check"
+        
+        self._auxRefreshTree(self.inspectedIndex())
+        
+        root_obj = self.rootItem.obj
         logger.debug("After _auxRefreshTree, root_obj: {}".format(cut_off_str(root_obj, 80)))
-        self.root_item.pretty_print()
+        self.rootItem.pretty_print()
         
         # Emit the dataChanged signal for all cells. This is faster than checking which nodes
         # have changed, which may be slow for some underlying Python objects.
@@ -439,15 +473,15 @@ class TreeProxyModel(QtGui.QSortFilterProxyModel):
         return self.sourceModel().treeItem(index)
     
     
-    def first_item_index(self):
-        """ Returns the root item index or, if the single_root_node property is False, 
-            the index(0, 0, root_item)
+    def firstItemIndex(self): 
+        """ Returns the first child of the root item.
         """
         # We cannot just call the same function of the source model because the first node
         # there may be hidden.
-        source_model = self.sourceModel()
-        first_item_index = source_model.createIndex(0, 0, source_model.root_item)
-        return self.mapFromSource(first_item_index)
+        source_root_index = self.sourceModel().rootIndex()
+        proxy_root_index = self.mapFromSource(source_root_index)
+        first_item_index = self.index(0, 0, proxy_root_index)
+        return first_item_index
 
         
 #    def lessThan(self, leftIndex, rightIndex):

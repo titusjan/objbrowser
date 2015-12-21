@@ -125,21 +125,7 @@ def call_viewer_test():
                attribute_columns = ALL_ATTR_MODELS, 
                attribute_details = ALL_ATTR_MODELS[1:4])
         
-    
 
-def call_viewer_small_test():
-    """ Test procedure. 
-    """
-    try:
-        raise ValueError("my value error")
-    except ValueError as ex:
-        my_value_error = ex
-
-    a = 6
-    b = ['seven', 'eight']
-    nested_list = [5, 6, 'a', ['r', 2, []], (a, b), range(1, 100), my_value_error]
-    exit_code = browse(obj = nested_list, obj_name='nested_list', show_root_node = True)
-    return exit_code
     
         
 def main():
@@ -148,10 +134,7 @@ def main():
     logging_basic_config('DEBUG')
     logger.info('Started example')
     
-    if 1:
-        exit_code = call_viewer_test()
-    else: 
-        exit_code = call_viewer_small_test() 
+    exit_code = call_viewer_test()
     
     logging.info('Done example')
     sys.exit(exit_code)
