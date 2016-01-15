@@ -47,28 +47,29 @@ def get_qapplication_instance():
 
 
 def create_object_browser(*args, **kwargs):
-    """ Opens an OjbectBrowser window
+    """ Opens an ObjectBrowser window.
     """
     _app = get_qapplication_instance()
     object_browser = ObjectBrowser(*args, **kwargs)
     object_browser.show()
     return object_browser
-        
-        
-def execute():
-    """ Executes all created object browser by starting the Qt main application
-    """  
-    logger.info("Starting the Object browser(s)...")
-    app = get_qapplication_instance()
-    exit_code = app.exec_()
-    logger.info("Object browser(s) done...")
-    return exit_code
-
-
+                
 def browse(*args, **kwargs):
-    """ Opens and executes an OjbectBrowser window
+    """ Opens and executes an ObjectBrowser window.
+        If the env variable QT_API is set to 'pyside' and '%gui qt' run in
+        IPython, this function will not block the session.
     """
-    _object_browser = create_object_browser(*args, **kwargs)
-    exit_code = execute()
+
+    app = get_qapplication_instance()
+    _object_browse = create_object_browser(*args, **kwargs)
+    app.references = set()
+    app.references.add(_object_browse)
+    try:
+        from IPython.lib.guisupport import start_event_loop_qt4
+        start_event_loop_qt4(app)
+    except ImportError:
+        exit_code = app.exec_()
+        logger.info("Object browser(s) done...")
+    else:
+        exit_code = 0
     return exit_code
-    
