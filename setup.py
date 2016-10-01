@@ -5,9 +5,9 @@ assert not DEBUGGING, "DEBUGGING must be False"
 
 setup(name = 'objbrowser',
     version = PROGRAM_VERSION, 
-    description = 'Python object browser implemented in Qt.',
+    description = 'GUI for Python object introspection.',
     long_description = open('README.txt').read(),
-    url = 'https://github.com/titusjan/objbrowser',    
+    url = 'https://github.com/titusjan/objbrowser',
     author = "Pepijn Kenter", 
     author_email = "titusjan@gmail.com", 
     classifiers=[
@@ -19,10 +19,9 @@ setup(name = 'objbrowser',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2 :: Only',
+        'Programming Language :: Python',
         'Topic :: Adaptive Technologies',
         'Topic :: Software Development',
         'Topic :: Utilities'],    
-    packages = ['objbrowser'],
-    install_requires = ['PySide >= 1.1.2'])
-
+    packages = ['objbrowser', 'objbrowser.qtimp'])
+    #packages = find_packages()) # requires the enduser to install setuptools
