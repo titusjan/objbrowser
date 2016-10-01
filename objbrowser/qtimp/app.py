@@ -47,24 +47,33 @@ def get_qsettings():
     
 def start_qt_event_loop(qApp):
     """ Starts the eventloop if it's not yet running.
+
         If the IPython event loop is active (and set to Qt) this function does nothing. The IPython 
         event loop will process Qt events as well so the user can continue to use the command 
-        prompt together with the ObjectBrower. 
+        prompt together with the ObjectBrower. Unfortunately this behaviour is broken again in
+        IPython 5, so there we fall back on the non-interactive event loop.
     """
     if in_ipython():
-        try:
-            logger.debug("IPython detected")
-            from IPython.lib.guisupport import is_event_loop_running_qt4, start_event_loop_qt4
-            if is_event_loop_running_qt4(qApp):
-                logger.info("IPython event loop already running. GUI integration possible.")
-            else:
-                # No gui integration
-                logger.info("Starting (non-interactive) IPython event loop")
-                start_event_loop_qt4(qApp) # exit code alway 0
-            return    
-        except Exception as ex:
-            logger.warning("Unable to start IPython Qt event loop: {}".format(ex))
-            logger.warning("Falling back on non-interactive event loop: {}".format(ex))
+        from IPython import version_info
+        logger.debug("IPython detected. Version info: {}".format(version_info))
+        if version_info[0] < 4:
+            logger.debug("Event loop integration not supported for IPython < 4")
+        elif version_info[0] == 5:
+            # The is_event_loop_running_qt4 function doesn't seem to work anymore.
+            logger.debug("Event loop integration does not work in IPython 5")
+        else:
+            try:
+                from IPython.lib.guisupport import is_event_loop_running_qt4, start_event_loop_qt4
+                if is_event_loop_running_qt4(qApp):
+                    logger.info("IPython event loop already running. GUI integration possible.")
+                else:
+                    # No gui integration
+                    logger.info("Starting (non-interactive) IPython event loop")
+                    start_event_loop_qt4(qApp) # exit code always 0
+                return
+            except Exception as ex:
+                logger.warning("Unable to start IPython Qt event loop: {}".format(ex))
+                logger.warning("Falling back on non-interactive event loop: {}".format(ex))
 
     logger.info("Starting (non-interactive) event loop")
     return qApp.exec_()

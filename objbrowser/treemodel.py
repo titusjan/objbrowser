@@ -176,13 +176,13 @@ class TreeModel(QtCore.QAbstractItemModel):
     def index(self, row, column, parent=None):
         
         if parent is None:
-            logger.warn("parent is None")
+            logger.debug("parent is None")
             parent = QtCore.QModelIndex()
 
         parentItem = self.treeItem(parent)
             
         if not self.hasIndex(row, column, parent):
-            logger.warn("hasIndex is False: ({}, {}) {!r}".format(row, column, parentItem))
+            logger.debug("hasIndex is False: ({}, {}) {!r}".format(row, column, parentItem))
             #logger.warn("Parent index model: {!r} != {!r}".format(parent.model(), self))
 
             return QtCore.QModelIndex()

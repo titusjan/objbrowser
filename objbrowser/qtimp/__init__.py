@@ -1,5 +1,5 @@
 """ 
-Package for importing the Qt bindings (eiter PySide or PyQt), starting Qt application and
+Package for importing the Qt bindings (either PySide or PyQt), starting Qt application and
 event loop.
     
 Three things are handled by this package.

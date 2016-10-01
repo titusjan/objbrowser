@@ -1,27 +1,12 @@
-""" 
-    Object browser GUI in Qt
-    
-    #####################
-    # TODO: version 1.0 #
-    #####################
-
-    # What todo when getmembers fails
-    # Installing
-     - rename attribute_model.py to attributemodel.py
-     - sphynx
-    
-    
-    #####################
-    # TODO: version 1.x #
-    #####################
-    # Ordered dict should not sort keys
-    # call get_set descriptors (getters) in summary column.
-    # ufuncs?
-    # tool-tips
-    
-
-
+""" Object browser GUI in Qt
 """
+# TODO:
+# What to do when getmembers fails
+# call get_set descriptors (getters) in summary column.
+# ufuncs?
+# tool-tips
+# sphynx
+
 from __future__ import absolute_import
 from __future__ import print_function
 import logging, traceback, hashlib, sys
