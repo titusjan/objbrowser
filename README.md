@@ -7,6 +7,8 @@ Displays objects as trees and allows you to inspect their attributes
 recursively (e.g. browse through a list of dictionaries). You can add 
 your own inspection methods as new columns to the tree view, or as radio buttons
 to the details pane. Altering existing inspection methods is possible as well.
+
+
 #### Installation:
 
 1.	Install PySide:
@@ -23,23 +25,23 @@ to the details pane. Altering existing inspection methods is possible as well.
 
 
 From the _View_ menu you can select some extra columns, for instance the 
-objects' _id_ column. This can also be done by right-clicking on the table
-header.
+object's _id_ column. This can also be done by right-clicking on the table
+header. An overview of the available columns, and their meanings, can be
+found in [columns.md](columns.md).
 
 If the _Show routine attributes_ from the _View_ menu is checked, 
 functions and methods that are attributes of the object are shown, 
-otherwise they are hidden. Routines that are not an object attribute, for
-instance functions that are an element in a list, are always displayed.
+otherwise they are hidden. Routines are displayed in blue.
 
 If the _Show special attributes_ from the _View_ menu is checked,
 attributes whos name start and end with two underscores are displayed.
+Special attributes are always displayed in _italics_.
 
 The details pane at the bottom shows object properties that do not fit
 on one line, such as the docstrings and the output of various functions 
 of the `inspect` module from the Python standard library.
 
 
-	
 #### Usage examples:
 
 The first parameter is the object to be inspected. For example you can 

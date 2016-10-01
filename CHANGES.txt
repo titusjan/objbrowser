@@ -1,3 +1,30 @@
+
+Version 1.1.0 - 2016-10-01
+
+    Changes:
+
+    *   Works with Python 3
+    *   Works with both PySide and PyQt4
+    *   Integration with IPython event loop and refresh functionality (only IPython 4)
+    *   Toggling routine and __special_attributes__ visibility retains the selected item.
+    *   Routines that are not an object attribute, for instance functions that are an
+        element in a list, are filtered out too when the routines are filtered out.
+        The same holds for __special_attributes__
+
+    Bug fixes:
+
+    *   Ordered dict keys are no longer sorted alphabetically.
+    *   Fixed off-by-one error where where fetchMore added an empty row to the table.
+    *   __special__ children that are not attributes are not displayed in cursive.
+    *   Various small bug fixes.
+
+    License:
+
+    *	MIT (was GPL v3)
+            https://github.com/spyder-ide/spyder/issues/558
+            https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038129.html
+
+
 Version 1.0.0 - 2014-03-30
 
     User visible changes:
@@ -20,6 +47,6 @@ Version 1.0.0 - 2014-03-30
     
     *	Using GPL version 3 (was version 2)
 
-2013-08-11: version 0.9.0
+Version 0.9.0 - 2013-08-11
 
     First upload to Github.

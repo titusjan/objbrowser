@@ -204,7 +204,9 @@ ATTR_MODEL_PATH = AttributeModel('path',
     width       = MEDIUM_COL_WIDTH) 
 
 ATTR_MODEL_SUMMARY = AttributeModel('summary', 
-    doc         = "A summary of the object for regular objects (not callables or modules)", 
+    doc         = """A summary of the object for regular objects (is empty for non-regular objects
+                     such as callables or modules).
+                  """,
     data_fn     = tio_summary,
     col_visible = True,  
     alignment   = ALIGN_LEFT,
@@ -270,13 +272,18 @@ ATTR_MODEL_IS_ATTRIBUTE = AttributeModel('is attribute',
     width       = SMALL_COL_WIDTH) 
 
 ATTR_MODEL_CALLABLE = AttributeModel('is callable', 
-    doc         = "The if the is callable (e.g. a function or a method)", 
+    doc         = """True if the object is callable.
+                     Determined with the `callable` built-in function.
+                  """,
     data_fn     = tio_is_callable, 
     col_visible = True,  
     width       = SMALL_COL_WIDTH) 
 
 ATTR_MODEL_IS_ROUTINE = AttributeModel('is routine', 
-    doc         = "True if the object is a routine (function, method, etc.)" ,
+    doc         = """True if the object is a user-defined or built-in function or method.
+                     Determined with the inspect.isroutine() method.
+                     Routines are displayed in blue in the table.
+                  """ ,
     data_fn     = lambda tree_item: str(inspect.isroutine(tree_item.obj)), 
     col_visible = False,  
     width       = SMALL_COL_WIDTH) 
@@ -300,31 +307,31 @@ ATTR_MODEL_DOC_STRING = AttributeModel('doc string',
     width       = MEDIUM_COL_WIDTH)
         
 ATTR_MODEL_GET_DOC = AttributeModel('inspect.getdoc', 
-    doc         = "The object's doc string cleaned up by inspect.getdoc()", 
+    doc         = "The object's doc string, leaned up by inspect.getdoc()",
     data_fn     = safe_data_fn(inspect.getdoc),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH)
         
 ATTR_MODEL_GET_COMMENTS = AttributeModel('inspect.getcomments', 
-    doc         = "Comments above the object's definition is retrieved using inspect.getcomments()", 
+    doc         = "Comments above the object's definition. Retrieved using inspect.getcomments()",
     data_fn     = lambda tree_item: inspect.getcomments(tree_item.obj),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH)
         
 ATTR_MODEL_GET_MODULE = AttributeModel('inspect.getmodule', 
-    doc         = "The object's module retrieved using inspect.module", 
+    doc         = "The object's module. Retrieved using inspect.module",
     data_fn     = safe_data_fn(inspect.getmodule),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH) 
         
 ATTR_MODEL_GET_FILE = AttributeModel('inspect.getfile', 
-    doc         = "The object's file retrieved using inspect.getfile", 
+    doc         = "The object's file. Retrieved using inspect.getfile",
     data_fn     = safe_data_fn(inspect.getfile),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH)
         
 ATTR_MODEL_GET_SOURCE_FILE = AttributeModel('inspect.getsourcefile', # calls inspect.getfile()
-    doc         = "The object's file retrieved using inspect.getsourcefile", 
+    doc         = "The object's file. Retrieved using inspect.getsourcefile",
     data_fn     = safe_data_fn(inspect.getsourcefile),         
     col_visible = False,  
     width       = MEDIUM_COL_WIDTH)
