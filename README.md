@@ -9,17 +9,19 @@ your own inspection methods as new columns to the tree view, or as radio buttons
 to the details pane. Altering existing inspection methods is possible as well.
 
 
-#### Installation:
+### Installation:
 
-1.	Install PySide:
-	http://qt-project.org/wiki/Category:LanguageBindings::PySide
-	
+1.	Install
+	    [PySide](http://wiki.qt.io/Category:LanguageBindings::PySide::Downloads)
+    or
+	    [PyQt4](https://www.riverbankcomputing.com/software/pyqt/download).
+
 2.	Run the installer:
+```
+%> pip install objbrowser
+```
 
-		%> pip install objbrowser
-		
-
-#### User interface:
+### User interface:
 
 ![objbrowser screen shot](screen_shot.png)
 
@@ -27,25 +29,25 @@ to the details pane. Altering existing inspection methods is possible as well.
 From the _View_ menu you can select some extra columns, for instance the 
 object's _id_ column. This can also be done by right-clicking on the table
 header. An overview of the available columns, and their meanings, can be
-found in [columns.md](columns.md).
+found in [here](columns.md).
 
 Callable objects (typically functions, methods and classes) are displayed
-in blue. Objects that are an attribute of their parents (as opposed to list
-elements or dictionary items) are displayed in _italics_.
+in blue. Objects that are an attribute of their parent (as opposed to a
+list element or dictionary item) are displayed in _italics_.
 
 If _Show callable attributes_ from the _View_ menu is checked, objects
-that are callable and are an attribute are shown, otherwise they are hidden.
+that are callable and are an attribute are shown. Otherwise they are hidden.
 
 If _Show special attributes_ from the _View_ menu is checked, objects
-whos name start and end with two underscores, and which are an attribute,
-are displayed.
+that are attributes, and have a name that starts and ends with two
+underscores, are shown. Otherwise they are hidden.
 
 The details pane at the bottom shows object properties that do not fit
 on one line, such as the docstrings and the output of various functions 
 of the `inspect` module from the Python standard library.
 
 
-#### Usage examples:
+### Usage examples:
 
 The first parameter is the object to be inspected. For example you can 
 examine the dictionary with the local variables:
