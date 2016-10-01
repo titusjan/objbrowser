@@ -20,7 +20,7 @@ Version 1.1.0 - 2016-10-01
 
     License:
 
-    *	MIT (was GPL v3)
+    *	Switched to the MIT license (was GPL v3) so it can be used by the Spyder project.
             https://github.com/spyder-ide/spyder/issues/558
             https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038129.html
 
