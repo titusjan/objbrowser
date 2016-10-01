@@ -53,7 +53,12 @@ class TreeItem(object):
     def is_special_attribute(self):
         " Return true if the items is an attribute and its name begins and end with 2 underscores" 
         return self.is_attribute and name_is_special(self.obj_name)
-    
+
+    @property
+    def is_callable_attribute(self):
+        " Return true if the items is an attribute and it is callable."
+        return self.is_attribute and self.is_callable
+
     @property
     def is_callable(self):
         " Return true if the underlying object is callable "

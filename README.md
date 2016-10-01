@@ -29,13 +29,16 @@ object's _id_ column. This can also be done by right-clicking on the table
 header. An overview of the available columns, and their meanings, can be
 found in [columns.md](columns.md).
 
-If the _Show routine attributes_ from the _View_ menu is checked, 
-functions and methods that are attributes of the object are shown, 
-otherwise they are hidden. Routines are displayed in blue.
+Callable objects (typically functions, methods and classes) are displayed
+in blue. Objects that are an attribute of their parents (as opposed to list
+elements or dictionary items) are displayed in _italics_.
 
-If the _Show special attributes_ from the _View_ menu is checked,
-attributes whos name start and end with two underscores are displayed.
-Special attributes are always displayed in _italics_.
+If _Show callable attributes_ from the _View_ menu is checked, objects
+that are callable and are an attribute are shown, otherwise they are hidden.
+
+If _Show special attributes_ from the _View_ menu is checked, objects
+whos name start and end with two underscores, and which are an attribute,
+are displayed.
 
 The details pane at the bottom shows object properties that do not fit
 on one line, such as the docstrings and the output of various functions 
@@ -60,7 +63,7 @@ itself will be displayed in the root node.
 browse(locals(), 'locals()')
 ```
 
-By setting the `show_routine_attributes` and/or the `show_special_attributes` 
+By setting the `show_callable_attributes` and/or the `show_special_attributes`
 parameters you can override the settings from the _View_ menu. The `reset`
 parameter resets the persistent window settings (e.g. size and position)
 
@@ -69,7 +72,7 @@ s1 = 'Hello'
 s2 = 'World'
 
 browse({'s1': s1, 's2': s2}, 
-        show_routine_attributes = True,
+        show_callable_attributes = True,
         show_special_attributes = False, 
         reset = True)
 ```

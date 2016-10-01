@@ -35,14 +35,14 @@ class ObjectBrowser(QtGui.QMainWindow):
     _q_app = None   # Reference to the global application.
     _browsers = []  # Keep lists of browser windows.
     
-    def __init__(self, obj,  
+    def __init__(self, obj,
                  name = '',
-                 attribute_columns = DEFAULT_ATTR_COLS,  
-                 attribute_details = DEFAULT_ATTR_DETAILS,  
-                 show_routine_attributes = None, # None uses value from QSettings
-                 show_special_attributes = None, # None uses value from QSettings
-                 auto_refresh=None, # None uses value from QSettings
-                 refresh_rate=None, # None uses value from QSettings
+                 attribute_columns = DEFAULT_ATTR_COLS,
+                 attribute_details = DEFAULT_ATTR_DETAILS,
+                 show_callable_attributes = None,  # None uses value from QSettings
+                 show_special_attributes = None,  # None uses value from QSettings
+                 auto_refresh=None,  # None uses value from QSettings
+                 refresh_rate=None,  # None uses value from QSettings
                  reset = False):
         """ Constructor
         
@@ -52,7 +52,7 @@ class ObjectBrowser(QtGui.QMainWindow):
                 are present in the table and their defaults
             :param attribute_details: list of AttributeDetails objects that define which attributes
                 can be selected in the details pane.
-            :param show_routine_attributes: if True rows where the 'is attribute' and 'is routine'
+            :param show_callable_attributes: if True rows where the 'is attribute' and 'is callable'
                 columns are both True, are displayed. Otherwise they are hidden. 
             :param show_special_attributes: if True rows where the 'is attribute' is True and
                 the object name starts and ends with two underscores, are displayed. Otherwise 
@@ -69,17 +69,17 @@ class ObjectBrowser(QtGui.QMainWindow):
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
         
-        (self._auto_refresh, self._refresh_rate, show_routine_attributes, show_special_attributes) = \
+        (self._auto_refresh, self._refresh_rate, show_callable_attributes, show_special_attributes) = \
             self._readModelSettings(reset = reset,
-                                    auto_refresh = auto_refresh, 
-                                    refresh_rate = refresh_rate,  
-                                    show_routine_attributes = show_routine_attributes,
+                                    auto_refresh = auto_refresh,
+                                    refresh_rate = refresh_rate,
+                                    show_callable_attributes= show_callable_attributes,
                                     show_special_attributes = show_special_attributes)
 
         self._tree_model = TreeModel(obj, name, attr_cols = self._attr_cols)
             
         self._proxy_tree_model = TreeProxyModel(
-            show_routine_attributes = show_routine_attributes, 
+            show_callable_attributes= show_callable_attributes,
             show_special_attributes = show_special_attributes)
         
         self._proxy_tree_model.setSourceModel(self._tree_model)
@@ -102,7 +102,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         
         # Update views with model
         self.toggle_special_attribute_action.setChecked(show_special_attributes)
-        self.toggle_callable_action.setChecked(show_routine_attributes)
+        self.toggle_callable_action.setChecked(show_callable_attributes)
         self.toggle_auto_refresh_action.setChecked(self._auto_refresh)
      
         # Select first row so that a hidden root node will not be selected.
@@ -156,8 +156,8 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         # Show/hide callable objects
         self.toggle_callable_action = \
-            QtGui.QAction("Show routine attributes", self, checkable=True, 
-                          statusTip = "Shows/hides attributes that are routings (functions, methods, etc)")
+            QtGui.QAction("Show callable attributes", self, checkable=True,
+                          statusTip = "Shows/hides attributes that are callable (functions, methods, etc)")
         self.toggle_callable_action.toggled.connect(self._proxy_tree_model.setShowCallables)
                               
         # Show/hide special attributes
@@ -308,14 +308,14 @@ class ObjectBrowser(QtGui.QMainWindow):
         return settings_grp
 
                 
-    def _readModelSettings(self, 
+    def _readModelSettings(self,
                            reset=False,
-                           auto_refresh = None, 
-                           refresh_rate = None,  
-                           show_routine_attributes = None,
+                           auto_refresh = None,
+                           refresh_rate = None,
+                           show_callable_attributes = None,
                            show_special_attributes = None):
         """ Reads the persistent model settings .
-            The persistent settings (show_routine_attributes, show_special_attributes) can be \
+            The persistent settings (show_callable_attributes, show_special_attributes) can be \
             overridden by giving it a True or False value.
             If reset is True and the setting is None, True is used as default.
         """ 
@@ -329,8 +329,8 @@ class ObjectBrowser(QtGui.QMainWindow):
                 refresh_rate = default_refresh_rate
             if auto_refresh is None:
                 auto_refresh = default_auto_refresh
-            if show_routine_attributes is None:
-                show_routine_attributes = default_sra
+            if show_callable_attributes is None:
+                show_callable_attributes = default_sra
             if show_special_attributes is None:
                 show_special_attributes = default_ssa
         else:
@@ -347,10 +347,10 @@ class ObjectBrowser(QtGui.QMainWindow):
                 refresh_rate = float(settings.value("refresh_rate", default_refresh_rate))
             logger.debug("read refresh_rate: {!r}".format(refresh_rate))
 
-            if show_routine_attributes is None:
-                show_routine_attributes = setting_str_to_bool(
-                    settings.value("show_routine_attributes", default_sra))
-            logger.debug("read show_routine_attributes: {!r}".format(show_routine_attributes))
+            if show_callable_attributes is None:
+                show_callable_attributes = setting_str_to_bool(
+                    settings.value("show_callable_attributes", default_sra))
+            logger.debug("read show_callable_attributes: {!r}".format(show_callable_attributes))
                 
             if show_special_attributes is None:
                 show_special_attributes = setting_str_to_bool(
@@ -359,7 +359,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             
             settings.endGroup()
                         
-        return (auto_refresh, refresh_rate, show_routine_attributes, show_special_attributes)
+        return (auto_refresh, refresh_rate, show_callable_attributes, show_special_attributes)
                     
     
     def _writeModelSettings(self):
@@ -376,9 +376,9 @@ class ObjectBrowser(QtGui.QMainWindow):
         logger.debug("writing refresh_rate: {!r}".format(self._refresh_rate))
         settings.setValue("refresh_rate", self._refresh_rate)
 
-        logger.debug("writing show_routine_attributes: {!r}"
+        logger.debug("writing show_callable_attributes: {!r}"
                      .format(self._proxy_tree_model.getShowCallables()))
-        settings.setValue("show_routine_attributes", self._proxy_tree_model.getShowCallables())
+        settings.setValue("show_callable_attributes", self._proxy_tree_model.getShowCallables())
 
         logger.debug("writing show_special_attributes: {!r}"
                      .format(self._proxy_tree_model.getShowSpecialAttributes()))

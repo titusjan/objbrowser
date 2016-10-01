@@ -96,8 +96,12 @@ def call_viewer_test():
     
     dict_regular = {'banana': 3, 'apple':4, 'pear': 1, 'orange': 2}
     dict_ordered = OrderedDict(sorted(dict_regular.items(), key=lambda t: t[1])) # sorted by value
-    
-    
+
+    __special_dict_item__ = """A variable that begins and end with to underscores but is a
+        dictionary item, opposed to an attribute. It should therefore always be displayed, even
+        if the 'show __special_attributes__' view option is toggled off
+    """
+
     dt_now = dt.datetime.now()
     date_now = dt.date(2014, 3, 23) 
     date_first = date_now.min
@@ -124,7 +128,7 @@ def call_viewer_test():
     
     browse(locals(), reset = False, # without obj_name
            show_special_attributes = None,
-           show_routine_attributes = None)
+           show_callable_attributes = None)
     if 0: 
         browse(globals(), name = 'globals()',
                attribute_columns = ALL_ATTR_MODELS, 

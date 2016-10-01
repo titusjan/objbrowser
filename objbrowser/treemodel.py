@@ -56,8 +56,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.special_attribute_font.setItalic(True)
         
         self.regular_color = QtGui.QBrush(QtGui.QColor('black'))    
-        #self.routine_color = QtGui.QBrush(QtGui.QColor('brown'))  # for functions, methods, etc.
-        self.routine_color = QtGui.QBrush(QtGui.QColor('mediumblue'))  # for functions, methods, etc.
+        #self.callable_color = QtGui.QBrush(QtGui.QColor('brown'))  # for functions, methods, etc.
+        self.callable_color = QtGui.QBrush(QtGui.QColor('mediumblue'))  # for functions, methods, etc.
 
         # The following members will be initialized by populateTree
         # The rootItem is always invisible. If the obj_name is the empty string, the inspectedItem 
@@ -139,13 +139,13 @@ class TreeModel(QtCore.QAbstractItemModel):
             return self._attr_cols[col].alignment
             
         elif role == Qt.ForegroundRole:
-            if inspect.isroutine(obj):
-                return self.routine_color
+            if tree_item.is_callable:
+                return self.callable_color
             else:
                 return self.regular_color
             
         elif role == Qt.FontRole:
-            if tree_item.is_special_attribute:
+            if tree_item.is_attribute:
                 return self.special_attribute_font
             else:
                 return self.regular_font
@@ -450,19 +450,17 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.dataChanged.emit(top_left, bottom_right)
         
 
-        
-        
     
 class TreeProxyModel(QtGui.QSortFilterProxyModel):
     """ Proxy model that overrides the sorting and can filter out items
     """
-    def __init__(self, 
-                 show_routine_attributes = True,
+    def __init__(self,
+                 show_callable_attributes = True,
                  show_special_attributes = True,
                  parent = None):
         """ Constructor
         
-            :param show_routine_attributes: if True the callables objects, 
+            :param show_callable_attributes: if True the callables objects,
                 i.e. objects (such as function) that  a __call__ method, 
                 will be displayed (in brown). If False they are hidden.
             :param show_special_attributes: if True the objects special attributes, 
@@ -472,7 +470,7 @@ class TreeProxyModel(QtGui.QSortFilterProxyModel):
         """
         super(TreeProxyModel, self).__init__(parent)
 
-        self._show_callables = show_routine_attributes
+        self._show_callables = show_callable_attributes
         self._show_special_attributes = show_special_attributes
 
 
@@ -500,7 +498,7 @@ class TreeProxyModel(QtGui.QSortFilterProxyModel):
         tree_item = parent_item.child(sourceRow)
         
         accept = ((self._show_special_attributes or not tree_item.is_special_attribute) and
-                  (self._show_callables or not tree_item.is_callable))
+                  (self._show_callables or not tree_item.is_callable_attribute))
 
         #logger.debug("filterAcceptsRow = {}: {}".format(accept, tree_item))
         return accept

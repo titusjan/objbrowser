@@ -62,17 +62,17 @@ The identifier of the object with calculated using the `id` function.
 #### is attribute
 
 The object is an attribute of the parent (opposed to e.g. a list element).
-
+Attributes are displayed in _italics_ in the table.
 
 #### is callable
 
 True if the object is callable.  Determined with the `callable` built-in function.
-
+Callable objects are displayed in blue in the table.
 
 #### is routine
 
 True if the object is a user-defined or built-in function or method. Determined with the
-`inspect.isroutine` method. Routines are displayed in blue in the table.
+`inspect.isroutine` method.
 
 
 #### inspect predicates

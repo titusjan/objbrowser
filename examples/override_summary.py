@@ -55,7 +55,7 @@ def main():
     p2 = MyPoint(-4, 1)
         
     exit_code = my_browse({'my_list': my_list, 'p1': p1, 'p2': p2},  
-                          show_routine_attributes=False,
+                          show_callable_attributes=False,
                           show_special_attributes=False, 
                           reset=True)
 

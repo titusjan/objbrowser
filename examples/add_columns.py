@@ -105,7 +105,7 @@ def main():
     z = 'zonk'
             
     exit_code = my_browse(locals(),  
-                          show_routine_attributes=False,
+                          show_callable_attributes=False,
                           show_special_attributes=False)
 
     logging.info('Done example')

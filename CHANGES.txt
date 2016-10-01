@@ -6,16 +6,16 @@ Version 1.1.0 - 2016-10-01
     *   Works with Python 3
     *   Works with both PySide and PyQt4
     *   Integration with IPython event loop and refresh functionality (only IPython 4)
-    *   Toggling routine and __special_attributes__ visibility retains the selected item.
-    *   Routines that are not an object attribute, for instance functions that are an
-        element in a list, are filtered out too when the routines are filtered out.
-        The same holds for __special_attributes__
+    *   Improved color, font and filters:
+        -   All objects that are callable are displayed in blue.
+        -   All objects that are attributes are displayed in italics.
+        -   Callable attributes and __special__ attributes can be filtered.
+    *   Toggling callable and __special__ attributes no longer collapses the entire tree.
 
     Bug fixes:
 
     *   Ordered dict keys are no longer sorted alphabetically.
     *   Fixed off-by-one error where where fetchMore added an empty row to the table.
-    *   __special__ children that are not attributes are not displayed in cursive.
     *   Various small bug fixes.
 
     License:

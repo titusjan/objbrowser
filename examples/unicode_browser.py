@@ -104,7 +104,7 @@ def main():
     
     logger.debug('Starting browser')
     exit_code = my_browse(unicode_chars,  
-                          show_routine_attributes=False,
+                          show_callable_attributes=False,
                           show_special_attributes=False, 
                           reset = False) # use True to reset persistent settings
 

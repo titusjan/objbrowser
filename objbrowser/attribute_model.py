@@ -266,7 +266,9 @@ ATTR_MODEL_ID = AttributeModel('id',
     width       = SMALL_COL_WIDTH) 
 
 ATTR_MODEL_IS_ATTRIBUTE = AttributeModel('is attribute', 
-    doc         = "The object is an attribute of the parent (opposed to e.g. a list element)", 
+    doc         = """The object is an attribute of the parent (opposed to e.g. a list element).
+                     Attributes are displayed in italics in the table.
+                  """,
     data_fn     = tio_is_attribute, 
     col_visible = False,  
     width       = SMALL_COL_WIDTH) 
@@ -274,6 +276,7 @@ ATTR_MODEL_IS_ATTRIBUTE = AttributeModel('is attribute',
 ATTR_MODEL_CALLABLE = AttributeModel('is callable', 
     doc         = """True if the object is callable.
                      Determined with the `callable` built-in function.
+                     Callable objects are displayed in blue in the table.
                   """,
     data_fn     = tio_is_callable, 
     col_visible = True,  
@@ -282,7 +285,6 @@ ATTR_MODEL_CALLABLE = AttributeModel('is callable',
 ATTR_MODEL_IS_ROUTINE = AttributeModel('is routine', 
     doc         = """True if the object is a user-defined or built-in function or method.
                      Determined with the inspect.isroutine() method.
-                     Routines are displayed in blue in the table.
                   """ ,
     data_fn     = lambda tree_item: str(inspect.isroutine(tree_item.obj)), 
     col_visible = False,  
