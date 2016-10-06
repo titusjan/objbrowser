@@ -1,4 +1,11 @@
 
+Version 1.2.0 - ????-??-??
+
+    Changes:
+
+    *   Shortcut keys for toggling callable and __special__ attributes.
+
+
 Version 1.1.0 - 2016-10-01
 
     Changes:

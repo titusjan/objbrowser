@@ -58,9 +58,10 @@ def start_qt_event_loop(qApp):
         logger.debug("IPython detected. Version info: {}".format(version_info))
         if version_info[0] < 4:
             logger.debug("Event loop integration not supported for IPython < 4")
-        elif version_info[0] == 5:
-            # The is_event_loop_running_qt4 function doesn't seem to work anymore.
-            logger.debug("Event loop integration does not work in IPython 5")
+        elif version_info[0] == 5 and version_info[1] <= 1:
+            # The is_event_loop_running_qt4 function is broken in IPython 5.0 and 5.1.
+            # https://github.com/ipython/ipython/issues/9974
+            logger.debug("Event loop integration does not work in IPython 5.0 and 5.1")
         else:
             try:
                 from IPython.lib.guisupport import is_event_loop_running_qt4, start_event_loop_qt4
