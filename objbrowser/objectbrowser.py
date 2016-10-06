@@ -7,8 +7,6 @@
 # tool-tips
 # sphynx
 
-
-# pyserial.Serial
 # qtpy
 
 from __future__ import absolute_import
