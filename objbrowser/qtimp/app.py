@@ -4,7 +4,7 @@
 import sys, logging, traceback
 logger = logging.getLogger(__name__)
 
-from .bindings import QtCore, QtGui
+from qtpy import QtCore, QtWidgets
 from ..version import DEBUGGING, PROGRAM_NAME
 
 
@@ -22,19 +22,19 @@ def in_ipython():
 def qapp_exists():
     """ Returns true if a QApplicaiotn is already running
     """
-    return QtGui.QApplication.instance() is not None
+    return QtWidgets.QApplication.instance() is not None
 
 
 def get_qapp(*args, **kwargs):
     """ Gets the global Qt application object. Creates one if it doesn't exist.
     """
-    qApp = QtGui.QApplication.instance()
+    qApp = QtWidgets.QApplication.instance()
     if qApp:
         logger.debug("Returning existing QApplication")
         return qApp
     else:
         logger.debug("Creating new QApplication")
-        return QtGui.QApplication(*args, **kwargs)
+        return QtWidgets.QApplication(*args, **kwargs)
         
         
 def get_qsettings():
@@ -93,15 +93,15 @@ def handleException(exc_type, exc_value, exc_traceback):
         sys.exit(1)
     else:
         # Constructing a QApplication in case this hasn't been done yet.
-        if not QtGui.qApp:
-            _app = QtGui.QApplication()
+        if not QtWidgets.qApp:
+            _app = QtWidgets.QApplication()
          
-        msgBox = QtGui.QMessageBox()
+        msgBox = QtWidgets.QMessageBox()
         msgBox.setText("Bug: uncaught {}".format(exc_type.__name__))
         msgBox.setInformativeText(str(exc_value))
         lst = traceback.format_exception(exc_type, exc_value, exc_traceback)
         msgBox.setDetailedText("".join(lst))
-        msgBox.setIcon(QtGui.QMessageBox.Warning)
+        msgBox.setIcon(QtWidgets.QMessageBox.Warning)
         msgBox.exec_()
         sys.exit(1)
         

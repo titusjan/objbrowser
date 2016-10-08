@@ -54,7 +54,7 @@ Known issues:
             
 """
 
-from .bindings import QtCore, QtGui, ACTIVE_BINDINGS
-from .QtCore import Qt, QtSignal, QtSlot
+#from .bindings import QtCore, QtGui, ACTIVE_BINDINGS
+#from .QtCore import Qt, QtSignal, Slot
 from .app import get_qapp, get_qsettings, start_qt_event_loop
 

@@ -14,9 +14,14 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import logging, traceback, hashlib, sys
-from objbrowser.qtimp import QtCore, QtGui, QtSlot, get_qapp, get_qsettings, start_qt_event_loop
 
+
+from qtpy import QtCore, QtGui, QtWidgets
+from qtpy.QtCore import Slot
+
+from objbrowser.qtimp import get_qapp, get_qsettings, start_qt_event_loop
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
+from objbrowser.version import PYTHON_VERSION, QT_API, QTPY_VERSION
 from objbrowser.utils import setting_str_to_bool
 from objbrowser.treemodel import TreeProxyModel, TreeModel
 from objbrowser.toggle_column_mixin import ToggleColumnTreeView
@@ -24,7 +29,13 @@ from objbrowser.attribute_model import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
 
 logger = logging.getLogger(__name__)
 
-        
+logger.info("Importing {} {}".format(PROGRAM_NAME, PROGRAM_VERSION))
+logger.info("Using Python {}".format(PYTHON_VERSION))
+logger.info("Using Qt API: {} (qtpy: {})".format(QT_API, QTPY_VERSION))
+
+
+
+
 # The main window inherits from a Qt class, therefore it has many 
 # ancestors public methods and attributes.
 # pylint: disable=R0901, R0902, R0904, W0201 
@@ -33,7 +44,7 @@ logger = logging.getLogger(__name__)
 # from one stack frame higher; you can't know if the ObjectBrowser.__init__ was
 # called directly, via the browse() wrapper or via a descendants' constructor.
 
-class ObjectBrowser(QtGui.QMainWindow):
+class ObjectBrowser(QtWidgets.QMainWindow):
     """ Object browser main application window.
     """
     _q_app = None   # Reference to the global application.
@@ -160,28 +171,28 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         # Show/hide callable objects
         self.toggle_callable_action = \
-            QtGui.QAction("Show callable attributes", self, checkable=True,
+            QtWidgets.QAction("Show callable attributes", self, checkable=True,
                           shortcut = QtGui.QKeySequence("Ctrl+C"),
                           statusTip = "Shows/hides attributes that are callable (functions, methods, etc)")
         self.toggle_callable_action.toggled.connect(self._proxy_tree_model.setShowCallables)
                               
         # Show/hide special attributes
         self.toggle_special_attribute_action = \
-            QtGui.QAction("Show __special__ attributes", self, checkable=True,
+            QtWidgets.QAction("Show __special__ attributes", self, checkable=True,
                           shortcut = QtGui.QKeySequence("Ctrl+S"),
                           statusTip = "Shows or hides __special__ attributes")
         self.toggle_special_attribute_action.toggled.connect(self._proxy_tree_model.setShowSpecialAttributes)
 
         # Toggle auto-refresh on/off
         self.toggle_auto_refresh_action = \
-            QtGui.QAction("Auto-refresh", self, checkable=True, 
+            QtWidgets.QAction("Auto-refresh", self, checkable=True,
                           statusTip = "Auto refresh every {} seconds".format(self._refresh_rate))
         self.toggle_auto_refresh_action.toggled.connect(self.toggle_auto_refresh)
                               
         # Add another refresh action with a different short cut. An action must be added to
         # a visible widget for it to receive events. It is added to the main windows to prevent it
         # from being displayed again in the menu
-        self.refresh_action_f5 = QtGui.QAction(self, text="&Refresh2", shortcut="F5")
+        self.refresh_action_f5 = QtWidgets.QAction(self, text="&Refresh2", shortcut="F5")
         self.refresh_action_f5.triggered.connect(self.refresh)
         self.addAction(self.refresh_action_f5) 
         
@@ -214,16 +225,16 @@ class ObjectBrowser(QtGui.QMainWindow):
     def _setup_views(self):
         """ Creates the UI widgets. 
         """
-        self.central_splitter = QtGui.QSplitter(self, orientation = QtCore.Qt.Vertical)
+        self.central_splitter = QtWidgets.QSplitter(self, orientation = QtCore.Qt.Vertical)
         self.setCentralWidget(self.central_splitter)
-        central_layout = QtGui.QVBoxLayout()
+        central_layout = QtWidgets.QVBoxLayout()
         self.central_splitter.setLayout(central_layout)
         
         # Tree widget
         self.obj_tree = ToggleColumnTreeView()
         self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._proxy_tree_model)
-        self.obj_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.obj_tree.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
         self.obj_tree.setAnimated(True)
         self.obj_tree.add_header_context_menu()
@@ -231,7 +242,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         # Stretch last column? 
         # It doesn't play nice when columns are hidden and then shown again.
         obj_tree_header = self.obj_tree.header()
-        obj_tree_header.setMovable(True)
+        obj_tree_header.setSectionsMovable(True)
         obj_tree_header.setStretchLastSection(False)
         for action in self.obj_tree.toggle_column_actions_group.actions():
             self.show_cols_submenu.addAction(action)
@@ -239,29 +250,29 @@ class ObjectBrowser(QtGui.QMainWindow):
         central_layout.addWidget(self.obj_tree)
 
         # Bottom pane
-        bottom_pane_widget = QtGui.QWidget()
-        bottom_layout = QtGui.QHBoxLayout()
+        bottom_pane_widget = QtWidgets.QWidget()
+        bottom_layout = QtWidgets.QHBoxLayout()
         bottom_layout.setSpacing(0)
         bottom_layout.setContentsMargins(5, 5, 5, 5) # left top right bottom
         bottom_pane_widget.setLayout(bottom_layout)
         central_layout.addWidget(bottom_pane_widget)
         
-        group_box = QtGui.QGroupBox("Details")
+        group_box = QtWidgets.QGroupBox("Details")
         bottom_layout.addWidget(group_box)
         
-        group_layout = QtGui.QHBoxLayout()
+        group_layout = QtWidgets.QHBoxLayout()
         group_layout.setContentsMargins(2, 2, 2, 2) # left top right bottom
         group_box.setLayout(group_layout)
         
         # Radio buttons
-        radio_widget = QtGui.QWidget()
-        radio_layout = QtGui.QVBoxLayout()
+        radio_widget = QtWidgets.QWidget()
+        radio_layout = QtWidgets.QVBoxLayout()
         radio_layout.setContentsMargins(0, 0, 0, 0) # left top right bottom        
         radio_widget.setLayout(radio_layout) 
 
-        self.button_group = QtGui.QButtonGroup(self)
+        self.button_group = QtWidgets.QButtonGroup(self)
         for button_id, attr_detail in enumerate(self._attr_details):
-            radio_button = QtGui.QRadioButton(attr_detail.name)
+            radio_button = QtWidgets.QRadioButton(attr_detail.name)
             radio_layout.addWidget(radio_button)
             self.button_group.addButton(radio_button, button_id)
 
@@ -277,7 +288,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         font.setFixedPitch(True)
         #font.setPointSize(14)
 
-        self.editor = QtGui.QPlainTextEdit()
+        self.editor = QtWidgets.QPlainTextEdit()
         self.editor.setReadOnly(True)
         self.editor.setFont(font)
         group_layout.addWidget(self.editor)
@@ -455,7 +466,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         settings.endGroup()
             
 
-    @QtSlot(QtCore.QModelIndex, QtCore.QModelIndex)
+    @Slot(QtCore.QModelIndex, QtCore.QModelIndex)
     def _update_details(self, current_index, _previous_index):
         """ Shows the object details in the editor given an index.
         """
@@ -489,7 +500,7 @@ class ObjectBrowser(QtGui.QMainWindow):
             self.editor.setStyleSheet("color: red;")
             stack_trace = traceback.format_exc()
             self.editor.setPlainText("{}\n\n{}".format(ex, stack_trace))
-            self.editor.setWordWrapMode(QtGui.QTextOption.WrapAtWordBoundaryOrAnywhere)
+            self.editor.setWordWrapMode(QtWidgets.QTextOption.WrapAtWordBoundaryOrAnywhere)
 
     def toggle_auto_refresh(self, checked):
         """ Toggles auto-refresh on/off.
@@ -511,8 +522,10 @@ class ObjectBrowser(QtGui.QMainWindow):
         
     def about(self):
         """ Shows the about message window. """
-        message = "{} version {}\n\n{}""".format(PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL)
-        QtGui.QMessageBox.about(self, "About {}".format(PROGRAM_NAME), message)
+        message = ("{}: {}\n\nPython: {}\nQt API: {} (qtpy: {})\n\n{}"
+                   .format(PROGRAM_NAME, PROGRAM_VERSION, PYTHON_VERSION,
+                           QT_API, QTPY_VERSION, PROGRAM_URL))
+        QtWidgets.QMessageBox.about(self, "About {}".format(PROGRAM_NAME), message)
 
 
     def _finalize(self):
@@ -572,10 +585,11 @@ class ObjectBrowser(QtGui.QMainWindow):
             A (class attribute) reference to the browser window is kept to prevent it from being
             garbage-collected.
         """
-        q_app = QtGui.QApplication.instance()
+        q_app = QtWidgets.QApplication.instance()
         if q_app is None:
+
             logger.debug("Creating QApplication instance")
-            q_app = QtGui.QApplication(sys.argv)
+            q_app = QtWidgets.QApplication(sys.argv)
             q_app.aboutToQuit.connect(cls.about_to_quit)
             q_app.lastWindowClosed.connect(q_app.quit)
         else:

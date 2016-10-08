@@ -13,9 +13,9 @@ from difflib import SequenceMatcher
 from collections import OrderedDict
 from six import unichr
 
-from objbrowser.qtimp import QtCore, QtGui#, Qt
-from objbrowser.qtimp.QtCore import Qt
-from objbrowser.treeitem import TreeItem, name_is_special
+from qtpy import QtCore, QtGui, QtWidgets
+from qtpy.QtCore import Qt
+from objbrowser.treeitem import TreeItem
 from objbrowser.utils import cut_off_str
 
 logger = logging.getLogger(__name__)
@@ -451,7 +451,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         
 
     
-class TreeProxyModel(QtGui.QSortFilterProxyModel):
+class TreeProxyModel(QtCore.QSortFilterProxyModel):
     """ Proxy model that overrides the sorting and can filter out items
     """
     def __init__(self,
