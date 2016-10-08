@@ -1,4 +1,5 @@
-""" 
+#!/usr/bin/env python
+"""
     Example that demonstrates overriding the summary column
 """
 from __future__ import print_function

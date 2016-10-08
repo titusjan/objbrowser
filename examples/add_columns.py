@@ -1,4 +1,5 @@
-""" 
+#!/usr/bin/env python
+"""
     Example that demonstrates several ways of defining your own columns.
 """
 from __future__ import print_function

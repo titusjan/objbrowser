@@ -1,4 +1,5 @@
-""" 
+#!/usr/bin/env python
+"""
    Test program that shows an object browser containing many types and variables.
 """
 from __future__ import print_function

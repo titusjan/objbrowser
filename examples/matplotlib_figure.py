@@ -1,4 +1,5 @@
-""" 
+#!/usr/bin/env python
+"""
     Example that demonstrates inspecting a MatPlotLib Figure.
 """
 from __future__ import print_function

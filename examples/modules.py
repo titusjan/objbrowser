@@ -1,4 +1,5 @@
-""" 
+#!/usr/bin/env python
+"""
    Example that demonstrates inspecting module contents.
    
    Also demonstrates starting two browser windows simultaneously.

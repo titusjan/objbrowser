@@ -1,4 +1,5 @@
-""" 
+#!/usr/bin/env python
+"""
     Example that demonstrates the simples way of defining your own columns.
     See also add_columns.py
 """

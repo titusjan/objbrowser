@@ -1,4 +1,5 @@
-""" 
+#!/usr/bin/env python
+"""
     Shows all unicode characters and properties.
     
     The glyphs for some characters may not be available if the font is not installed.
