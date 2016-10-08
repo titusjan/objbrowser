@@ -7,7 +7,7 @@ import logging
 from qtpy import QtCore, QtWidgets
 from qtpy.QtCore import Qt
 
-from objbrowser.qtimp.app import get_qsettings
+from objbrowser.app import get_qsettings
 
 logger = logging.getLogger(__name__)
 

@@ -19,7 +19,7 @@ import logging, traceback, hashlib, sys
 from qtpy import QtCore, QtGui, QtWidgets
 from qtpy.QtCore import Slot
 
-from objbrowser.qtimp import get_qapp, get_qsettings, start_qt_event_loop
+from objbrowser.app import get_qapp, get_qsettings, start_qt_event_loop
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from objbrowser.version import PYTHON_VERSION, QT_API, QTPY_VERSION
 from objbrowser.utils import setting_str_to_bool

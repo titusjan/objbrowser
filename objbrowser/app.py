@@ -1,11 +1,61 @@
-""" Qt Application related functions.
+""" Package for IPython eventloop integration.
+
+Two things are handled by this package.
+
+1)  Creating the QApplication instance (or getting the singleton if it already
+    exists). Also no difference between IPython and the regular Python.
+
+2)  Starting the event loop.
+
+    If IPython is not running, qApp.exec_() is called, which is blocking.
+
+    The IPython.lib.guisupport.start_event_loop_qt4() function is used. If no
+    event loop is yet running, it will start a blocking event loop. If an event
+    loop is running, start_event_loop_qt4() will do nothing and return. It is
+    therefore non-blocking. This makes user interaction from the command
+    line possible.
+
+    The user can start an IPython event loop by calling the '%gui qt' magic command,
+    by starting IPython with the --qui=qt command line option, or by setting
+    c.TerminalIPythonApp.gui = 'qt' in ~/.ipython/<profile>/ipython_config.py
+
+See also:
+    http://ipython.readthedocs.org/en/stable/api/generated/IPython.lib.guisupport.html
+
+Known issues:
+
+1)  Starting; ipython --gui=qt main.py
+    Since this will start a non-blocking event loop before calling main, the
+    application exits as soon as it is created. Use the IPython -i option to
+    stay in IPython after the script has finished.
+    So run: ipython --gui=qt -i main.py
+
+2)  PyQT4 has two API versions: Python 2 uses API v1 by default, Python 3
+    uses v2 (PySide only implements the v2 API). The API version must be set
+    before PyQt4 is imported!
+
+    This program is written for v2 so if v1 is already running, an error will
+    occur. If you use the iptyhon --qui=qt command line option to start an
+    event loop (and make interaction from the command line possible), IPython-2
+    will start API v1 if PyQt is configured. To force IPython-2 to use the
+    v2 API, the QT_API environment variable must be set to 'pyqt'.
+
+    This works, unfortunately IPython 4.0.0 contains a bug and raises the
+    following ImportError: No module named qt. As a work around you can,
+        1: Ignore the ImportError
+        2: Import PyQt4 (or PySide) manually. In IPython type: import PyQt4.QtCore
+        3: Start the event loop with: %gui qt
+
+    Also IPython 5.0.0 and 5.1.0 contain a bug so it won't work there as well.
+    See https://github.com/ipython/ipython/issues/9974. It is expected to be fixed
+    in IPython 5.2.0
 """
 
 import sys, logging, traceback
 logger = logging.getLogger(__name__)
 
 from qtpy import QtCore, QtWidgets
-from ..version import DEBUGGING, PROGRAM_NAME
+from objbrowser.version import DEBUGGING, PROGRAM_NAME
 
 
 def in_ipython():
