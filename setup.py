@@ -23,5 +23,5 @@ setup(name = 'objbrowser',
         'Topic :: Adaptive Technologies',
         'Topic :: Software Development',
         'Topic :: Utilities'],    
-    packages = ['objbrowser', 'objbrowser.qtimp'])
+    packages = ['objbrowser'])
     #packages = find_packages()) # requires the enduser to install setuptools
