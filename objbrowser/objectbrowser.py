@@ -214,8 +214,6 @@ class ObjectBrowser(QtGui.QMainWindow):
         """
         self.central_splitter = QtGui.QSplitter(self, orientation = QtCore.Qt.Vertical)
         self.setCentralWidget(self.central_splitter)
-        central_layout = QtGui.QVBoxLayout()
-        self.central_splitter.setLayout(central_layout)
         
         # Tree widget
         self.obj_tree = ToggleColumnTreeView()
@@ -234,7 +232,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         for action in self.obj_tree.toggle_column_actions_group.actions():
             self.show_cols_submenu.addAction(action)
 
-        central_layout.addWidget(self.obj_tree)
+        self.central_splitter.addWidget(self.obj_tree)
 
         # Bottom pane
         bottom_pane_widget = QtGui.QWidget()
@@ -242,7 +240,7 @@ class ObjectBrowser(QtGui.QMainWindow):
         bottom_layout.setSpacing(0)
         bottom_layout.setContentsMargins(5, 5, 5, 5) # left top right bottom
         bottom_pane_widget.setLayout(bottom_layout)
-        central_layout.addWidget(bottom_pane_widget)
+        self.central_splitter.addWidget(bottom_pane_widget)
         
         group_box = QtGui.QGroupBox("Details")
         bottom_layout.addWidget(group_box)
