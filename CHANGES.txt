@@ -1,8 +1,9 @@
 
-Version 1.2.0 - ????-??-??
+Version 1.2.0 - 2016-10-30
 
     Changes:
 
+    *   Works with PyQt5,
     *   Shortcut keys for toggling callable and __special__ attributes.
 
 
