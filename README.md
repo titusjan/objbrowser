@@ -8,18 +8,25 @@ recursively (e.g. browse through a list of dictionaries). You can add
 your own inspection methods as new columns to the tree view, or as radio buttons
 to the details pane. Altering existing inspection methods is possible as well.
 
+#### Installation:
 
-### Installation:
-
-1.	Install
-	    [PySide](http://wiki.qt.io/Category:LanguageBindings::PySide::Downloads)
+First install
+	    [PyQt](https://www.riverbankcomputing.com/software/pyqt/download5)
     or
-	    [PyQt4](https://www.riverbankcomputing.com/software/pyqt/download).
+	    [PySide](http://wiki.qt.io/Category:LanguageBindings::PySide::Downloads)
 
-2.	Run the installer:
-```
-%> pip install objbrowser
-```
+The object browser automatically detects which Qt bindings are installed. If both bindings are
+installed it prefers PyQt over PySide. You can force the object browser to use a certain binding
+by setting the `QT_API` environment variable to `pyqt5`, `pyqt4`, or `pyside`.
+
+Then install the object browser with:
+
+    %> pip install objbrowser
+
+or use the installer:
+
+    %> python setup.py install
+
 
 ### User interface:
 
