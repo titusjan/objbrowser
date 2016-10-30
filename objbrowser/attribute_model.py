@@ -4,8 +4,8 @@ from __future__ import absolute_import
 
 __all__ = ['browse', 'execute', 'create_object_browser', 'logging_basic_config']
 
-from qtpy.QtCore import Qt
-from qtpy.QtGui import QTextOption
+from objbrowser.qtpy.QtCore import Qt
+from objbrowser.qtpy.QtGui import QTextOption
 
 import logging, inspect, string, pprint, six
 

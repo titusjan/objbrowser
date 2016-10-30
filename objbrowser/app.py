@@ -1,6 +1,6 @@
-""" Package for IPython eventloop integration.
+""" Module for IPython event loop integration.
 
-Two things are handled by this package.
+Two things are handled by this module .
 
 1)  Creating the QApplication instance (or getting the singleton if it already
     exists). Also no difference between IPython and the regular Python.
@@ -54,7 +54,7 @@ Known issues:
 import sys, logging, traceback
 logger = logging.getLogger(__name__)
 
-from qtpy import QtCore, QtWidgets
+from objbrowser.qtpy import QtCore, QtWidgets
 from objbrowser.version import DEBUGGING, PROGRAM_NAME
 
 

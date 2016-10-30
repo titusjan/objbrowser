@@ -6,7 +6,7 @@ from __future__ import print_function
 import sys, logging
 from math import sqrt
 
-from qtpy.QtCore import Qt
+from objbrowser.qtpy.QtCore import Qt
 
 from objbrowser import browse
 from objbrowser.utils import logging_basic_config

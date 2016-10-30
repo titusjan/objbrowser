@@ -4,8 +4,8 @@ from __future__ import print_function
 
 import logging
 
-from qtpy import QtCore, QtWidgets
-from qtpy.QtCore import Qt
+from objbrowser.qtpy import QtCore, QtWidgets
+from objbrowser.qtpy.QtCore import Qt
 
 from objbrowser.app import get_qsettings
 

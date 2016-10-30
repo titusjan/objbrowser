@@ -16,24 +16,18 @@ from __future__ import print_function
 import logging, traceback, hashlib, sys
 
 
-from qtpy import QtCore, QtGui, QtWidgets
-from qtpy.QtCore import Slot
+from objbrowser.qtpy import QtCore, QtGui, QtWidgets
+from objbrowser.qtpy.QtCore import Slot
 
 from objbrowser.app import get_qapp, get_qsettings, start_qt_event_loop
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
-from objbrowser.version import PYTHON_VERSION, QT_API, QTPY_VERSION
+from objbrowser.version import PYTHON_VERSION, QT_API_NAME, QT_API, QTPY_VERSION
 from objbrowser.utils import setting_str_to_bool
 from objbrowser.treemodel import TreeProxyModel, TreeModel
 from objbrowser.toggle_column_mixin import ToggleColumnTreeView
 from objbrowser.attribute_model import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
 
 logger = logging.getLogger(__name__)
-
-logger.info("Importing {} {}".format(PROGRAM_NAME, PROGRAM_VERSION))
-logger.info("Using Python {}".format(PYTHON_VERSION))
-logger.info("Using Qt API: {} (qtpy: {})".format(QT_API, QTPY_VERSION))
-
-
 
 
 # The main window inherits from a Qt class, therefore it has many 
@@ -522,9 +516,9 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         
     def about(self):
         """ Shows the about message window. """
-        message = ("{}: {}\n\nPython: {}\nQt API: {} (qtpy: {})\n\n{}"
+        message = ("{}: {}\n\nPython: {}\n{} (api: {}, qtpy: {})\n\n{}"
                    .format(PROGRAM_NAME, PROGRAM_VERSION, PYTHON_VERSION,
-                           QT_API, QTPY_VERSION, PROGRAM_URL))
+                           QT_API_NAME, QT_API, QTPY_VERSION, PROGRAM_URL))
         QtWidgets.QMessageBox.about(self, "About {}".format(PROGRAM_NAME), message)
 
 
@@ -622,6 +616,10 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         
             The *args and **kwargs will be passed to the ObjectBrowser constructor.
         """
+        logger.info("Browsing with {} {}".format(PROGRAM_NAME, PROGRAM_VERSION))
+        logger.info("Using Python {}".format(PYTHON_VERSION))
+        logger.info("Using {} (api {}, qtpy: {})".format(QT_API_NAME, QT_API, QTPY_VERSION))
+
         cls.create_browser(*args, **kwargs)
         exit_code = cls.execute()
         return exit_code

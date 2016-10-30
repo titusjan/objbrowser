@@ -1,34 +1,5 @@
-""" Patches to add Qt5 methods to the classes.
-
-    Forked from qtyp._patch.qheaderview.py (commit 722e745932281a64ef64ac8dd189329bec462f00),
-    which has the MIT license.
-"""
-import logging
-
-from objbrowser.qtpy.QtWidgets import QHeaderView
-from objbrowser.qtpy import PYQT4, PYSIDE
-
-logger = logging.getLogger(__name__)
-
-
-def patch_qheaderview_if_needed():
-    """ Checks that we are in PyQt4 or PySide and that QHeaderView hasn't been patched already.
-
-        If so it will add the new Qt5 methods to the QHeaderView class.
-    """
-    # Only patch for Qt4 or Pyside
-    if PYQT4 or PYSIDE:
-
-        # See if it hasn't allready been patch (by qtpy 1.2.0 or higher)
-        if not hasattr(QHeaderView, 'sectionsClickable'):
-            logger.debug("Patching QHeaderView")
-            introduce_renamed_methods_qheaderview(QHeaderView)
-
-
-
 def introduce_renamed_methods_qheaderview(QHeaderView):
-    """ Add the new Qt5 methods to the QHeaderView class.
-    """
+
     def sectionsClickable(self):
         """
         QHeaderView.sectionsClickable() -> bool
@@ -71,6 +42,7 @@ def introduce_renamed_methods_qheaderview(QHeaderView):
         """
         QHeaderView.setResizeMode(self, *args)
     QHeaderView.setSectionResizeMode = setSectionResizeMode
+
 
 
 
