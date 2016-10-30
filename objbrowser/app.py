@@ -146,7 +146,7 @@ def handleException(exc_type, exc_value, exc_traceback):
         if not QtWidgets.qApp:
             _app = QtWidgets.QApplication()
          
-        msgBox = QtWidgets.QMessageBox()
+        msgBox = ResizeDetailsMessageBox()
         msgBox.setText("Bug: uncaught {}".format(exc_type.__name__))
         msgBox.setInformativeText(str(exc_value))
         lst = traceback.format_exception(exc_type, exc_value, exc_traceback)
@@ -154,4 +154,35 @@ def handleException(exc_type, exc_value, exc_traceback):
         msgBox.setIcon(QtWidgets.QMessageBox.Warning)
         msgBox.exec_()
         sys.exit(1)
-        
+
+
+
+class ResizeDetailsMessageBox(QtWidgets.QMessageBox):
+    """ Message box that enlarges when the 'Show Details' button is clicked.
+        Can be used to better view stack traces. I could't find how to make a resizeable message
+        box but this it the next best thing.
+
+        Taken from:
+        http://stackoverflow.com/questions/2655354/how-to-allow-resizing-of-qmessagebox-in-pyqt4
+    """
+    def __init__(self, detailsBoxWidth=700, detailBoxHeight=300, *args, **kwargs):
+        """ Constructor
+            :param detailsBoxWidht: The width of the details text box (default=700)
+            :param detailBoxHeight: The heights of the details text box (default=700)
+        """
+        super(ResizeDetailsMessageBox, self).__init__(*args, **kwargs)
+        self.detailsBoxWidth = detailsBoxWidth
+        self.detailBoxHeight = detailBoxHeight
+
+
+    def resizeEvent(self, event):
+        """ Resizes the details box if present (i.e. when 'Show Details' button was clicked)
+        """
+        result = super(ResizeDetailsMessageBox, self).resizeEvent(event)
+
+        details_box = self.findChild(QtWidgets.QTextEdit)
+        if details_box is not None:
+            #details_box.setFixedSize(details_box.sizeHint())
+            details_box.setFixedSize(QtCore.QSize(self.detailsBoxWidth, self.detailBoxHeight))
+
+        return result
