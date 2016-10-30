@@ -1,5 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# To make a release type:
+#   python setup.py sdist --formats=zip
+
 from distutils.core import setup
 from objbrowser.version import DEBUGGING, PROGRAM_VERSION
+
+
 
 assert not DEBUGGING, "DEBUGGING must be False"
 
@@ -23,5 +31,5 @@ setup(name = 'objbrowser',
         'Topic :: Adaptive Technologies',
         'Topic :: Software Development',
         'Topic :: Utilities'],    
-    packages = ['objbrowser'])
+    packages = ['objbrowser', 'objbrowser.qtpy', 'objbrowser.qtpy._patch'])
     #packages = find_packages()) # requires the enduser to install setuptools
