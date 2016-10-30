@@ -166,14 +166,14 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         # Show/hide callable objects
         self.toggle_callable_action = \
             QtWidgets.QAction("Show callable attributes", self, checkable=True,
-                          shortcut = QtGui.QKeySequence("Ctrl+C"),
+                          shortcut = QtGui.QKeySequence("Alt+C"),
                           statusTip = "Shows/hides attributes that are callable (functions, methods, etc)")
         self.toggle_callable_action.toggled.connect(self._proxy_tree_model.setShowCallables)
                               
         # Show/hide special attributes
         self.toggle_special_attribute_action = \
             QtWidgets.QAction("Show __special__ attributes", self, checkable=True,
-                          shortcut = QtGui.QKeySequence("Ctrl+S"),
+                          shortcut = QtGui.QKeySequence("Alt+S"),
                           statusTip = "Shows or hides __special__ attributes")
         self.toggle_special_attribute_action.toggled.connect(self._proxy_tree_model.setShowSpecialAttributes)
 
