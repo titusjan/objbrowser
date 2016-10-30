@@ -1,4 +1,5 @@
-""" 
+#!/usr/bin/env python
+"""
    Test program that shows an object browser containing many types and variables.
 """
 from __future__ import print_function
@@ -111,11 +112,20 @@ def call_viewer_test():
     
     try:
         import numpy as np
-        arr = np.arange(24, dtype=np.uint16).reshape(8, 3)
-        pi_16bit = np.float16(np.pi)
     except ImportError as ex:
         logger.warn(ex)
-        
+    else:
+        arr = np.arange(24, dtype=np.uint16).reshape(8, 3)
+        pi_16bit = np.float16(np.pi)
+
+    try:
+        import serial
+    except ImportError as ex:
+        logger.warn(ex)
+    else:
+        # PySerial object. Does not work if the port/device is closed. I cannot fix this.
+        ser = serial.Serial()
+
     
     # These will give error in the str() representation. 
     # I deliberately did not use string.encode('ascii', 'backslashreplace') to 

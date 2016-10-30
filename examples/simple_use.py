@@ -1,4 +1,5 @@
-""" 
+#!/usr/bin/env python
+"""
     Simple usage of the object browser; shows local variables
 """
 import logging
