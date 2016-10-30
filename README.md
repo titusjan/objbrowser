@@ -8,7 +8,7 @@ recursively (e.g. browse through a list of dictionaries). You can add
 your own inspection methods as new columns to the tree view, or as radio buttons
 to the details pane. Altering existing inspection methods is possible as well.
 
-#### Installation:
+### Installation:
 
 First install
 	    [PyQt](https://www.riverbankcomputing.com/software/pyqt/download5)
