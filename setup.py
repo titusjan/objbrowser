@@ -4,6 +4,9 @@
 # To make a release type:
 #   python setup.py sdist --formats=zip
 
+# Then upload to PiPy with
+#   twine upload dist/objbrowser-1.2.0.zip
+
 from distutils.core import setup
 from objbrowser.version import DEBUGGING, PROGRAM_VERSION
 

@@ -1,9 +1,17 @@
 
+
+Version 1.2.1 - 2016-11-02
+
+    Changes:
+
+    *   Fixed installer.
+
+
 Version 1.2.0 - 2016-10-30
 
     Changes:
 
-    *   Works with PyQt5,
+    *   Works with PyQt5.
     *   Shortcut keys for toggling callable and __special__ attributes.
 
 
