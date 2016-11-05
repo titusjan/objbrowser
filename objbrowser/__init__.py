@@ -18,7 +18,7 @@ try:
 except Exception as ex:
     sys.stderr.write("\n")
     sys.stderr.write("  The following packages are required to run objbrowser:\n")
-    sys.stderr.write("      six:\n")
+    sys.stderr.write("      six\n")
     sys.stderr.write("      PySide or PyQt\n")
     sys.stderr.write("\n")
     sys.stderr.write("  Could not run objbrowser because: {}".format(ex))

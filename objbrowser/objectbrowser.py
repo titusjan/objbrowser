@@ -211,7 +211,7 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         
         self.menuBar().addSeparator()
         help_menu = self.menuBar().addMenu("&Help")
-        help_menu.addAction('&About', self.about)
+        help_menu.addAction('&About...', self.about)
 
 
     def _setup_views(self):
