@@ -19,6 +19,10 @@ The object browser automatically detects which Qt bindings are installed. If bot
 installed it prefers PyQt over PySide. You can force the object browser to use a certain binding
 by setting the `QT_API` environment variable to `pyqt5`, `pyqt4`, or `pyside`.
 
+Also install six:
+
+    %> pip install six
+
 Then install the object browser with:
 
     %> pip install objbrowser

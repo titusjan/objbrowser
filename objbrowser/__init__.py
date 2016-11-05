@@ -13,9 +13,15 @@ from objbrowser.version import DEBUGGING
 # Wrap the following code in an exception so that setup.py can still import the PROGRAM_VERSION
 # even if PyQt/PySide is not installed.
 try:
+    import six
     import objbrowser.qtpy.QtCore as _QtCore
 except Exception as ex:
-    sys.stderr.write("Please install PyQt or PySide ({})".format(ex))
+    sys.stderr.write("\n")
+    sys.stderr.write("  The following packages are required to run objbrowser:\n")
+    sys.stderr.write("      six:\n")
+    sys.stderr.write("      PySide or PyQt\n")
+    sys.stderr.write("\n")
+    sys.stderr.write("  Could not run objbrowser because: {}".format(ex))
     sys.stderr.write("\n")
 else:
     from objbrowser.patches import patch_qheaderview_if_needed

@@ -34,5 +34,6 @@ setup(name = 'objbrowser',
         'Topic :: Adaptive Technologies',
         'Topic :: Software Development',
         'Topic :: Utilities'],    
-    packages = ['objbrowser', 'objbrowser.qtpy', 'objbrowser.qtpy._patch'])
+    packages = ['objbrowser', 'objbrowser.qtpy', 'objbrowser.qtpy._patch'],
+    requires = ['six'])
     #packages = find_packages()) # requires the enduser to install setuptools
