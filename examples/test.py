@@ -118,6 +118,18 @@ def call_viewer_test():
         arr = np.arange(24, dtype=np.uint16).reshape(8, 3)
         pi_16bit = np.float16(np.pi)
 
+        # Datetime arrays
+        daysInFeb2005 = np.arange('2005-02', '2005-03', dtype='datetime64[D]')
+
+        # Structured arrays (http://docs.scipy.org/doc/numpy/user/basics.rec.html)
+        datatype1 = np.dtype([('name', np.str_, 16), ('grade', np.float64)])
+        structured_array = np.array([('Sarah', 8.0), ('John', 7.5)], dtype=datatype1)
+
+        # Structured array with sub array
+        # (http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html
+        datatype2 = np.dtype([('name', np.str_, 16), ('grades', np.float64, (2,))])
+        array_with_sub_array = np.array([('Sarah', (8.0, 7.0)), ('John', (6.0, 7.0))], dtype=datatype2)
+
     try:
         import serial
     except ImportError as ex:
@@ -135,7 +147,9 @@ def call_viewer_test():
     u3 = u'all ASCII chars'
     multi_line_str = """hello\r\nworld
                         the\rend."""
-    
+
+    # TODO: LOOK at iterators and generators. E.g. beautiful soup
+
     browse(locals(), reset = False, # without obj_name
            show_special_attributes = None,
            show_callable_attributes = None)
