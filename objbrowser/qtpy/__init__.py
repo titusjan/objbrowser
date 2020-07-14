@@ -48,6 +48,18 @@ packages::
     >>> from objbrowser.qtpy import QtGui, QtWidgets, QtCore
     >>> print(QtWidgets.QWidget)
 
+
+PySide2
+======
+
+Set the QT_API environment variable to 'pyside' before importing other
+packages::
+
+    >>> import os
+    >>> os.environ['QT_API'] = 'pyside2'
+    >>> from objbrowser.qtpy import QtGui, QtWidgets, QtCore
+    >>> print(QtWidgets.QWidget)
+
 """
 
 import os
@@ -66,14 +78,17 @@ PYQT4_API = [
 ]
 #: names of the expected PySide api
 PYSIDE_API = ['pyside']
-
+#: names of the expected PySide2 api
+PYSIDE2_API = ['pyside2']
 os.environ.setdefault(QT_API, 'pyqt5')
 API = os.environ[QT_API].lower()
-assert API in (PYQT5_API + PYQT4_API + PYSIDE_API)
+assert API in (PYQT5_API + PYQT4_API + PYSIDE_API + PYSIDE2_API)
 
 is_old_pyqt = is_pyqt46 = False
 PYQT5 = True
-PYQT4 = PYSIDE = False
+PYQT4 = PYSIDE = PYSIDE2 = False
+
+print("In my own local", API)
 
 
 class PythonQtError(Exception):
@@ -124,8 +139,18 @@ if API in PYSIDE_API:
     except ImportError:
         raise PythonQtError('No Qt bindings could be found')
 
+if API in PYSIDE2_API:
+    try:
+        from PySide2 import __version__ as PYSIDE_VERSION  # analysis:ignore
+        from PySide2.QtCore import __version__ as QT_VERSION  # analysis:ignore
+        PYQT_VERSION = None
+        PYQT5 = False
+        PYSIDE2 = True
+    except ImportError:
+        raise PythonQtError('No Qt bindings could be found')
+
 API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyqt4': 'PyQt4',
-            'pyside': 'PySide'}[API]
+            'pyside': 'PySide', 'pyside2': 'PySide2'}[API]
 if PYQT4:
         import sip
         try:

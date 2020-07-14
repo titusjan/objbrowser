@@ -13,11 +13,13 @@ Provides QtGui classes and functions.
     the ``PyQt5.QtGui`` module.
 """
 
-from objbrowser.qtpy import PYQT5, PYQT4, PYSIDE, PythonQtError
+from objbrowser.qtpy import PYQT5, PYQT4, PYSIDE, PYSIDE2, PythonQtError
 
 
 if PYQT5:
     from PyQt5.QtGui import *
+elif PYSIDE2:
+    from PySide2.QtGui import *
 elif PYQT4:
     from PyQt4.Qt import QKeySequence, QTextCursor
     from PyQt4.QtGui import (QAbstractTextDocumentLayout, QActionEvent, QBitmap,

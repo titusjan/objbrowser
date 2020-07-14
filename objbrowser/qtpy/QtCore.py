@@ -10,7 +10,7 @@
 Provides QtCore classes and functions.
 """
 
-from objbrowser.qtpy import PYQT5, PYQT4, PYSIDE, PythonQtError
+from objbrowser.qtpy import PYQT5, PYQT4, PYSIDE, PYSIDE2, PythonQtError
 
 
 if PYQT5:
@@ -22,6 +22,10 @@ if PYQT5:
 
     # Those are imported from `import *`
     del pyqtSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
+elif PYSIDE2:
+    from PySide2.QtCore import *
+    import PySide2.QtCore
+    __version__ = PySide2.QtCore.__version__
 elif PYQT4:
     from PyQt4.QtCore import *
     # Those are things we inherited from Spyder that fix crazy crashes under
