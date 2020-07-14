@@ -188,7 +188,13 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         self.refresh_action_f5.triggered.connect(self.refresh)
         self.addAction(self.refresh_action_f5) 
         
-                              
+        # My test action.
+        self.my_test_action = \
+            QtWidgets.QAction("My test", self, checkable=False,
+                          statusTip = "Test action for debugging")
+        self.my_test_action.toggled.connect(self.my_test)
+
+
     def _setup_menu(self):
         """ Sets up the main menu.
         """
@@ -507,7 +513,9 @@ class ObjectBrowser(QtWidgets.QMainWindow):
     def my_test(self):
         """ Function for testing """
         logger.debug("my_test")
-        raise Exception("An exceptional exception occurred")
+
+        self._tree_model.beginResetModel()
+        self._tree_model.endResetModel()
 
         
     def about(self):
