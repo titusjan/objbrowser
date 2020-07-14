@@ -50,6 +50,7 @@ class ObjectBrowser(QtWidgets.QMainWindow):
                  show_special_attributes = None,  # None uses value from QSettings
                  auto_refresh=None,  # None uses value from QSettings
                  refresh_rate=None,  # None uses value from QSettings
+                 fail_silently=None,
                  reset = False):
         """ Constructor
         
@@ -83,11 +84,11 @@ class ObjectBrowser(QtWidgets.QMainWindow):
                                     show_callable_attributes= show_callable_attributes,
                                     show_special_attributes = show_special_attributes)
 
-        self._tree_model = TreeModel(obj, name, attr_cols = self._attr_cols)
+        self._tree_model = TreeModel(obj, name, attr_cols = self._attr_cols, fail_silently = fail_silently)
             
         self._proxy_tree_model = TreeProxyModel(
-            show_callable_attributes= show_callable_attributes,
-            show_special_attributes = show_special_attributes)
+            show_callable_attributes=show_callable_attributes,
+            show_special_attributes=show_special_attributes)
         
         self._proxy_tree_model.setSourceModel(self._tree_model)
         #self._proxy_tree_model.setSortRole(RegistryTableModel.SORT_ROLE)

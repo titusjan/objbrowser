@@ -32,14 +32,21 @@ logger = logging.getLogger(__name__)
 # The main window inherits from a Qt class, therefore it has many 
 # ancestors public methods and attributes.
 # pylint: disable=R0901, R0902, R0904, W0201 
-    
+
+class InvalidProperty():
+
+    def __init__(prop):
+        self.prop = prop
+
+
 class TreeModel(QtCore.QAbstractItemModel):
     """ Model that provides an interface to an objectree that is build of TreeItems. 
     """
     def __init__(self, obj, 
                  obj_name = '',
                  attr_cols = None, 
-                 parent = None):
+                 parent = None,
+                 fail_silently = None):
         """ Constructor
         
             :param obj: any Python object or variable
@@ -50,6 +57,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         """
         super(TreeModel, self).__init__(parent)
         self._attr_cols = attr_cols
+        self.fail_silently = fail_silently
 
         self.regular_font = QtGui.QFont()  # Font for members (non-functions)
         self.special_attribute_font = QtGui.QFont()  # Font for __special_attributes__
@@ -257,7 +265,41 @@ class TreeModel(QtCore.QAbstractItemModel):
             
         parent_item.children_fetched = True                
         self.endInsertRows()
-        
+
+    def _inspect_getmembers(self, obj, *args, **kwargs):
+        if not self.fail_silently:
+            return inspect.getmembers(obj, *args, **kwargs)
+
+        # cache obj class
+        obj_cls = type(obj)
+        # reclass obj with a silent fail __getattribute__
+        class SilentFailGetAttr(obj_cls):
+
+            def __getattribute__(self, attr):
+                if '__' == attr[:2] and '__' == attr[-2:]:
+                    return super().__getattribute__(attr)
+
+                try:
+                    return super().__getattribute__(attr)
+                except Exception:
+                    return InvalidProperty(attr)
+
+        obj.__class__ = SilentFailGetAttr
+        # inspect object members
+        _err = None
+        try:
+            ret = inspect.getmembers(obj, *args, **kwargs)
+        except Exception as err:
+            # delay exception raising for after the obj's class has been restored
+            _err = err
+        # restore class
+        obj.__class__ = obj_cls
+
+        if _err is not None:
+            raise _err
+
+        return ret
+
 
     def _fetchObjectChildren(self, obj, obj_path):
         """ Fetches the children of a Python object. 
@@ -297,7 +339,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         is_attr_list = [False] * len(obj_children)
         
         # Object attributes
-        for attr_name, attr_value in sorted(inspect.getmembers(obj)):
+        for attr_name, attr_value in sorted(self._inspect_getmembers(obj)):
             obj_children.append( (attr_name, attr_value) )
             path_strings.append('{}.{}'.format(obj_path, attr_name) if obj_path else attr_name)
             is_attr_list.append(True)
