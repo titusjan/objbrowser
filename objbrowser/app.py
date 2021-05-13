@@ -54,7 +54,7 @@ Known issues:
 import sys, logging, traceback
 logger = logging.getLogger(__name__)
 
-from objbrowser.qtpy import QtCore, QtWidgets
+from qtpy import QtCore, QtWidgets
 from objbrowser.version import DEBUGGING, PROGRAM_NAME
 
 

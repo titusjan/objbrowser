@@ -13,8 +13,8 @@ from difflib import SequenceMatcher
 from collections import OrderedDict
 from six import unichr
 
-from objbrowser.qtpy import QtCore, QtGui, QtWidgets
-from objbrowser.qtpy.QtCore import Qt
+from qtpy import QtCore, QtGui, QtWidgets
+from qtpy.QtCore import Qt
 from objbrowser.treeitem import TreeItem
 from objbrowser.utils import cut_off_str
 

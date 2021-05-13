@@ -4,6 +4,7 @@ __all__ = ['browse', '__version__', 'logging_basic_config']
 
 import logging
 import sys
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +15,11 @@ from objbrowser.version import DEBUGGING
 # even if PyQt/PySide is not installed.
 try:
     import six
-    import objbrowser.qtpy.QtCore as _QtCore
+    import qtpy.QtCore as _QtCore
 except Exception as ex:
+
+    traceback.print_exc()
+
     sys.stderr.write("\n")
     sys.stderr.write("  The following packages are required to run objbrowser:\n")
     sys.stderr.write("      six\n")
@@ -24,8 +28,6 @@ except Exception as ex:
     sys.stderr.write("  Could not run objbrowser because: {}".format(ex))
     sys.stderr.write("\n")
 else:
-    from objbrowser.patches import patch_qheaderview_if_needed
-    patch_qheaderview_if_needed()
 
     from objbrowser.app import handleException
     from objbrowser.objectbrowser import ObjectBrowser
