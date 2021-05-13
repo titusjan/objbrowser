@@ -5,7 +5,7 @@ import os, sys
 DEBUGGING = False
 
 PROGRAM_NAME = 'objbrowser'
-PROGRAM_VERSION = '1.2.2-dev'
+PROGRAM_VERSION = '1.3.0'
 PROGRAM_URL = 'https://github.com/titusjan/objbrowser'
 PROGRAM_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
 
