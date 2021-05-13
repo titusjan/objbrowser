@@ -14,8 +14,8 @@ from __future__ import print_function
 import logging, traceback, hashlib, sys
 
 
-from objbrowser.qtpy import QtCore, QtGui, QtWidgets
-from objbrowser.qtpy.QtCore import Slot
+from qtpy import QtCore, QtGui, QtWidgets
+from qtpy.QtCore import Slot
 
 from objbrowser.app import get_qapp, get_qsettings, start_qt_event_loop
 from objbrowser.version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
@@ -188,7 +188,13 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         self.refresh_action_f5.triggered.connect(self.refresh)
         self.addAction(self.refresh_action_f5) 
         
-                              
+        # My test action.
+        self.my_test_action = \
+            QtWidgets.QAction("My test", self, checkable=False,
+                          statusTip = "Test action for debugging")
+        self.my_test_action.toggled.connect(self.my_test)
+
+
     def _setup_menu(self):
         """ Sets up the main menu.
         """
@@ -211,7 +217,7 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         
         self.menuBar().addSeparator()
         help_menu = self.menuBar().addMenu("&Help")
-        help_menu.addAction('&About', self.about)
+        help_menu.addAction('&About...', self.about)
 
 
     def _setup_views(self):
@@ -507,7 +513,9 @@ class ObjectBrowser(QtWidgets.QMainWindow):
     def my_test(self):
         """ Function for testing """
         logger.debug("my_test")
-        raise Exception("An exceptional exception occurred")
+
+        self._tree_model.beginResetModel()
+        self._tree_model.endResetModel()
 
         
     def about(self):
