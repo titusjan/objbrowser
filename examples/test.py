@@ -113,7 +113,7 @@ def call_viewer_test():
     try:
         import numpy as np
     except ImportError as ex:
-        logger.warn(ex)
+        logger.warning(ex)
     else:
         arr = np.arange(24, dtype=np.uint16).reshape(8, 3)
         pi_16bit = np.float16(np.pi)
@@ -133,7 +133,7 @@ def call_viewer_test():
     try:
         import serial
     except ImportError as ex:
-        logger.warn(ex)
+        logger.warning(ex)
     else:
         # PySerial object. Does not work if the port/device is closed. I cannot fix this.
         ser = serial.Serial()
