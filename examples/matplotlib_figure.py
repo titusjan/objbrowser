@@ -39,7 +39,7 @@ def main():
     logger.info('Started example')
 
     fig1 = make_fig('figure1')
-    exit_code = browse(fig1, name='fig1', show_special_attributes=False)
+    exit_code = browse(fig1, name='fig1', show_dunder_attributes=False)
 
     logging.info('Done example')
     sys.exit(exit_code)

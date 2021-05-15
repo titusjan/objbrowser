@@ -14,7 +14,7 @@ from objbrowser.utils import cut_off_str
 MAX_OBJ_STR_LEN = 50
 
 
-def name_is_special(method_name):
+def name_is_dunder(method_name):
     "Returns true if the method name starts and ends with two underscores"
     return method_name.startswith('__') and method_name.endswith('__') 
 
@@ -50,9 +50,9 @@ class TreeItem(object):
             .format(id(self.obj), self.obj_path, n_children)
             
     @property
-    def is_special_attribute(self):
+    def is_dunder_attribute(self):
         " Return true if the items is an attribute and its name begins and end with 2 underscores" 
-        return self.is_attribute and name_is_special(self.obj_name)
+        return self.is_attribute and name_is_dunder(self.obj_name)
 
     @property
     def is_callable_attribute(self):

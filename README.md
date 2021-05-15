@@ -45,7 +45,7 @@ list element or dictionary item) are displayed in _italics_.
 If _Show callable attributes_ from the _View_ menu is checked, objects
 that are callable and are an attribute are shown. Otherwise they are hidden.
 
-If _Show special attributes_ from the _View_ menu is checked, objects
+If _Show dunder attributes_ from the _View_ menu is checked, objects
 that are attributes, and have a name that starts and ends with two
 underscores, are shown. Otherwise they are hidden.
 
@@ -72,7 +72,7 @@ itself will be displayed in the root node.
 browse(locals(), 'locals()')
 ```
 
-By setting the `show_callable_attributes` and/or the `show_special_attributes`
+By setting the `show_callable_attributes` and/or the `show_dunder_attributes`
 parameters you can override the settings from the _View_ menu. The `reset`
 parameter resets the persistent window settings (e.g. size and position)
 
@@ -82,7 +82,7 @@ s2 = 'World'
 
 browse({'s1': s1, 's2': s2}, 
         show_callable_attributes = True,
-        show_special_attributes = False, 
+        show_dunder_attributes = False, 
         reset = True)
 ```
 

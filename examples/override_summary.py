@@ -57,7 +57,7 @@ def main():
         
     exit_code = my_browse({'my_list': my_list, 'p1': p1, 'p2': p2},  
                           show_callable_attributes=False,
-                          show_special_attributes=False, 
+                          show_dunder_attributes=False,
                           reset=True)
 
     logging.info('Done example')

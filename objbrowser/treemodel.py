@@ -52,8 +52,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._attr_cols = attr_cols
 
         self.regular_font = QtGui.QFont()  # Font for members (non-functions)
-        self.special_attribute_font = QtGui.QFont()  # Font for __special_attributes__
-        self.special_attribute_font.setItalic(True)
+        self.dunder_attribute_font = QtGui.QFont()  # Font for __dunder_attributes__
+        self.dunder_attribute_font.setItalic(True)
         
         self.regular_color = QtGui.QBrush(QtGui.QColor('black'))    
         #self.callable_color = QtGui.QBrush(QtGui.QColor('brown'))  # for functions, methods, etc.
@@ -146,7 +146,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             
         elif role == Qt.FontRole:
             if tree_item.is_attribute:
-                return self.special_attribute_font
+                return self.dunder_attribute_font
             else:
                 return self.regular_font
         else:
@@ -468,14 +468,14 @@ class TreeProxyModel(QtCore.QSortFilterProxyModel):
     """
     def __init__(self,
                  show_callable_attributes = True,
-                 show_special_attributes = True,
+                 show_dunder_attributes = True,
                  parent = None):
         """ Constructor
         
             :param show_callable_attributes: if True the callables objects,
                 i.e. objects (such as function) that  a __call__ method, 
                 will be displayed (in brown). If False they are hidden.
-            :param show_special_attributes: if True the objects special attributes, 
+            :param show_dunder_attributes: if True the objects dunder attributes,
                 i.e. methods with a name that starts and ends with two underscores, 
                 will be displayed (in italics). If False they are hidden.
             :param parent: the parent widget
@@ -483,7 +483,7 @@ class TreeProxyModel(QtCore.QSortFilterProxyModel):
         super(TreeProxyModel, self).__init__(parent)
 
         self._show_callables = show_callable_attributes
-        self._show_special_attributes = show_special_attributes
+        self._show_dunder_attributes = show_dunder_attributes
 
 
     def treeItem(self, proxy_index):
@@ -509,7 +509,7 @@ class TreeProxyModel(QtCore.QSortFilterProxyModel):
         parent_item = self.sourceModel().treeItem(sourceParentIndex)
         tree_item = parent_item.child(sourceRow)
         
-        accept = ((self._show_special_attributes or not tree_item.is_special_attribute) and
+        accept = ((self._show_dunder_attributes or not tree_item.is_dunder_attribute) and
                   (self._show_callables or not tree_item.is_callable_attribute))
 
         #logger.debug("filterAcceptsRow = {}: {}".format(accept, tree_item))
@@ -529,15 +529,15 @@ class TreeProxyModel(QtCore.QSortFilterProxyModel):
         self.invalidateFilter()
 
 
-    def getShowSpecialAttributes(self):
-        return self._show_special_attributes
+    def getShowDunderAttributes(self):
+        return self._show_dunder_attributes
         
         
-    def setShowSpecialAttributes(self, show_special_attributes):
-        """ Shows/hides special attributes, which begin with an underscore.
+    def setShowDunderAttributes(self, show_dunder_attributes):
+        """ Shows/hides dunder attributes, which begin with an underscore.
             Repopulates the tree.
         """
-        logger.debug("setShowSpecialAttributes: {}".format(show_special_attributes))
-        self._show_special_attributes = show_special_attributes
+        logger.debug("setShowDunderAttributes: {}".format(show_dunder_attributes))
+        self._show_dunder_attributes = show_dunder_attributes
         self.invalidateFilter()
         

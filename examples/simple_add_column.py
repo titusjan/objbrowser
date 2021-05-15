@@ -51,7 +51,7 @@ def main():
             
     exit_code = my_browse(locals(),  
                           show_callable_attributes=False,
-                          show_special_attributes=False)
+                          show_dunder_attributes=False)
 
     logging.info('Done example')
     sys.exit(exit_code)

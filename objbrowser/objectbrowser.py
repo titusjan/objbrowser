@@ -47,7 +47,7 @@ class ObjectBrowser(QtWidgets.QMainWindow):
                  attribute_columns = DEFAULT_ATTR_COLS,
                  attribute_details = DEFAULT_ATTR_DETAILS,
                  show_callable_attributes = None,  # None uses value from QSettings
-                 show_special_attributes = None,  # None uses value from QSettings
+                 show_dunder_attributes = None,  # None uses value from QSettings
                  auto_refresh=None,  # None uses value from QSettings
                  refresh_rate=None,  # None uses value from QSettings
                  reset = False):
@@ -61,7 +61,7 @@ class ObjectBrowser(QtWidgets.QMainWindow):
                 can be selected in the details pane.
             :param show_callable_attributes: if True rows where the 'is attribute' and 'is callable'
                 columns are both True, are displayed. Otherwise they are hidden. 
-            :param show_special_attributes: if True rows where the 'is attribute' is True and
+            :param show_dunder_attributes: if True rows where the 'is attribute' is True and
                 the object name starts and ends with two underscores, are displayed. Otherwise 
                 they are hidden.
             :param auto_refresh: If True, the contents refershes itsef every <refresh_rate> seconds.
@@ -76,18 +76,18 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
         
-        (self._auto_refresh, self._refresh_rate, show_callable_attributes, show_special_attributes) = \
+        (self._auto_refresh, self._refresh_rate, show_callable_attributes, show_dunder_attributes) = \
             self._readModelSettings(reset = reset,
                                     auto_refresh = auto_refresh,
                                     refresh_rate = refresh_rate,
                                     show_callable_attributes= show_callable_attributes,
-                                    show_special_attributes = show_special_attributes)
+                                    show_dunder_attributes = show_dunder_attributes)
 
         self._tree_model = TreeModel(obj, name, attr_cols = self._attr_cols)
             
         self._proxy_tree_model = TreeProxyModel(
             show_callable_attributes= show_callable_attributes,
-            show_special_attributes = show_special_attributes)
+            show_dunder_attributes = show_dunder_attributes)
         
         self._proxy_tree_model.setSourceModel(self._tree_model)
         #self._proxy_tree_model.setSortRole(RegistryTableModel.SORT_ROLE)
@@ -108,7 +108,7 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         self._refresh_timer.timeout.connect(self.refresh)
         
         # Update views with model
-        self.toggle_special_attribute_action.setChecked(show_special_attributes)
+        self.toggle_dunder_attribute_action.setChecked(show_dunder_attributes)
         self.toggle_callable_action.setChecked(show_callable_attributes)
         self.toggle_auto_refresh_action.setChecked(self._auto_refresh)
      
@@ -168,12 +168,12 @@ class ObjectBrowser(QtWidgets.QMainWindow):
                           statusTip = "Shows/hides attributes that are callable (functions, methods, etc)")
         self.toggle_callable_action.toggled.connect(self._proxy_tree_model.setShowCallables)
                               
-        # Show/hide special attributes
-        self.toggle_special_attribute_action = \
-            QtWidgets.QAction("Show __special__ attributes", self, checkable=True,
+        # Show/hide dunder attributes
+        self.toggle_dunder_attribute_action = \
+            QtWidgets.QAction("Show __dunder__ attributes", self, checkable=True,
                           shortcut = QtGui.QKeySequence("Alt+S"),
-                          statusTip = "Shows or hides __special__ attributes")
-        self.toggle_special_attribute_action.toggled.connect(self._proxy_tree_model.setShowSpecialAttributes)
+                          statusTip = "Shows or hides __dunder__ attributes")
+        self.toggle_dunder_attribute_action.toggled.connect(self._proxy_tree_model.setShowDunderAttributes)
 
         # Toggle auto-refresh on/off
         self.toggle_auto_refresh_action = \
@@ -213,7 +213,7 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         self.show_cols_submenu = view_menu.addMenu("Table columns")
         view_menu.addSeparator()
         view_menu.addAction(self.toggle_callable_action)
-        view_menu.addAction(self.toggle_special_attribute_action)
+        view_menu.addAction(self.toggle_dunder_attribute_action)
         
         self.menuBar().addSeparator()
         help_menu = self.menuBar().addMenu("&Help")
@@ -326,9 +326,9 @@ class ObjectBrowser(QtWidgets.QMainWindow):
                            auto_refresh = None,
                            refresh_rate = None,
                            show_callable_attributes = None,
-                           show_special_attributes = None):
+                           show_dunder_attributes = None):
         """ Reads the persistent model settings .
-            The persistent settings (show_callable_attributes, show_special_attributes) can be \
+            The persistent settings (show_callable_attributes, show_dunder_attributes) can be \
             overridden by giving it a True or False value.
             If reset is True and the setting is None, True is used as default.
         """ 
@@ -344,8 +344,8 @@ class ObjectBrowser(QtWidgets.QMainWindow):
                 auto_refresh = default_auto_refresh
             if show_callable_attributes is None:
                 show_callable_attributes = default_sra
-            if show_special_attributes is None:
-                show_special_attributes = default_ssa
+            if show_dunder_attributes is None:
+                show_dunder_attributes = default_ssa
         else:
             logger.debug("Reading model settings for window: {:d}".format(self._instance_nr))
             settings = get_qsettings()
@@ -365,14 +365,14 @@ class ObjectBrowser(QtWidgets.QMainWindow):
                     settings.value("show_callable_attributes", default_sra))
             logger.debug("read show_callable_attributes: {!r}".format(show_callable_attributes))
                 
-            if show_special_attributes is None:
-                show_special_attributes = setting_str_to_bool(
-                    settings.value("show_special_attributes", default_ssa))
-            logger.debug("read show_special_attributes: {!r}".format(show_special_attributes))
+            if show_dunder_attributes is None:
+                show_dunder_attributes = setting_str_to_bool(
+                    settings.value("show_dunder_attributes", default_ssa))
+            logger.debug("read show_dunder_attributes: {!r}".format(show_dunder_attributes))
             
             settings.endGroup()
                         
-        return (auto_refresh, refresh_rate, show_callable_attributes, show_special_attributes)
+        return (auto_refresh, refresh_rate, show_callable_attributes, show_dunder_attributes)
                     
     
     def _writeModelSettings(self):
@@ -393,9 +393,9 @@ class ObjectBrowser(QtWidgets.QMainWindow):
                      .format(self._proxy_tree_model.getShowCallables()))
         settings.setValue("show_callable_attributes", self._proxy_tree_model.getShowCallables())
 
-        logger.debug("writing show_special_attributes: {!r}"
-                     .format(self._proxy_tree_model.getShowSpecialAttributes()))
-        settings.setValue("show_special_attributes", self._proxy_tree_model.getShowSpecialAttributes())
+        logger.debug("writing show_dunder_attributes: {!r}"
+                     .format(self._proxy_tree_model.getShowDunderAttributes()))
+        settings.setValue("show_dunder_attributes", self._proxy_tree_model.getShowDunderAttributes())
         
         settings.endGroup()
         
@@ -533,7 +533,7 @@ class ObjectBrowser(QtWidgets.QMainWindow):
         self._refresh_timer.stop()
         self._refresh_timer.timeout.disconnect(self.refresh)
         self.toggle_callable_action.toggled.disconnect(self._proxy_tree_model.setShowCallables)
-        self.toggle_special_attribute_action.toggled.disconnect(self._proxy_tree_model.setShowSpecialAttributes)        
+        self.toggle_dunder_attribute_action.toggled.disconnect(self._proxy_tree_model.setShowDunderAttributes)
         self.toggle_auto_refresh_action.toggled.disconnect(self.toggle_auto_refresh)
         self.refresh_action_f5.triggered.disconnect(self.refresh)
         self.button_group.buttonClicked[int].disconnect(self._change_details_field)
