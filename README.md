@@ -13,11 +13,11 @@ to the details pane. Altering existing inspection methods is possible as well.
 First install
 	    [PyQt](https://www.riverbankcomputing.com/software/pyqt/download5)
     or
-	    [PySide](http://wiki.qt.io/Category:LanguageBindings::PySide::Downloads)
+	    [PySide2](https://wiki.qt.io/Qt_for_Python)
 
 The object browser automatically detects which Qt bindings are installed. If both bindings are
 installed it prefers PyQt over PySide. You can force the object browser to use a certain binding
-by setting the `QT_API` environment variable to `pyqt5`, `pyqt4`, or `pyside`.
+by setting the `QT_API` environment variable to `pyqt5`, `pyqt4`, or `pyside2`.
 
 Then install the object browser with:
 

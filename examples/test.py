@@ -98,7 +98,7 @@ def call_viewer_test():
     dict_regular = {'banana': 3, 'apple':4, 'pear': 1, 'orange': 2}
     dict_ordered = OrderedDict(sorted(dict_regular.items(), key=lambda t: t[1])) # sorted by value
 
-    __special_dict_item__ = """A variable that begins and end with to underscores but is a
+    __special_dict_item__ = """A variable that begins and end with two underscores but is a
         dictionary item, opposed to an attribute. It should therefore always be displayed, even
         if the 'show __special_attributes__' view option is toggled off
     """
