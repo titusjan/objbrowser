@@ -104,7 +104,7 @@ class ObjectBrowser(QtWidgets.QMainWindow):
 
         assert self._refresh_rate > 0, "refresh_rate must be > 0. Got: {}".format(self._refresh_rate)
         self._refresh_timer = QtCore.QTimer(self)
-        self._refresh_timer.setInterval(self._refresh_rate * 1000)
+        self._refresh_timer.setInterval(round(self._refresh_rate * 1000))
         self._refresh_timer.timeout.connect(self.refresh)
         
         # Update views with model
